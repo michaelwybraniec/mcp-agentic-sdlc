@@ -1,0 +1,25 @@
+{
+  "name": "mcp-agentic-sldc",
+  "version": "0.1.0",
+  "description": "Model Context Protocol tool: init_sldc creates agentic-sldc folder in the app directory.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": ["mcp", "agentic", "sldc", "tool"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.0.0"
+  }
+} 
