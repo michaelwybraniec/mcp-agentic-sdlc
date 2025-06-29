@@ -14,7 +14,7 @@ import * as path from 'path';
  */
 const server = new Server(
   {
-    name: "mcp-agentic-sldc",
+    name: "mcp-agentic-sdlc",
     version: "0.1.0",
   },
   {

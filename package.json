@@ -1,5 +1,5 @@
 {
-  "name": "mcp-agentic-sldc",
+  "name": "mcp-agentic-sdlc",
   "version": "0.1.0",
   "description": "Model Context Protocol tool: init_sldc creates agentic-sldc folder in the app directory.",
   "main": "dist/index.js",
