@@ -6,11 +6,11 @@ A comprehensive framework for managing software development lifecycle with AI ag
 
 MCP Agentic SDLC consists of two main components:
 
-1. **Software Development Lifecycle (SDLC)** - [`SLDC.md`](./SLDC.md)
-   - Structured development process
-   - Project planning and management
-   - Development phases and milestones
-   - Quality assurance procedures
+1. **Agentic Software Development Lifecycle (ASDLC)** - [`ASDLC.md`](./ASDLC.md)
+   - AI-Human collaborative development process
+   - Structured development phases with agentic integration
+   - Continuous feedback loops
+   - Balanced responsibility distribution
 
 2. **Agentic Workflow Protocol (AWP)** - [`AWP.md`](./AWP.md)
    - Human-AI collaboration workflow
@@ -18,9 +18,76 @@ MCP Agentic SDLC consists of two main components:
    - Progress tracking
    - Standardized procedures
 
+## Architecture
+
+```mermaid
+graph TB
+    subgraph MCP["MCP Agentic SDLC"]
+        direction TB
+        
+        subgraph ASDLC["Agentic Software Development Lifecycle"]
+            direction LR
+            ProblemDef["Problem Definition"]
+            Design["Design Phase"]
+            Development["Development Phase"]
+            Testing["Testing Phase"]
+            Deployment["Deployment Phase"]
+            Maintenance["Maintenance Phase"]
+            
+            ProblemDef --> Design
+            Design --> Development
+            Development --> Testing
+            Testing --> Deployment
+            Deployment --> Maintenance
+            Maintenance -.-> ProblemDef
+            
+            subgraph Core["Collaboration Core"]
+                AIAgent["AI Agent"]
+                Human["Human"]
+                AIAgent -.-> Human
+                Human -.-> AIAgent
+            end
+            
+            Core -.-> ProblemDef
+            Core -.-> Design
+            Core -.-> Development
+            Core -.-> Testing
+            Core -.-> Deployment
+            Core -.-> Maintenance
+        end
+        
+        subgraph AWP["Agentic Workflow Protocol"]
+            direction LR
+            Context["Context Management"]
+            Workflow["Workflow Tracking"]
+            Collab["Human-AI Collaboration"]
+            Procedures["Standard Procedures"]
+            
+            Context --> Workflow
+            Workflow --> Collab
+            Collab --> Procedures
+            Procedures --> Context
+        end
+        
+        subgraph Integration["Integration Layer"]
+            direction LR
+            Docs["Documentation Sync"]
+            Progress["Progress Tracking"]
+            Handoff["Task Handoff"]
+            Quality["Quality Gates"]
+        end
+        
+        ASDLC <--> Integration
+        AWP <--> Integration
+    end
+    
+    HumanUser((Human)) <--> MCP
+    AISystem((AI Agent)) <--> MCP
+```
+
 ## Getting Started
 
-1. Read [`SLDC.md`](./SLDC.md) for the development lifecycle framework
+1. Read [`ASDLC.md`](./ASDLC.md) for the agentic development lifecycle framework
 2. Read [`AWP.md`](./AWP.md) for the workflow protocol
 3. Check the `examples/` directory for practical implementations
 
@@ -36,7 +103,7 @@ MCP Agentic SDLC consists of two main components:
 
 ## Documentation
 
-- [`SLDC.md`](./SLDC.md) - Software Development Lifecycle documentation
+- [`ASDLC.md`](./ASDLC.md) - Agentic Software Development Lifecycle documentation
 - [`AWP.md`](./AWP.md) - Agentic Workflow Protocol documentation
 - `examples/` - Example implementations and use cases
 

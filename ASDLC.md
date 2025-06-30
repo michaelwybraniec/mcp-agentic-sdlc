@@ -1,3 +1,149 @@
+# Agentic Software Development Lifecycle (ASDLC)
+
+## Architecture
+
+```mermaid
+graph TB
+    subgraph ASDLC["Agentic Software Development Lifecycle"]
+        direction TB
+        
+        subgraph Center["Collaboration Core"]
+            AI["AI Agent"]
+            Human["Human"]
+            AI -.-> Human
+            Human -.-> AI
+        end
+        
+        subgraph ProblemDef["Problem Definition"]
+            Draft["Draft business needs"]
+            Finalize["Finalize scope and Objectives"]
+            Resource["Resource allocation"]
+            Draft --> Finalize
+            Finalize --> Resource
+        end
+        
+        subgraph Design["Design"]
+            Requirements["Design the requirements"]
+            ProjectPlan["Outline Project Plan"]
+            DraftReq["Draft Requirement"]
+            UXCX["Adjust UX/CX"]
+            Patterns["Create initial Design Patterns"]
+            Requirements --> ProjectPlan
+            ProjectPlan --> DraftReq
+            DraftReq --> UXCX
+            UXCX --> Patterns
+        end
+        
+        subgraph Development["Development"]
+            CodeBase["Draft code base"]
+            Tests["Write Unit tests and documentation"]
+            Usability["Test for usability"]
+            CodeBase --> Tests
+            Tests --> Usability
+        end
+        
+        subgraph Testing["Testing"]
+            UnitIntegration["Unit/Integration/System"]
+            BugReports["Write Bug Reports"]
+            Validate["Validate test results"]
+            UnitIntegration --> BugReports
+            BugReports --> Validate
+        end
+        
+        subgraph Deployment["Deployment"]
+            Pipelines["Automate Pipelines"]
+            PostDeploy["Post Deployment Checks"]
+            Supervision["Supervision"]
+            Pipelines --> PostDeploy
+            PostDeploy --> Supervision
+        end
+        
+        subgraph Maintenance["Maintenance"]
+            Updates["Apply Updates and patches"]
+            Feedback["Act upon User feedback"]
+            Monitor["Monitor System Performance"]
+            Updates --> Feedback
+            Feedback --> Monitor
+        end
+        
+        ProblemDef --> Design
+        Design --> Development
+        Development --> Testing
+        Testing --> Deployment
+        Deployment --> Maintenance
+        Maintenance -.-> ProblemDef
+        
+        Center -.-> ProblemDef
+        Center -.-> Design
+        Center -.-> Development
+        Center -.-> Testing
+        Center -.-> Deployment
+        Center -.-> Maintenance
+    end
+```
+
+## Overview
+
+The Agentic Software Development Lifecycle (ASDLC) is an evolution of traditional SDLC that places AI Agent and Human collaboration at the center of every phase. This approach ensures that artificial intelligence capabilities are seamlessly integrated throughout the development process while maintaining human oversight and decision-making authority.
+
+## Key Principles
+
+### 1. Collaborative Core
+- **AI Agent**: Provides automation, analysis, and implementation capabilities
+- **Human**: Provides strategic direction, creative input, and quality oversight
+- **Continuous Interaction**: Both AI and human collaborate throughout all phases
+
+### 2. Phase Integration
+Each phase benefits from AI-Human collaboration:
+- **Problem Definition**: AI assists in analysis while humans provide business context
+- **Design**: AI generates options while humans make strategic decisions
+- **Development**: AI handles routine coding while humans review and guide
+- **Testing**: AI automates testing while humans validate outcomes
+- **Deployment**: AI manages pipelines while humans supervise critical decisions
+- **Maintenance**: AI monitors systems while humans handle user feedback
+
+### 3. Continuous Feedback Loop
+The circular nature ensures continuous improvement and adaptation based on:
+- User feedback
+- System performance
+- Business needs evolution
+- Technology advancements
+
+## Human vs AI Responsibilities
+
+### Human Responsibilities
+- Strategic decision making
+- Business requirement validation
+- Creative problem solving
+- Quality assurance oversight
+- User experience design
+- Risk assessment
+
+### AI Agent Responsibilities
+- Code generation and optimization
+- Automated testing
+- Performance monitoring
+- Documentation generation
+- Pattern recognition
+- Routine task automation
+
+### Shared Responsibilities
+- Code review
+- Design validation
+- Problem analysis
+- Progress tracking
+- Quality control
+- Knowledge management
+
+## Integration with AWP
+
+The Agentic SDLC works in conjunction with the Agentic Workflow Protocol (AWP) to provide:
+- Structured collaboration frameworks
+- Context management across phases
+- Progress tracking and handoff procedures
+- Documentation synchronization
+- Quality gates and approval processes
+
 # 🚀 MCP Agentic SDLC Project Plan
 
 ## 🎯 Project Overview
@@ -605,3 +751,55 @@ graph TD
     DOCS --> |"Contains"| MD
     EXAMPLES --> |"Uses"| YML
 ```
+
+# Software Development Lifecycle (SDLC)
+
+## Architecture
+
+```mermaid
+graph TB
+    subgraph SDLC["Software Development Lifecycle"]
+        direction TB
+        
+        subgraph Planning["1. Planning"]
+            Requirements["Requirements"]
+            Design["Design"]
+            Architecture["Architecture"]
+            Requirements --> Design
+            Design --> Architecture
+        end
+        
+        subgraph Development["2. Development"]
+            Coding["Coding"]
+            Review["Code Review"]
+            Testing["Unit Testing"]
+            Coding --> Review
+            Review --> Testing
+        end
+        
+        subgraph QA["3. Quality Assurance"]
+            Integration["Integration Tests"]
+            System["System Tests"]
+            UAT["User Acceptance"]
+            Integration --> System
+            System --> UAT
+        end
+        
+        subgraph Deploy["4. Deployment"]
+            Staging["Staging"]
+            Production["Production"]
+            Monitor["Monitoring"]
+            Staging --> Production
+            Production --> Monitor
+        end
+        
+        Planning --> Development
+        Development --> QA
+        QA --> Deploy
+        Deploy -.-> Planning
+    end
+```
+
+## Overview
+
+The Software Development Lifecycle (SDLC) component provides a structured approach to software development with AI assistance. It defines clear phases, deliverables, and quality gates while maintaining flexibility for agile development.
