@@ -11,15 +11,21 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build"
   },
-  "keywords": ["mcp", "agentic", "sldc", "tool"],
+  "keywords": [
+    "mcp",
+    "agentic",
+    "sldc",
+    "tool"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0"
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "yaml": "^2.8.0"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
     "@types/node": "^20.0.0",
-    "ts-node": "^10.0.0"
+    "ts-node": "^10.0.0",
+    "typescript": "^5.0.0"
   }
-} 
+}
