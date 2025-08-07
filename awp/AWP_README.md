@@ -1,6 +1,6 @@
-# 🚀 MCP Agentic SLDC
+# 🚀 MCP Agentic SDLC
 
-**MCP Agentic SLDC**
+**MCP Agentic SDLC**
 
 **Open Source Standard Candidate**
 
@@ -11,47 +11,47 @@
 ---
 
 ## 📚 Table of Contents
-- [🚀 MCP Agentic SLDC](#-mcp-agentic-sldc)
+- [🚀 MCP Agentic SDLC](#-mcp-agentic-sdlc)
   - [📚 Table of Contents](#-table-of-contents)
-  - [🌟 What is MCP Agentic SLDC?](#-what-is-mcp-agentic-sldc)
+  - [🌟 What is MCP Agentic SDLC?](#-what-is-mcp-agentic-sdlc)
   - [🏷️ Key Terms](#️-key-terms)
-  - [🔄 MCP Agentic SLDC Examples](#-mcp-agentic-sldc-examples)
+  - [🔄 MCP Agentic SDLC Examples](#-mcp-agentic-sdlc-examples)
   - [🧠 Handling Memory Loss or Returning to Work (Diagram)](#-handling-memory-loss-or-returning-to-work-diagram)
-  - [🗂️ MCP Agentic SLDC File Structure Explained](#️-mcp-agentic-sldc-file-structure-explained)
-  - [🛠️ How to Use MCP Agentic SLDC in Your Project](#️-how-to-use-mcp-agentic-sldc-in-your-project)
+  - [🗂️ MCP Agentic SDLC File Structure Explained](#️-mcp-agentic-sdlc-file-structure-explained)
+  - [🛠️ How to Use MCP Agentic SDLC in Your Project](#️-how-to-use-mcp-agentic-sdlc-in-your-project)
   - [📋 Best Practices](#-best-practices)
-  - [📝 Example MCP Agentic SLDC YAML](#-example-mcp-agentic-sldc-yaml)
+  - [📝 Example MCP Agentic SDLC YAML](#-example-mcp-agentic-sdlc-yaml)
 
 ---
 
-## 🌟 What is MCP Agentic SLDC?
+## 🌟 What is MCP Agentic SDLC?
 
-**MCP Agentic SLDC** is a transparent, agentic, and collaborative Software Development Lifecycle management standard. It is designed for both solo developers and teams (including AI agents), ensuring everyone stays in sync, code and docs are always aligned, and progress is transparent. MCP Agentic SLDC is both human- and machine-readable, making it ideal for hybrid human/AI workflows.
+**MCP Agentic SDLC** is a transparent, agentic, and collaborative Software Development Lifecycle management standard. It is designed for both solo developers and teams (including AI agents), ensuring everyone stays in sync, code and docs are always aligned, and progress is transparent. MCP Agentic SDLC is both human- and machine-readable, making it ideal for hybrid human/AI workflows.
 
 ---
 
 ## 🏷️ Key Terms
 
 **VIBE-CODING**
-> A state of creative, uninterrupted coding flow, where you (and optionally your agent) are fully immersed in building, iterating, and shipping features. MCP Agentic SLDC helps you stay in this flow by keeping your roadmap and progress tracking frictionless and always up to date.
+> A state of creative, uninterrupted coding flow, where you (and optionally your agent) are fully immersed in building, iterating, and shipping features. MCP Agentic SDLC helps you stay in this flow by keeping your roadmap and progress tracking frictionless and always up to date.
 
 **OVER-VIBING**
 > This is when you let your agent work for you too much, and then it forgets the context due to network or LLM limitations. It can lead to overlooking the context, and/or losing track of the project's progress, architecture, or complexity.
 
-**MCP Agentic SLDC**
-> MCP Agentic SLDC is designed to prevent over-vibing by making project strategy, progress, actions, and procedures always visible and reviewable for humans and agents through structured human-AI collaboration.
+**MCP Agentic SDLC**
+> MCP Agentic SDLC is designed to prevent over-vibing by making project strategy, progress, actions, and procedures always visible and reviewable for humans and agents through structured human-AI collaboration.
 
 ---
 
-## 🔄 MCP Agentic SLDC Examples
+## 🔄 MCP Agentic SDLC Examples
 
-Below is a visual representation of the standard MCP Agentic SLDC for each step:
+Below is a visual representation of the standard MCP Agentic SDLC for each step:
 
 ```mermaid
 flowchart TD
     Start(["Start Step (e.g., 4.2)"])
     Code["Implement Feature/Task"]
-    Update["mcp:update\nUpdate README.md & mcp-agentic-sldc.yml\nMark step as done"]
+    Update["mcp:update\nUpdate README.md & mcp-agentic-sdlc.yml\nMark step as done"]
     Commit["mcp:commit\nCommit with Conventional Commit message"]
     Next["mcp:next\nMove to next step"]
     Review["Review Progress\n(If blockers, raise them)"]
@@ -65,19 +65,19 @@ flowchart TD
 
 ## 🧠 Handling Memory Loss or Returning to Work (Diagram)
 
-MCP Agentic SLDC helps you or your agent recover context after a break, LLM reset, or network issue. Here's how:
+MCP Agentic SDLC helps you or your agent recover context after a break, LLM reset, or network issue. Here's how:
 
 ```mermaid
 flowchart TD
     Start(["Start Step (e.g., 4.2)"])
     Code["Implement Feature/Task"]
-    Update["mcp:update\nUpdate README.md & mcp-agentic-sldc.yml\nMark step as done"]
+    Update["mcp:update\nUpdate README.md & mcp-agentic-sdlc.yml\nMark step as done"]
     Commit["mcp:commit\nCommit with Conventional Commit message"]
     Next["mcp:next\nMove to next step"]
     Review["Review Progress\n(If blockers, raise them)"]
     Done(["Step Complete"])
     MemoryLoss["Lost Context? (e.g., after break, LLM reset)"]
-    Recall["Consult mcp-agentic-sldc.yml\nRestore context, see progress, next actions"]
+    Recall["Consult mcp-agentic-sdlc.yml\nRestore context, see progress, next actions"]
 
     Start --> Code --> Update --> Commit --> Next --> Review --> Done
     Review -- "If not ready" --> Start
@@ -88,9 +88,9 @@ flowchart TD
 
 ---
 
-## 🗂️ MCP Agentic SLDC File Structure Explained
+## 🗂️ MCP Agentic SDLC File Structure Explained
 
-> **The `mcp-agentic-sldc.yml` file is your project's living roadmap.**
+> **The `mcp-agentic-sdlc.yml` file is your project's living roadmap.**
 
 | Section           | Purpose                                                      |
 |-------------------|-------------------------------------------------------------|
@@ -118,15 +118,15 @@ flowchart TD
 
 ---
 
-## 🛠️ How to Use MCP Agentic SLDC in Your Project
+## 🛠️ How to Use MCP Agentic SDLC in Your Project
 
-1. **Copy a template** (or start from scratch) and place it in your project root as `mcp-agentic-sldc.yml`.
+1. **Copy a template** (or start from scratch) and place it in your project root as `mcp-agentic-sdlc.yml`.
 2. **Edit the header**: Add your name, organization, and contact info.
 3. **Define your goal and outcome**: Clearly state what your project aims to achieve and what success looks like.
 4. **Set up collaboration**: Define which tasks are for humans vs AI agents.
 5. **List your main steps** in the `overview` and break them down in the `steps` section. Use nested steps for complex projects.
 6. **Follow the procedures**:
-   - **update**: After each step, review and update both `README.md` and `mcp-agentic-sldc.yml` to reflect the current state and next actions. Mark steps as done.
+   - **update**: After each step, review and update both `README.md` and `mcp-agentic-sdlc.yml` to reflect the current state and next actions. Mark steps as done.
    - **commit**: Commit your changes using the commit standard, referencing the relevant step.
    - **next**: Move to the next actionable step only after update and commit are complete. Check for blockers before proceeding.
    - **check**: Use this to find the next actionable step (first not done) and restore context after a break.
@@ -137,7 +137,7 @@ flowchart TD
 
 ## 📋 Best Practices
 
-- Always update both `mcp-agentic-sldc.yml` and `README.md` after each step.
+- Always update both `mcp-agentic-sdlc.yml` and `README.md` after each step.
 - Use the `procedures` section as your canonical workflow for update, commit, next, check, and handoff.
 - Reference the step number in every commit message.
 - Use the `commitStandard` for all commits to enable automation and traceability.
@@ -150,12 +150,12 @@ flowchart TD
 
 ---
 
-## 📝 Example MCP Agentic SLDC YAML
+## 📝 Example MCP Agentic SDLC YAML
 
 ```yaml
-# MCP Agentic SLDC for Project X
+# MCP Agentic SDLC for Project X
 init: |
-  - Read mcp-agentic-sldc.yml and README.md to understand the workflow.
+  - Read mcp-agentic-sdlc.yml and README.md to understand the workflow.
   - Follow the procedures for update, commit, next, check, and handoff.
   - Respect human-AI task ownership and approval gates.
   - Keep everything in sync.
@@ -204,7 +204,7 @@ procedures:
     number: 1
     name: "update"
     description: |
-      Review README.md and mcp-agentic-sldc.yml after each step. Update as needed to reflect the current state and next actions.
+      Review README.md and mcp-agentic-sdlc.yml after each step. Update as needed to reflect the current state and next actions.
   - key: commit
     number: 2
     name: "commit"
@@ -238,4 +238,4 @@ commitStandard:
 
 ---
 
-**MCP Agentic SLDC is a living protocol. Help improve it by contributing feedback, templates, and best practices!**
+**MCP Agentic SDLC is a living protocol. Help improve it by contributing feedback, templates, and best practices!**

@@ -1,12 +1,12 @@
-# MCP Agentic SLDC Example (Reference)
-# Copy this file to your project as mcp-agentic-sldc.yml and fill in your details.
+# MCP Agentic SDLC Example (Reference)
+# Copy this file to your project as mcp-agentic-sdlc.yml and fill in your details.
 # Lines starting with '#' are comments and can be removed in your project file.
 
 init: |
   # Onboarding instructions for new contributors or agents.
-  - Read mcp-agentic-sldc.yml and README.md to understand the workflow and project goal.
+  - Read mcp-agentic-sdlc.yml and README.md to understand the workflow and project goal.
   - Follow the procedures defined below: update, commit, next, check, and handoff.
-  - Keep mcp-agentic-sldc.yml and README.md in sync with the codebase.
+  - Keep mcp-agentic-sdlc.yml and README.md in sync with the codebase.
   - Reference the step number in every commit message.
   - If you see blockers or have suggestions, document and address them before moving on.
 
@@ -14,7 +14,7 @@ author: Your Name (Your Org)
 
 goal: |
   # What is the main objective of this project?
-  Build something amazing with clear, agentic SLDC tracking and human-AI collaboration.
+  Build something amazing with clear, agentic SDLC tracking and human-AI collaboration.
 
 overview:
   # List the main phases or milestones of your project.
@@ -92,9 +92,9 @@ procedures:
     number: 1
     name: "update"
     description: |
-      Review README.md and mcp-agentic-sldc.yml after each step:
-      - Mark the current step as done in mcp-agentic-sldc.yml.
-      - Update README.md and mcp-agentic-sldc.yml to reflect the current state and next actions.
+      Review README.md and mcp-agentic-sdlc.yml after each step:
+      - Mark the current step as done in mcp-agentic-sdlc.yml.
+      - Update README.md and mcp-agentic-sdlc.yml to reflect the current state and next actions.
       - Check for any blockers or critical points that need to be addressed.
       - Ensure documentation and code are aligned.
   - key: commit
@@ -112,13 +112,13 @@ procedures:
     description: |
       Move to the next actionable step:
       - Only proceed after update and commit are complete.
-      - Identify the next actionable step in mcp-agentic-sldc.yml and begin work on it.
+      - Identify the next actionable step in mcp-agentic-sdlc.yml and begin work on it.
       - Check for blockers before proceeding.
   - key: check
     number: 4
     name: "check"
     description: |
-      Review mcp-agentic-sldc.yml to determine the current actionable step:
+      Review mcp-agentic-sdlc.yml to determine the current actionable step:
       - Find the first step marked as done: false.
       - Restore context and understand what needs to be done.
       - Use this when returning to work after a break or context loss.

@@ -30,8 +30,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
+        name: "base",
+        description: "Ask user the 4 key questions for project setup: 1) What are the main objectives? 2) What are the main phases? 3) What technologies? 4) What does success look like?",
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
         name: "init",
-        description: "Creates 'agentic-sldc' folder with README.md, ASDLC.md, and AWP.md",
+        description: "Create ASDLC project files using previously collected project details",
         inputSchema: {
           type: "object",
           properties: {
@@ -39,7 +47,28 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "string",
               description: "Directory where to create the agentic-sldc folder (defaults to current directory)",
             },
+            goal: {
+              type: "array",
+              items: { type: "string" },
+              description: "Project objectives from user",
+            },
+            overview: {
+              type: "array", 
+              items: { type: "string" },
+              description: "Project phases from user",
+            },
+            technology: {
+              type: "array",
+              items: { type: "string" },
+              description: "Technologies from user", 
+            },
+            outcome: {
+              type: "array",
+              items: { type: "string" },
+              description: "Success criteria from user",
+            },
           },
+          required: ["goal", "overview", "technology", "outcome"],
         },
       },
     ],
@@ -50,8 +79,36 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
+  if (name === "base") {
+    return {
+      content: [
+        {
+          type: "text",
+          text: "1. What are the main objectives?\n2. What are the main phases?\n3. What technologies?\n4. What does success look like?",
+        },
+      ],
+    };
+  }
+
   if (name === "init") {
     const appDir = (args?.appDir as string) || process.cwd();
+    const goal = args?.goal;
+    const overview = args?.overview;
+    const technology = args?.technology;
+    const outcome = args?.outcome;
+
+    if (!goal || !overview || !technology || !outcome) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: "ERROR: You must ask the user for project details first!\n\n1. What are the main objectives?\n2. What are the main phases?\n3. What technologies?\n4. What does success look like?",
+          },
+        ],
+        isError: true,
+      };
+    }
+
     const targetDir = path.join(appDir, 'agentic-sldc');
     const readmePath = path.join(targetDir, 'README.md');
     const asdlcPath = path.join(targetDir, 'ASDLC.md');
@@ -98,9 +155,9 @@ It provides a clear structure for onboarding, collaboration, and handoff between
 
 ---
 
-## 🚦 Getting Started
+## �� Getting Started
 
-1. Read through this README.md to understand the project’s philosophy.
+1. Read through this README.md to understand the project's philosophy.
 2. Review ASDLC.md for the lifecycle plan and key milestones.
 3. Fill out AWP.md to define your workflow, roles, and steps.
 4. Sync with your team and AI agents - keep docs and code up to date!
@@ -140,34 +197,75 @@ _The OVERVIBING.COM & ONE-FRONT.COM Team_
       // Create ASDLC.md
       fs.writeFileSync(asdlcPath, 'Work in progres - overvibing.com\n');
       
-      // Always write the Markdown template for AWP.md
+      // Ensure all inputs are arrays
+      const goalArray = Array.isArray(goal) ? goal : [goal];
+      const overviewArray = Array.isArray(overview) ? overview : [overview];
+      const technologyArray = Array.isArray(technology) ? technology : [technology];
+      const outcomeArray = Array.isArray(outcome) ? outcome : [outcome];
+      
+      // Create AWP.md with populated content
       const awpTemplate = `# Agentic Workflow Protocol (AWP)
 
-## Init
+## Hard instructions for AI agents
 
-<!-- Onboarding instructions for new contributors or agents -->
+1. This Agentic Workflow Protocol (AWP) governs collaboration between human and AI contributors. The following principles must always be followed:
 
+    1.1. All work is guided strictly by the AWP; no deviations or improvisation.
+
+    1.2. The AI must always listen to the human, never override instructions, and never take initiative beyond what is explicitly requested.
+
+    1.3. Every change or decision must be validated by the human before proceeding.
+
+    1.4. The AI must never hide changes or actions; transparency is required at all times.
+
+    1.5. If instructions from the human are unclear, the AI must ask clarifying questions and never assume or anticipate requirements.
+
+    1.6. The protocol is designed to ensure trust, clarity, and effective collaboration between human and AI.
+
+    1.7. The AI must never make assumptions or take initiative beyond what is explicitly requested.
+
+    1.8. Always use the commit standard for all changes.
+
+    1.9. Never override the human's instructions, or any content in this AWP.
+
+    1.10. Use numbers to reference changes in this AWP. Format 1.1, 1.2, 1.3, etc.
+
+    1.11. Never use the word "AI" in any commit message.
+
+    1.12 Read this AWP.md and if exists the main README.md to understand the workflow and project goal.
+
+    1.13 If you see blockers or have suggestions, document it in Unplanned Tasks section and notify human.
+
+    1.14 Always respect human oversight and approval gates
+    
+    1.15. Never make critical business decisions without human approval
+
+    1.16. Always document your reasoning and decisions
+
+    1.17. Follow the commit standard and reference step numbers
+
+    1.18. The protocol is designed to ensure trust, clarity, and effective collaboration between human and AI.
+
+    
 ## Author
 
-<!-- Your Name (Your Org) -->
+Michael Wybraniec (ONE-FRONT.COM, OVERVIBING.COM)
 
 ## Goal
 
-<!-- What is the main objective of this project? -->
+${goalArray.map((g: string, index: number) => `${index + 1}. ${g}`).join('\n')}
 
 ## Overview
 
-<!-- List the main phases or milestones of your project -->
-- 
-- 
-- 
-- 
-- 
+${overviewArray.map((phase: string, index: number) => `${index + 1}. ${phase}`).join('\n')}
+
+## Technology
+
+${technologyArray.map((tech: string, index: number) => `${index + 1}. ${tech}`).join('\n')}
 
 ## Outcome
 
-<!-- What does success look like? -->
-1. A fully-tested, documented, and production-ready project
+${outcomeArray.map((o: string, index: number) => `${index + 1}. ${o}`).join('\n')}
 
 ## Collaboration
 
@@ -190,7 +288,7 @@ _The OVERVIBING.COM & ONE-FRONT.COM Team_
 - **approval_timeout:**  10 minutes
 - **auto_handoff:**  true
 
-## Steps
+## Project Backlog
 
 ### 1. Main task, Name, Title, Description, etc.
 - [ ] 1.1: Subtask, Name, Title, Description, etc.
@@ -209,28 +307,73 @@ _The OVERVIBING.COM & ONE-FRONT.COM Team_
 ### 5. Main task, Name, Title, Description, etc.
 - [ ] 5.1: Subtask, Name, Title, Description, etc.
 
+## Unplanned Tasks
+
+- [ ] 1.1: Unplanned task, Name, Title, Description, etc.
+- [ ] 1.2: Unplanned task, Name, Title, Description, etc.
+
+
 ## Procedures
 
-### update
-<!-- Review README.md and AWP.md after each step. Mark the current step as done. Update docs to reflect the current state and next actions. Check for blockers. Ensure docs and code are aligned. -->
+1. **update**
 
-### commit
-<!-- Commit changes using the commitStandard. Use the format: type(scope step): subject. Reference the step number in every commit message. Follow conventional commit standards. Include relevant files. -->
+    1.1. Review README.md and AWP.md after each step.
 
-### next
-<!-- Move to the next actionable step only after update and commit are complete. Identify the next actionable step and begin work. Check for blockers before proceeding. -->
+    1.2. Update README.md to reflect the current state
 
-### check
-<!-- Review AWP.md to determine the current actionable step. Find the first step not done. Restore context and understand what needs to be done. Use this when returning to work after a break or context loss. -->
+    1.3. We review AWP.md to understand next actions.
 
-### handoff
-<!-- Transfer task ownership between human and AI. Package current context and deliverables. Notify receiving party with clear expectations. Set timeout for response and escalation rules. -->
+    1.4. Check for blockers, if any we notify humans.
 
-## Notes
-- 
-- 
-- 
-- 
+    1.5. Ensure docs and code are aligned, of not, notify humans.
+
+2. **commit**
+
+    2.1. Commit changes using the commitStandard.
+
+    2.2. Use the format: type(scope step): subject.
+
+    2.3. Reference the step number in every commit message.
+
+    2.4. Follow conventional commit standards.
+
+    2.5. Include relevant files.
+
+3. **next**
+
+    3.1. Move to the next actionable step only after update and commit are complete.
+
+    3.2. Identify the next actionable step and begin work.
+
+    3.3. Check for blockers before proceeding, and confirm additional plan with human.
+
+    3.4. Mark the current step 'check' [ ] as done before you start.
+
+4. **check**
+
+    4.1. Review AWP.md to determine the current actionable step.
+
+    4.2. Find the first step not done.
+
+    4.3. Restore context and understand what needs to be done.
+
+    4.4. Use this when returning to work after a break or context loss.
+
+5. **handoff**
+
+    5.1. Transfer task ownership between human and AI.
+
+    5.2. Package current context and deliverables.
+
+    5.3. Notify receiving party with clear expectations.
+
+    5.4. Set timeout for response and escalation rules.
+
+## Human Notes
+1. Reference the step in every commit.
+2. Update this file as the project progresses.
+3. Check off each item as you complete it.
+4. Respect human-AI collaboration boundaries.
 
 ## Commit Standard
 - **format:** type(scope step): subject
@@ -249,7 +392,7 @@ _The OVERVIBING.COM & ONE-FRONT.COM Team_
         content: [
           {
             type: "text",
-            text: `Successfully created agentic-sldc folder with README.md, ASDLC.md, and AWP.md in ${targetDir}`,
+            text: `Successfully created agentic-sldc folder with README.md, ASDLC.md, and AWP.md in ${targetDir}\n\nProject Details:\n- Goal: ${goalArray.join(', ')}\n- Overview: ${overviewArray.join(', ')}\n- Technology: ${technologyArray.join(', ')}\n- Outcome: ${outcomeArray.join(', ')}`,
           },
         ],
       };
@@ -273,7 +416,7 @@ _The OVERVIBING.COM & ONE-FRONT.COM Team_
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Agentic SLDC MCP server running on stdio");
+  console.error("Agentic SDLC MCP server running on stdio");
 }
 
 main().catch((error) => {
