@@ -353,6 +353,14 @@ ${outcomeArray.map((o: string, index: number) => `${index + 1}. ${o}`).join('\n'
 
     1.5. Ensure docs and code are aligned, of not, notify humans.
 
+    1.6. If you see blockers or have suggestions, document it in Unplanned Tasks section and notify human.
+
+    1.7. If you see that you are not able to complete the task, notify human.
+
+    1.8. If at the step you were working on something new, unplanned, updating anything, or fixing bug, remember always add it to unplanned tasks section in AWP.md.
+
+
+
 2. **commit**
 
     2.1. Commit changes using the commitStandard.
@@ -364,6 +372,7 @@ ${outcomeArray.map((o: string, index: number) => `${index + 1}. ${o}`).join('\n'
     2.4. Follow conventional commit standards.
 
     2.5. Include relevant files.
+   
 
 3. **next**
 
@@ -411,6 +420,11 @@ ${outcomeArray.map((o: string, index: number) => `${index + 1}. ${o}`).join('\n'
 - **examples:**
   - feat(api 3.1): add API endpoint
   - docs(readme 5.1): expand documentation
+
+## Human Notes
+
+## Unplanned tasks standard
+ standard (This is to start measuring what was 'overvibed', it would require some standards)
 `;
       fs.writeFileSync(awpPath, awpTemplate);
       
