@@ -31,7 +31,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "base",
-        description: "STEP 1: Collect project requirements by asking the user 4 essential questions. This tool starts the Agentic SDLC project setup process. Use this FIRST to gather project information before creating any files.",
+        description: `
+          STEP 1: Collect project requirements by asking the user 4 essential questions. 
+          This tool starts the Agentic SDLC project setup process. 
+          Use this FIRST to gather project information before creating any files.`,
         inputSchema: {
           type: "object",
           properties: {},
@@ -39,9 +42,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "init",
-        description: "STEP 2: Create the complete Agentic SDLC project structure with README.md, ASDLC.md, and AWP.md files. This tool requires the project details collected from the 'base' tool. Use this AFTER collecting requirements.",
+        description: `
+          STEP 2: Create the complete Agentic SDLC project structure with README.md, ASDLC.md, and AWP.md files. 
+          This tool requires the project details collected from the 'base' tool. 
+          Use this AFTER collecting requirements.`,
         inputSchema: {
-          type: "object",
           properties: {
             appDir: {
               type: "string",
