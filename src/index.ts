@@ -45,8 +45,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: `
           STEP 2: Create the complete Agentic SDLC project structure with README.md, ASDLC.md, and AWP.md files. 
           This tool requires the project details collected from the 'base' tool. 
-          Use this AFTER the 'base' tool has been called.
-          Use this AFTER collecting requirements.`,
+          Use this ONLY IF the 'base' tool has been called.
+          Use this ONLY IF you have collected user requirements.`,
         inputSchema: {
           type: "object",
           properties: {
