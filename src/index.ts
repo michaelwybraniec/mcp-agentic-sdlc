@@ -31,7 +31,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "base",
-        description: "Ask user the 4 key questions for project setup: 1) What are the main objectives? 2) What are the main phases? 3) What technologies? 4) What does success look like?",
+        description: `
+          STEP 1: Collect project requirements by asking the user 4 essential questions. 
+          This tool starts the Agentic SDLC project setup process. 
+          Use this FIRST to gather project information before creating any files.`,
         inputSchema: {
           type: "object",
           properties: {},
@@ -39,7 +42,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "init",
-        description: "Create ASDLC project files using previously collected project details",
+        description: `
+          STEP 2: Create the complete Agentic SDLC project structure with README.md, ASDLC.md, and AWP.md files. 
+          This tool requires the project details collected from the 'base' tool. 
+          Use this ONLY IF the 'base' tool has been called.
+          Use this ONLY IF you have collected user requirements.`,
         inputSchema: {
           type: "object",
           properties: {
@@ -84,7 +91,26 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       content: [
         {
           type: "text",
-          text: "1. What are the main objectives?\n2. What are the main phases?\n3. What technologies?\n4. What does success look like?",
+          text: `🚀 **Agentic SDLC Project Setup - STEP 1: Requirements Collection**
+
+I need to collect 4 essential pieces of information to set up your Agentic SDLC project:
+
+**Please answer these questions:**
+
+1. **What are the main objectives?** - What do you want to achieve with this project?
+2. **What are the main phases?** - What are the key development phases or milestones?
+3. **What technologies?** - What technologies, frameworks, or tools will you use?
+4. **What does success look like?** - How will you know the project is successful?
+
+**Next Step:**
+After you provide all 4 answers, I will use the 'init' tool to create your complete project structure with:
+- README.md (project overview and philosophy)
+- ASDLC.md (Agentic SDLC lifecycle plan)
+- AWP.md (Agentic Workflow Protocol template)
+
+**Workflow:** base → collect answers → init → project created
+
+Please provide your answers to these 4 questions.`,
         },
       ],
     };
