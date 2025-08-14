@@ -28,7 +28,7 @@ It provides a clear structure for onboarding, collaboration, and handoff between
 - 'ASDLC.md' - Agentic SDLC plan and lifecycle documentation.
 - 'AWP.md' - Agentic Workflow Protocol template for your project.
 - 'src/' - Source code for your project.
-- 'agentic-sldc/' - Generated folder for SDLC and workflow docs.
+- 'agentic-sdlc/' - Generated folder for SDLC and workflow docs.
 
 ---
 
