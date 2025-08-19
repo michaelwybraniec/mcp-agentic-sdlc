@@ -52,7 +52,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             appDir: {
               type: "string",
-              description: "Directory where to create the agentic-sldc folder (defaults to current directory)",
+              description: "Directory where to create the agentic-sdlc folder (defaults to current directory)",
             },
             goal: {
               type: "array",
@@ -135,7 +135,7 @@ Please provide your answers to these 4 questions.`,
       };
     }
 
-    const targetDir = path.join(appDir, 'agentic-sldc');
+    const targetDir = path.join(appDir, 'agentic-sdlc');
     const readmePath = path.join(targetDir, 'README.md');
     const asdlcPath = path.join(targetDir, 'ASDLC.md');
     const awpPath = path.join(targetDir, 'AWP.md');
@@ -359,7 +359,7 @@ ${outcomeArray.map((o: string, index: number) => `${index + 1}. ${o}`).join('\n'
         content: [
           {
             type: "text",
-            text: `Successfully created agentic-sldc folder with README.md, ASDLC.md, and AWP.md in ${targetDir}\n\nProject Details:\n- Goal: ${goalArray.join(', ')}\n- Overview: ${overviewArray.join(', ')}\n- Technology: ${technologyArray.join(', ')}\n- Outcome: ${outcomeArray.join(', ')}`,
+            text: `Successfully created agentic-sdlc folder with README.md, ASDLC.md, and AWP.md in ${targetDir}\n\nProject Details:\n- Goal: ${goalArray.join(', ')}\n- Overview: ${overviewArray.join(', ')}\n- Technology: ${technologyArray.join(', ')}\n- Outcome: ${outcomeArray.join(', ')}`,
           },
         ],
       };
@@ -368,7 +368,7 @@ ${outcomeArray.map((o: string, index: number) => `${index + 1}. ${o}`).join('\n'
         content: [
           {
             type: "text",
-            text: `Error creating agentic-sldc folder: ${error.message}`,
+            text: `Error creating agentic-sdlc folder: ${error.message}`,
           },
         ],
         isError: true,
