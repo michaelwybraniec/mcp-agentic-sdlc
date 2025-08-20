@@ -147,7 +147,7 @@ Please provide your answers to these 4 questions.`,
       }
 
       // Create README.md
-      const readmeTemplate = fs.readFileSync("./templates/readme_template.md");
+      const readmeTemplate = fs.readFileSync(path.join(__dirname, "templates/readme_template.md"));
       fs.writeFileSync(readmePath, readmeTemplate);
 
       // Create commitStandard.yaml
