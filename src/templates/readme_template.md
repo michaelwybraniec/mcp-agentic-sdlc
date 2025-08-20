@@ -38,7 +38,7 @@ It provides a clear structure for onboarding, collaboration, and handoff between
 2. Review ASDLC.md for the lifecycle plan and key milestones.
 3. Fill out AWP.md to define your workflow, roles, and steps.
 4. Sync with your team and AI agents - keep docs and code up to date!
-5. Use the commit standard (see AWP.md) for all changes.
+5. Use the commitStandard (see AWP.md) when git committing all changes.
 
 ---
 
