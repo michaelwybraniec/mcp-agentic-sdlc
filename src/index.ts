@@ -141,22 +141,13 @@ Please provide your answers to these 4 questions.`,
     const awpPath = path.join(targetDir, 'AWP.md');
 
     try {
-      // Ensure target directory exists
       if (!fs.existsSync(targetDir)) {
         fs.mkdirSync(targetDir, { recursive: true });
       }
-
-      // Create README.md
       const readmeTemplate = fs.readFileSync(path.join(__dirname, "templates/readme_template.md"));
       fs.writeFileSync(readmePath, readmeTemplate);
-
-      // Create commitStandard.yaml
-      fs.copyFileSync("./templates/commitStandard.yaml", path.join(targetDir, 'commitStandard.yaml'))
-
-      // Create ASDLC.md
+      fs.copyFileSync(path.join(__dirname, "templates/commitStandard.md"), path.join(targetDir, 'commitStandard.md'))
       fs.writeFileSync(asdlcPath, 'Work in progres - overvibing.com\n');
-
-      // Ensure all inputs are arrays
       const goalArray = Array.isArray(goal) ? goal : [goal];
       const overviewArray = Array.isArray(overview) ? overview : [overview];
       const technologyArray = Array.isArray(technology) ? technology : [technology];
