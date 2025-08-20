@@ -60,14 +60,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               description: "Project objectives from user",
             },
             overview: {
-              type: "array", 
+              type: "array",
               items: { type: "string" },
               description: "Project phases from user",
             },
             technology: {
               type: "array",
               items: { type: "string" },
-              description: "Technologies from user", 
+              description: "Technologies from user",
             },
             outcome: {
               type: "array",
@@ -141,24 +141,18 @@ Please provide your answers to these 4 questions.`,
     const awpPath = path.join(targetDir, 'AWP.md');
 
     try {
-      // Ensure target directory exists
       if (!fs.existsSync(targetDir)) {
         fs.mkdirSync(targetDir, { recursive: true });
       }
-
-      // Create README.md
-      const readmeTemplate = fs.readFileSync("./templates/readme_template.md");
+      const readmeTemplate = fs.readFileSync(path.join(__dirname, "templates/readme_template.md"));
       fs.writeFileSync(readmePath, readmeTemplate);
-      
-      // Create ASDLC.md
+      fs.copyFileSync(path.join(__dirname, "templates/commitStandard.md"), path.join(targetDir, 'commitStandard.md'))
       fs.writeFileSync(asdlcPath, 'Work in progres - overvibing.com\n');
-      
-      // Ensure all inputs are arrays
       const goalArray = Array.isArray(goal) ? goal : [goal];
       const overviewArray = Array.isArray(overview) ? overview : [overview];
       const technologyArray = Array.isArray(technology) ? technology : [technology];
       const outcomeArray = Array.isArray(outcome) ? outcome : [outcome];
-      
+
       // Create AWP.md with populated content
       const awpTemplate = `# Agentic Workflow Protocol (AWP)
 
@@ -338,15 +332,7 @@ ${outcomeArray.map((o: string, index: number) => `${index + 1}. ${o}`).join('\n'
 4. Respect human-AI collaboration boundaries.
 
 ## Commit Standard
-- **format:** type(scope step): subject
-- **types:** feat, fix, docs, test, chore
-- **rules:**
-  - Reference the step in every commit.
-  - Use imperative mood.
-  - Keep messages concise and descriptive.
-- **examples:**
-  - feat(api 3.1): add API endpoint
-  - docs(readme 5.1): expand documentation
+@commitStandard.yaml
 
 ## Human Notes
 
@@ -354,12 +340,12 @@ ${outcomeArray.map((o: string, index: number) => `${index + 1}. ${o}`).join('\n'
  standard (This is to start measuring what was 'overvibed', it would require some standards)
 `;
       fs.writeFileSync(awpPath, awpTemplate);
-      
+
       return {
         content: [
           {
             type: "text",
-            text: `Successfully created agentic-sdlc folder with README.md, ASDLC.md, and AWP.md in ${targetDir}\n\nProject Details:\n- Goal: ${goalArray.join(', ')}\n- Overview: ${overviewArray.join(', ')}\n- Technology: ${technologyArray.join(', ')}\n- Outcome: ${outcomeArray.join(', ')}`,
+            text: `Successfully created agentic-sdlc folder with README.md, commitStandard.yaml, ASDLC.md, and AWP.md in ${targetDir}\n\nProject Details:\n- Goal: ${goalArray.join(', ')}\n- Overview: ${overviewArray.join(', ')}\n- Technology: ${technologyArray.join(', ')}\n- Outcome: ${outcomeArray.join(', ')}`,
           },
         ],
       };

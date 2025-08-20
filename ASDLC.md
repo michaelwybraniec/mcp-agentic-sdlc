@@ -517,7 +517,7 @@ mcp-agentic-sdlc/
 This project follows the MCP Agentic SDLC methodology. To contribute:
 1. Check the numbered steps above for current progress
 2. Each step should be completed sequentially unless marked for parallel development
-3. Follow the commit standard: `type(scope step): subject`
+3. Follow the commitStandard: `type(scope step): subject`
 4. Update this README after completing each step
 
 ## 📝 Notes
@@ -576,17 +576,8 @@ steps:
 - **check**: Status verification
 - **handoff**: Transfer ownership
 
-#### 5. Commit Standards
-```yaml
-commitStandard:
-  format: "type(scope step): subject"
-  types: [feat, fix, docs, test, chore]
-  rules:
-    - Reference the step in every commit
-    - Use imperative mood
-  examples:
-    - "feat(api 3.1): add endpoint"
-```
+#### 5. commitStandard
+@src/templates/commitStandard.yaml
 
 ### AWP Benefits
 1. **Clear Ownership**

@@ -176,18 +176,8 @@ steps:
    - Clear transfer of responsibility
    - Set expectations and timeouts
 
-## Commit Standard
-```yaml
-format: "type(scope step): subject"
-types: [feat, fix, docs, test, chore]
-rules:
-  - Reference step number
-  - Use imperative mood
-  - Keep messages concise
-examples:
-  - "feat(api 2.1): add endpoint"
-  - "docs(readme 3.2): update usage"
-```
+## commitStandard
+@src/templates/commitStandard.yaml
 
 ## Best Practices
 
