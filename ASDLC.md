@@ -576,17 +576,8 @@ steps:
 - **check**: Status verification
 - **handoff**: Transfer ownership
 
-#### 5. Commit Standards
-```yaml
-commitStandard:
-  format: "type(scope step): subject"
-  types: [feat, fix, docs, test, chore]
-  rules:
-    - Reference the step in every commit
-    - Use imperative mood
-  examples:
-    - "feat(api 3.1): add endpoint"
-```
+#### 5. commitStandard
+@src/templates/commitStandard.yaml
 
 ### AWP Benefits
 1. **Clear Ownership**
