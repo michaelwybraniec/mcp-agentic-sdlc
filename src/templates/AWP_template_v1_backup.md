@@ -1,12 +1,5 @@
 # Agentic Workflow Protocol (AWP)
 
-## Init instructions
-
-1. You will be a senior developer, working with me in the team.
-2. I will be leading the project, and validating the progress.
-3. Read AWP.md very carefully. Take your time to fully understand.
-4. Remember, AWP is Agentic Workflow Protocol and must be respected.
-
 ## Hard instructions for AI agents
 
 1. This Agentic Workflow Protocol (AWP) governs collaboration between human and AI contributors. The following principles must always be followed:
@@ -89,17 +82,6 @@ PLACEHOLDER_OUTCOME
 - **approval_timeout:**  10 minutes
 - **auto_handoff:**  true
 
-## Project Outline
-
-1. This section is manual to help human prepare for a project backlog.
-2. Based on the Goal, Technology and Outcome - you can create main points on the development phases.
-3. At this point it is essential to understand fully architecture and its dependencies to carefully prepare outline for the development.
-4. You can create technical specification.
-5. You can create success criteria.
-6. You can propose main phases.
-7. You can propose related technologies.
-8. Most important is compatibility and scalability.
-
 ## Project Backlog
 
 ### 1. Main task, Name, Title, Description, etc.
@@ -121,31 +103,8 @@ PLACEHOLDER_OUTCOME
 
 ## Unplanned Tasks
 
-- Use the format U.1 U.2 U.3
-- This is for every task that you have discovered or wasn't planned in project backlog
-- We have to save it, and if its not urgent we can do this tasks later
-- Do not override this, just put the tasks below, and remember to notify human
-
-Format:
-- [ ] U.1: Unplanned task, Name, Title, Description, etc.
-- [ ] U.2: Unplanned task, Name, Title, Description, etc.
-
-Do not override above message, add tasks below:
-## Risks Tasks
-
-It is critical to report todo risks or tasks that scope potentially
-
-- Security concerns, limitations or standards to consider
-- Overcomplicated code, modules, architecture
-- Any enhancements that are relevant to the project
-- Performance risks such as leaks or enhancements
-- Complexity overkill
-- When AI is not following the scope, why and what was overvibed
-
-Do not override above message, add tasks below:
-Format:
-- [ ] R.1: Unplanned task, Name, Title, Description, etc.
-- [ ] R.2: Unplanned task, Name, Title, Description, etc.
+- [ ] 1.1: Unplanned task, Name, Title, Description, etc.
+- [ ] 1.2: Unplanned task, Name, Title, Description, etc.
 
 
 ## Procedures
@@ -200,16 +159,6 @@ Format:
 
     4.4. Use this when returning to work after a break or context loss.
 
-    4.5. Ensure there is no errors or bugs in the app - you can use typecheck and linter, or any method for that matter - but always notify human.
-
-    4.6 If your proposition resolve the task quickly you can set the check [ ] as done
-
-    4.7 If the task is difficult add it to unplanned tasks and notify human
-
-    4.8 Put everything you did out of the scope to unplanned tasks and categorize it
-
-    4.9 Put all the high risks tasks in High Risks section
-
 5. **handoff**
 
     5.1. Transfer task ownership between human and AI.
@@ -220,6 +169,16 @@ Format:
 
     5.4. Set timeout for response and escalation rules.
 
-## Commit Standard
+## Human Notes
+1. Reference the step in every commit.
+2. Update this file as the project progresses.
+3. Check off each item as you complete it.
+4. Respect human-AI collaboration boundaries.
 
+## Commit Standard
 @commitStandard.yaml
+
+## Human Notes
+
+## Unplanned tasks standard
+ standard (This is to start measuring what was 'overvibed', it would require some standards)
