@@ -220,6 +220,64 @@ Format:
 
     5.4. Set timeout for response and escalation rules.
 
+6. **test**
+
+   6.1. **Unit Testing**
+   6.1.1. Test individual components/modules with appropriate testing framework
+   6.1.2. Verify component props, events, and rendering
+   6.1.3. Test component interactions and state changes
+   6.1.4. Ensure minimum code coverage for critical components
+   6.1.5. Run tests before each commit
+
+   6.2. **Integration Testing**
+   6.2.1. Test API endpoints and service integrations
+   6.2.2. Verify database operations and data flow
+   6.2.3. Test authentication and authorization flows
+   6.2.4. Validate API response formats and error handling
+   6.2.5. Test real-time features and external integrations
+
+   6.3. **E2E Testing**
+   6.3.1. Test complete user journeys with E2E testing framework
+   6.3.2. Verify core application flows and business logic
+   6.3.3. Test multilingual functionality if applicable
+   6.3.4. Validate responsive design and cross-browser compatibility
+   6.3.5. Test offline functionality if required
+
+   6.4. **Performance Testing**
+   6.4.1. Run performance audits (Lighthouse, WebPageTest, etc.)
+   6.4.2. Monitor bundle size and loading performance
+   6.4.3. Test image optimization and resource loading
+   6.4.4. Validate database query performance
+   6.4.5. Test under various network conditions
+
+   6.5. **Accessibility Testing**
+   6.5.1. Run automated accessibility testing tools
+   6.5.2. Test keyboard navigation and screen reader compatibility
+   6.5.3. Verify color contrast and text readability
+   6.5.4. Test with users with disabilities when possible
+   6.5.5. Ensure WCAG compliance standards
+
+   6.6. **Security Testing**
+   6.6.1. Run security compliance checks and vulnerability scans
+   6.6.2. Test authentication and authorization mechanisms
+   6.6.3. Validate input sanitization and XSS prevention
+   6.6.4. Test API rate limiting and abuse prevention
+   6.6.5. Verify data encryption and privacy compliance
+
+   6.7. **Localization Testing**
+   6.7.1. Test all content in supported languages
+   6.7.2. Verify date/time formats for target timezones
+   6.7.3. Test currency formatting for target markets
+   6.7.4. Validate cultural appropriateness of translations
+   6.7.5. Test with native speakers when possible
+
+   6.8. **Mobile Testing**
+   6.8.1. Test on target market devices and browsers
+   6.8.2. Verify touch interactions and mobile gestures
+   6.8.3. Test mobile keyboard and form inputs
+   6.8.4. Validate offline functionality if applicable
+   6.8.5. Test mobile-specific features and flows
+
 ## Commit Standard
 
 @commitStandard.yaml
