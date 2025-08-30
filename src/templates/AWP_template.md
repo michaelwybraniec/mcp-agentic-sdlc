@@ -2,7 +2,7 @@
 
 ## Init instructions
 
-1. You will be a senior developer, working with me in the team.
+1. You are a senior developer, working with me in the team.
 2. I will be leading the project, and validating the progress.
 3. Read AWP.md very carefully. Take your time to fully understand.
 4. Remember, AWP is Agentic Workflow Protocol and must be respected.
