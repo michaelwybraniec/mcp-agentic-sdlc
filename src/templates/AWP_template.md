@@ -1,5 +1,12 @@
 # Agentic Workflow Protocol (AWP)
 
+## Init instructions
+
+1. You are a senior developer, working with me in the team.
+2. I will be leading the project, and validating the progress.
+3. Read AWP.md very carefully. Take your time to fully understand.
+4. Remember, AWP is Agentic Workflow Protocol and must be respected.
+
 ## Hard instructions for AI agents
 
 1. This Agentic Workflow Protocol (AWP) governs collaboration between human and AI contributors. The following principles must always be followed:
@@ -103,8 +110,31 @@ PLACEHOLDER_OUTCOME
 
 ## Unplanned Tasks
 
-- [ ] 1.1: Unplanned task, Name, Title, Description, etc.
-- [ ] 1.2: Unplanned task, Name, Title, Description, etc.
+- Use the format U.1 U.2 U.3
+- This is for every task that you have discovered or wasn't planned in project backlog
+- We have to save it, and if its not urgent we can do this tasks later
+- Do not override this, just put the tasks below, and remember to notify human
+
+Format:
+- [ ] U.1: Unplanned task, Name, Title, Description, etc.
+- [ ] U.2: Unplanned task, Name, Title, Description, etc.
+
+Do not override above message, add tasks below:
+## Risks Tasks
+
+It is critical to report todo risks or tasks that scope potentially
+
+- Security concerns, limitations or standards to consider
+- Overcomplicated code, modules, architecture
+- Any enhancements that are relevant to the project
+- Performance risks such as leaks or enhancements
+- Complexity overkill
+- When AI is not following the scope, why and what was overvibed
+
+Do not override above message, add tasks below:
+Format:
+- [ ] R.1: Unplanned task, Name, Title, Description, etc.
+- [ ] R.2: Unplanned task, Name, Title, Description, etc.
 
 
 ## Procedures
@@ -159,6 +189,16 @@ PLACEHOLDER_OUTCOME
 
     4.4. Use this when returning to work after a break or context loss.
 
+    4.5. Ensure there is no errors or bugs in the app - you can use typecheck and linter, or any method for that matter - but always notify human.
+
+    4.6 If your proposition resolve the task quickly you can set the check [ ] as done
+
+    4.7 If the task is difficult add it to unplanned tasks and notify human
+
+    4.8 Put everything you did out of the scope to unplanned tasks and categorize it
+
+    4.9 Put all the high risks tasks in High Risks section
+
 5. **handoff**
 
     5.1. Transfer task ownership between human and AI.
@@ -169,16 +209,64 @@ PLACEHOLDER_OUTCOME
 
     5.4. Set timeout for response and escalation rules.
 
-## Human Notes
-1. Reference the step in every commit.
-2. Update this file as the project progresses.
-3. Check off each item as you complete it.
-4. Respect human-AI collaboration boundaries.
+6. **test**
+
+   6.1. **Unit Testing**
+   6.1.1. Test individual components/modules with appropriate testing framework
+   6.1.2. Verify component props, events, and rendering
+   6.1.3. Test component interactions and state changes
+   6.1.4. Ensure minimum code coverage for critical components
+   6.1.5. Run tests before each commit
+
+   6.2. **Integration Testing**
+   6.2.1. Test API endpoints and service integrations
+   6.2.2. Verify database operations and data flow
+   6.2.3. Test authentication and authorization flows
+   6.2.4. Validate API response formats and error handling
+   6.2.5. Test real-time features and external integrations
+
+   6.3. **E2E Testing**
+   6.3.1. Test complete user journeys with E2E testing framework
+   6.3.2. Verify core application flows and business logic
+   6.3.3. Test multilingual functionality if applicable
+   6.3.4. Validate responsive design and cross-browser compatibility
+   6.3.5. Test offline functionality if required
+
+   6.4. **Performance Testing**
+   6.4.1. Run performance audits (Lighthouse, WebPageTest, etc.)
+   6.4.2. Monitor bundle size and loading performance
+   6.4.3. Test image optimization and resource loading
+   6.4.4. Validate database query performance
+   6.4.5. Test under various network conditions
+
+   6.5. **Accessibility Testing**
+   6.5.1. Run automated accessibility testing tools
+   6.5.2. Test keyboard navigation and screen reader compatibility
+   6.5.3. Verify color contrast and text readability
+   6.5.4. Test with users with disabilities when possible
+   6.5.5. Ensure WCAG compliance standards
+
+   6.6. **Security Testing**
+   6.6.1. Run security compliance checks and vulnerability scans
+   6.6.2. Test authentication and authorization mechanisms
+   6.6.3. Validate input sanitization and XSS prevention
+   6.6.4. Test API rate limiting and abuse prevention
+   6.6.5. Verify data encryption and privacy compliance
+
+   6.7. **Localization Testing**
+   6.7.1. Test all content in supported languages
+   6.7.2. Verify date/time formats for target timezones
+   6.7.3. Test currency formatting for target markets
+   6.7.4. Validate cultural appropriateness of translations
+   6.7.5. Test with native speakers when possible
+
+   6.8. **Mobile Testing**
+   6.8.1. Test on target market devices and browsers
+   6.8.2. Verify touch interactions and mobile gestures
+   6.8.3. Test mobile keyboard and form inputs
+   6.8.4. Validate offline functionality if applicable
+   6.8.5. Test mobile-specific features and flows
 
 ## Commit Standard
+
 @commitStandard.yaml
-
-## Human Notes
-
-## Unplanned tasks standard
- standard (This is to start measuring what was 'overvibed', it would require some standards)
