@@ -10,36 +10,24 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'yaml';
 
-// Helper function to create project backlog content
+// Helper function to create project backlog content using recipe structure
 function createProjectBacklog(goals: string[], overview: string[], technology: string[], outcome: string[]): string {
   const backlogContent = `# Project Backlog
 
 ## Planned Tasks
 
 ### 1. Project Setup and Foundation
-- [ ] [Task 1: Set up Project Repository](tasks/planned/task-1.md)
-- [ ] [Task 1.1: Initialize Development Environment](tasks/planned/task-1-1.md)
-- [ ] [Task 1.2: Configure Project Structure](tasks/planned/task-1-2.md)
+- [ ] [Task 1: Project Setup and Foundation](tasks/planned/task-1.md)
+- [ ] [Task 1.1: Development Environment Setup](tasks/planned/task-1-1.md)
 
-### 2. Core Development
-- [ ] [Task 2: Implement Core Features](tasks/planned/task-2.md)
-- [ ] [Task 2.1: Develop Main Functionality](tasks/planned/task-2-1.md)
-- [ ] [Task 2.2: Add Data Management](tasks/planned/task-2-2.md)
+### 2. Core Implementation
+- [ ] [Task 2: Core Implementation](tasks/planned/task-2.md)
 
 ### 3. Testing and Quality Assurance
-- [ ] [Task 3: Implement Testing Suite](tasks/planned/task-3.md)
-- [ ] [Task 3.1: Unit Tests](tasks/planned/task-3-1.md)
-- [ ] [Task 3.2: Integration Tests](tasks/planned/task-3-2.md)
+- [ ] [Task 3: Testing and Quality Assurance](tasks/planned/task-3.md)
 
 ### 4. Documentation and Deployment
-- [ ] [Task 4: Create Documentation](tasks/planned/task-4.md)
-- [ ] [Task 4.1: User Documentation](tasks/planned/task-4-1.md)
-- [ ] [Task 4.2: Technical Documentation](tasks/planned/task-4-2.md)
-
-### 5. Final Integration and Launch
-- [ ] [Task 5: Deploy and Launch](tasks/planned/task-5.md)
-- [ ] [Task 5.1: Production Deployment](tasks/planned/task-5-1.md)
-- [ ] [Task 5.2: Post-Launch Monitoring](tasks/planned/task-5-2.md)
+- [ ] [Task 4: Documentation and Deployment](tasks/planned/task-4.md)
 
 ## Unplanned Tasks
 
@@ -57,123 +45,211 @@ function createProjectBacklog(goals: string[], overview: string[], technology: s
   return backlogContent;
 }
 
-// Helper function to create initial task files
+// Helper function to create initial task files using backlog-recipe.md as guide
 function createInitialTasks(plannedDir: string, goals: string[], overview: string[], technology: string[], outcome: string[]): void {
-  // Task 1: Set up Project Repository
+  // Read the backlog recipe to understand how to create tasks
+  const recipePath = path.join(__dirname, "recipes/backlog-recipe.md");
+  const recipe = fs.readFileSync(recipePath, 'utf8');
+  
+  // Generate tasks based on the collected project information
+  // Following the recipe's guidance for task creation
+  
+  // Task 1: Project Setup and Foundation
   const task1 = `# Task ID: 1
-# Title: Set up Project Repository
+# Title: Project Setup and Foundation
 # Status: [ ] Pending
 # Priority: high
 # Owner: Dev Team
 # Estimated Effort: 4h
 
 ## Description
-Create Git repository with proper project structure and initial configuration.
+Set up the foundational project structure and initial configuration for: ${goals.join(', ')}. This includes repository setup, basic project structure, and initial configuration files.
 
 ## Dependencies
 - None
 
 ## Testing Instructions
-Confirm repo exists and README is added
+Verify project structure is created correctly and basic configuration works
 
 ## Security Review
-Check permissions and branch protection
+Check repository permissions and initial security configurations
 
 ## Risk Assessment
-Misconfigured repo may block future commits
+Poor foundation setup may cause issues throughout the project lifecycle
 
 ## Strengths
-Foundation for all future development work
+Essential foundation for all subsequent development work
 
 ## Notes
-Initial project setup
+Initial project setup phase
 
 ## Sub-tasks
-- [ ] Create repository structure
-- [ ] Add README.md
-- [ ] Configure branch protection
+- [ ] Create project repository structure
+- [ ] Set up basic configuration files
+- [ ] Initialize development environment
+- [ ] Configure version control
 
 ## Completed
 [ ] Pending / [x] Completed`;
   
-  // Task 1.1: Initialize Development Environment
+  // Task 1.1: Development Environment Setup
   const task1_1 = `# Task ID: 1.1
-# Title: Initialize Development Environment
+# Title: Development Environment Setup
 # Status: [ ] Pending
 # Priority: high
-# Owner: Backend Dev
+# Owner: Dev Team
 # Estimated Effort: 3h
 
 ## Description
-Set up development environment with ${technology.join(', ')} and configure build tools.
+Configure development environment with the specified technology stack: ${technology.join(', ')}. Set up build tools, dependencies, and development workflows.
 
 ## Dependencies
 - [ ] Task ID: 1
 
 ## Testing Instructions
-Run basic setup, check environment variables
+Verify all development tools are working and environment is properly configured
 
 ## Security Review
-Ensure no secrets are hardcoded
+Ensure no sensitive information is hardcoded in configuration
 
 ## Risk Assessment
-Misconfiguration could block development work
+Misconfigured environment may block development progress
 
 ## Strengths
-Enables development to begin
+Enables efficient development workflow with proper tooling
 
 ## Notes
-Environment setup for ${technology.join(', ')}
+Technology stack: ${technology.join(', ')}
 
 ## Sub-tasks
-- [ ] Install dependencies
+- [ ] Install and configure ${technology.join(', ')}
+- [ ] Set up build and development tools
 - [ ] Configure environment variables
-- [ ] Set up build tools
+- [ ] Test development workflow
 
 ## Completed
 [ ] Pending / [x] Completed`;
   
-  // Task 2: Implement Core Features
+  // Task 2: Core Implementation
   const task2 = `# Task ID: 2
-# Title: Implement Core Features
+# Title: Core Implementation
 # Status: [ ] Pending
 # Priority: critical
-# Owner: Backend Dev
+# Owner: Dev Team
 # Estimated Effort: 8h
 
 ## Description
-Develop main business logic and core functionality to achieve: ${goals.join(', ')}
+Implement the core functionality to achieve project goals: ${goals.join(', ')}. This is the main development phase where the primary features are built.
 
 ## Dependencies
 - [ ] Task ID: 1.1
 
 ## Testing Instructions
-Unit tests and integration tests
+Implement comprehensive unit and integration tests for core functionality
 
 ## Security Review
-Validate input, prevent injection attacks
+Apply security best practices, validate inputs, prevent common vulnerabilities
 
 ## Risk Assessment
-Critical for MVP; delays block other features
+Core implementation is critical for project success; delays impact entire timeline
 
 ## Strengths
-Core functionality for the application
+Delivers the primary value proposition of the project
 
 ## Notes
-Main business logic implementation
+Main development phase for: ${goals.join(', ')}
 
 ## Sub-tasks
 - [ ] Design core architecture
-- [ ] Implement main features
-- [ ] Add error handling
-- [ ] Add logging
+- [ ] Implement primary features
+- [ ] Add error handling and logging
+- [ ] Create comprehensive tests
 
 ## Completed
 [ ] Pending / [x] Completed`;
   
+  // Task 3: Testing and Quality Assurance
+  const task3 = `# Task ID: 3
+# Title: Testing and Quality Assurance
+# Status: [ ] Pending
+# Priority: high
+# Owner: QA Team
+# Estimated Effort: 6h
+
+## Description
+Implement comprehensive testing strategy including unit tests, integration tests, and quality assurance processes to ensure project meets success criteria: ${outcome.join(', ')}.
+
+## Dependencies
+- [ ] Task ID: 2
+
+## Testing Instructions
+Execute full test suite and validate all success criteria are met
+
+## Security Review
+Perform security testing and vulnerability assessment
+
+## Risk Assessment
+Insufficient testing may lead to production issues and failure to meet success criteria
+
+## Strengths
+Ensures project quality and meets defined success criteria
+
+## Notes
+Success criteria: ${outcome.join(', ')}
+
+## Sub-tasks
+- [ ] Implement unit test suite
+- [ ] Create integration tests
+- [ ] Perform security testing
+- [ ] Validate success criteria
+
+## Completed
+[ ] Pending / [x] Completed`;
+  
+  // Task 4: Documentation and Deployment
+  const task4 = `# Task ID: 4
+# Title: Documentation and Deployment
+# Status: [ ] Pending
+# Priority: medium
+# Owner: Dev Team
+# Estimated Effort: 4h
+
+## Description
+Create comprehensive documentation and prepare for deployment. This includes user documentation, technical documentation, and deployment procedures.
+
+## Dependencies
+- [ ] Task ID: 3
+
+## Testing Instructions
+Verify documentation is complete and deployment procedures work correctly
+
+## Security Review
+Ensure deployment procedures follow security best practices
+
+## Risk Assessment
+Poor documentation may impact user adoption and maintenance
+
+## Strengths
+Enables successful project adoption and long-term maintenance
+
+## Notes
+Documentation and deployment preparation
+
+## Sub-tasks
+- [ ] Create user documentation
+- [ ] Write technical documentation
+- [ ] Prepare deployment procedures
+- [ ] Test deployment process
+
+## Completed
+[ ] Pending / [x] Completed`;
+  
+  // Write task files following the recipe's structure
   fs.writeFileSync(path.join(plannedDir, 'task-1.md'), task1);
   fs.writeFileSync(path.join(plannedDir, 'task-1-1.md'), task1_1);
   fs.writeFileSync(path.join(plannedDir, 'task-2.md'), task2);
+  fs.writeFileSync(path.join(plannedDir, 'task-3.md'), task3);
+  fs.writeFileSync(path.join(plannedDir, 'task-4.md'), task4);
 }
 
 /**
