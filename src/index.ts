@@ -5,6 +5,8 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import * as fs from 'fs';
 import * as path from 'path';
@@ -122,6 +124,7 @@ const server = new Server(
   {
     capabilities: {
       tools: {},
+      resources: {},
     },
   }
 );
@@ -193,6 +196,46 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
     ],
   };
+});
+
+// List available resources
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: [
+      {
+        uri: "recipe://backlog-recipe",
+        name: "Backlog Recipe",
+        description: "Complete methodology and guidance for creating project backlogs using the Agentic SDLC approach",
+        mimeType: "text/markdown",
+      },
+    ],
+  };
+});
+
+// Handle resource requests
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const { uri } = request.params;
+  
+  if (uri === "recipe://backlog-recipe") {
+    try {
+      const recipePath = path.join(__dirname, "recipes/backlog-recipe.md");
+      const recipe = fs.readFileSync(recipePath, 'utf8');
+      
+      return {
+        contents: [
+          {
+            uri: uri,
+            mimeType: "text/markdown",
+            text: recipe,
+          },
+        ],
+      };
+    } catch (error: any) {
+      throw new Error(`Failed to read backlog recipe: ${error.message}`);
+    }
+  }
+  
+  throw new Error(`Unknown resource: ${uri}`);
 });
 
 // Handle tool calls
