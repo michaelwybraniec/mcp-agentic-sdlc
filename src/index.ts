@@ -10,11 +10,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'yaml';
 
-// Helper function to create project backlog content using template resource
+// Helper function to create project backlog content using recipe resource
 function createProjectBacklog(goals: string[], overview: string[], technology: string[], outcome: string[]): string {
-  // Read the backlog template to understand the structure
-  const templatePath = path.join(__dirname, "resources/project-backlog-template.md");
-  const template = fs.readFileSync(templatePath, 'utf8');
+  // Read the backlog recipe to understand the structure and methodology
+  const recipePath = path.join(__dirname, "recipes/backlog-recipe.md");
+  const recipe = fs.readFileSync(recipePath, 'utf8');
   
   // Create task links based on the overview phases
   const taskLinks = overview.map((phase, index) => {
@@ -23,7 +23,7 @@ function createProjectBacklog(goals: string[], overview: string[], technology: s
     return `- [ ] [Task ${taskId}: ${taskTitle}](tasks/planned/task-${taskId}.md)`;
   }).join('\n');
 
-  // Generate backlog following the template structure
+  // Generate backlog following the recipe structure (section 8.3 from recipe)
   const backlogContent = `# Project Backlog
 
 ## Planned Tasks
@@ -181,11 +181,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: "get_backlog_template",
+        name: "get_backlog_recipe",
         description: `
-          Get the project backlog template resource for creating project-specific backlogs.
-          This provides the template structure and guidance for backlog creation.
-          Use this when you need to understand how to structure project backlogs.`,
+          Get the backlog recipe resource for creating project-specific backlogs.
+          This provides the complete methodology and guidance for backlog creation.
+          Use this when you need to understand how to structure and create project backlogs.`,
         inputSchema: {
           type: "object",
           properties: {},
@@ -231,20 +231,20 @@ Please provide your answers to these 4 questions.`,
     };
   }
 
-  if (name === "get_backlog_template") {
+  if (name === "get_backlog_recipe") {
     try {
-      const templatePath = path.join(__dirname, "resources/project-backlog-template.md");
-      const template = fs.readFileSync(templatePath, 'utf8');
+      const recipePath = path.join(__dirname, "recipes/backlog-recipe.md");
+      const recipe = fs.readFileSync(recipePath, 'utf8');
       
       return {
         content: [
           {
             type: "text",
-            text: `# Project Backlog Template Resource
+            text: `# Backlog Recipe Resource
 
-This is the template resource for creating project backlogs using the Agentic SDLC methodology.
+This is the complete backlog recipe for creating project backlogs using the Agentic SDLC methodology.
 
-${template}`,
+${recipe}`,
           },
         ],
       };
@@ -253,7 +253,7 @@ ${template}`,
         content: [
           {
             type: "text",
-            text: `Error reading backlog template: ${error.message}`,
+            text: `Error reading backlog recipe: ${error.message}`,
           },
         ],
         isError: true,
