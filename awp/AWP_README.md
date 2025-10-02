@@ -22,9 +22,15 @@
 
 ## 📚 Table of Contents
 - [🚀 MCP Agentic SDLC](#-mcp-agentic-sdlc)
+    - [**AGENTIC WORKFLOW PROTOCOL**](#agentic-workflow-protocol)
+    - [*HUMAN-AI Precision Strike for Controlled Vibe Coding \& Context Engineering*](#human-ai-precision-strike-for-controlled-vibe-coding--context-engineering)
   - [📚 Table of Contents](#-table-of-contents)
   - [🌟 What is MCP Agentic SDLC?](#-what-is-mcp-agentic-sdlc)
-  - [🏷️ Key Terms](#️-key-terms)
+    - [🎯 **Core Philosophy**](#-core-philosophy)
+  - [🏷️ Key Concepts](#️-key-concepts)
+    - [🎨 **VIBE-CODING**](#-vibe-coding)
+    - [⚠️ **OVER-VIBING**](#️-over-vibing)
+    - [🛡️ **MCP Agentic SDLC**](#️-mcp-agentic-sdlc)
   - [🔄 MCP Agentic SDLC Examples](#-mcp-agentic-sdlc-examples)
   - [🧠 Handling Memory Loss or Returning to Work (Diagram)](#-handling-memory-loss-or-returning-to-work-diagram)
   - [🗂️ MCP Agentic SDLC File Structure Explained](#️-mcp-agentic-sdlc-file-structure-explained)
@@ -32,13 +38,24 @@
     - [Option 1: Using the MCP Server (Recommended)](#option-1-using-the-mcp-server-recommended)
     - [Option 2: Manual Setup](#option-2-manual-setup)
   - [🔧 MCP Server Tools and Resources](#-mcp-server-tools-and-resources)
-    - [Tools](#tools)
-    - [Resources](#resources)
-    - [Workflow](#workflow)
+    - [*Professional-grade tools for seamless project initialization and management*](#professional-grade-tools-for-seamless-project-initialization-and-management)
+    - [🛠️ **Available Tools**](#️-available-tools)
+    - [📚 **Available Resources**](#-available-resources)
+    - [🔄 **Recommended Workflow**](#-recommended-workflow)
   - [📋 Best Practices](#-best-practices)
-    - [MCP Server Usage](#mcp-server-usage)
-    - [General Practices](#general-practices)
+     - [*Professional guidelines for optimal MCP Agentic SDLC implementation*](#professional-guidelines-for-optimal-mcp-agentic-sdlc-implementation)
+     - [🚀 **MCP Server Usage**](#-mcp-server-usage)
+     - [🎯 **General Practices**](#-general-practices)
+     - [🛡️ **Quality Assurance**](#️-quality-assurance)
+  - [🔧 MCP Configuration Examples](#-mcp-configuration-examples)
+     - [*Professional MCP Server Configuration for Cursor + Claude*](#professional-mcp-server-configuration-for-cursor--claude)
+     - [**Cursor Configuration**](#cursor-configuration)
+     - [**Claude Desktop Configuration**](#claude-desktop-configuration)
+     - [**Advanced Configuration**](#advanced-configuration)
+     - [**Quick Setup Steps**](#quick-setup-steps)
   - [📝 Example MCP Agentic SDLC YAML](#-example-mcp-agentic-sdlc-yaml)
+  - [🤝 Contributing](#-contributing)
+    - [🌟 **Star this repository if you find it helpful!**](#-star-this-repository-if-you-find-it-helpful)
 
 ---
 
@@ -295,6 +312,123 @@ graph LR
 - ✅ **Use handoff procedures** when transferring work between human and AI
 - ✅ **Document blockers** and address them before moving on
 - ✅ **Set up approval gates** for critical human decisions
+
+---
+
+## 🔧 MCP Configuration Examples
+
+<div align="center">
+
+### *Professional MCP Server Configuration for Cursor + Claude*
+
+</div>
+
+### **Cursor Configuration**
+
+**Location:** `~/.cursor/mcp_config.json`
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "agentic-sdlc": {
+        "command": "node",
+        "args": ["/Users/your-username/Documents/GitHub/mcp-agentic-sdlc/dist/index.js"],
+        "env": {
+          "NODE_ENV": "production"
+        }
+      }
+    }
+  }
+}
+```
+
+### **Claude Desktop Configuration**
+
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "agentic-sdlc": {
+      "command": "node",
+      "args": ["/Users/your-username/Documents/GitHub/mcp-agentic-sdlc/dist/index.js"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}
+```
+
+**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "agentic-sdlc": {
+      "command": "node",
+      "args": ["C:\\Users\\YourUsername\\Documents\\GitHub\\mcp-agentic-sdlc\\dist\\index.js"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}
+```
+
+**Linux:** `~/.config/claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "agentic-sdlc": {
+      "command": "node",
+      "args": ["/home/your-username/Documents/GitHub/mcp-agentic-sdlc/dist/index.js"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}
+```
+
+### **Advanced Configuration**
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "agentic-sdlc": {
+        "command": "node",
+        "args": ["/path/to/mcp-agentic-sdlc/dist/index.js"],
+        "env": {
+          "NODE_ENV": "production",
+          "LOG_LEVEL": "info"
+        },
+        "timeout": 30000,
+        "retries": 3
+      }
+    }
+  }
+}
+```
+
+### **Quick Setup Steps**
+
+1. **Install the MCP Server:**
+   ```bash
+   git clone https://github.com/michaelwybraniec/mcp-agentic-sdlc.git
+   cd mcp-agentic-sdlc
+   npm install
+   npm run build
+   ```
+
+2. **Configure Cursor/Claude** with the appropriate JSON above
+
+3. **Restart Cursor/Claude** to load the MCP server
+
+4. **Test the connection** by using the `base` tool
 
 ---
 
