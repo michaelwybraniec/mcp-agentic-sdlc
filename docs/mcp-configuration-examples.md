@@ -2,6 +2,8 @@
 
 <div align="center">
 
+![AWP Logo](https://raw.githubusercontent.com/michaelwybraniec/mcp-agentic-sdlc/main/docs/awp-logo.png)
+
 ### *Professional MCP Server Configuration for Cursor + Claude*
 
 **Community Maintenance:** AI Engineering Barcelona  

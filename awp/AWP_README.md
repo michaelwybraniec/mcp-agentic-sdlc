@@ -1,5 +1,7 @@
 <div align="center">
 
+![AWP Logo](https://raw.githubusercontent.com/michaelwybraniec/mcp-agentic-sdlc/main/docs/awp-logo.png)
+
 # 🚀 MCP Agentic SDLC
 
 ### **AGENTIC WORKFLOW PROTOCOL**
