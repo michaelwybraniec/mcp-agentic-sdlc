@@ -1,12 +1,19 @@
+<div align="center">
+
 # 🚀 MCP Agentic SDLC
 
-**MCP Agentic SDLC**
+### *Transparent, Collaborative Software Development Lifecycle Management*
 
-**Open Source Standard Candidate**
+[![Open Source](https://img.shields.io/badge/Open%20Source-✓-green.svg)](https://github.com/michaelwybraniec/mcp-agentic-sdlc)
+[![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue.svg)](https://modelcontextprotocol.io)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Community](https://img.shields.io/badge/Maintained%20by-Community-orange.svg)](https://github.com/michaelwybraniec/mcp-agentic-sdlc)
 
-**Maintained by Community**, Author: [Michael Wybraniec](https://michaelwybraniec.com)
+**Empowering teams and AI agents to build, track, and document projects with clarity, transparency, and seamless collaboration.**
 
-**Mission:** Empower teams and agents to build, track, and document projects with clarity, transparency, and flow through structured human-AI collaboration.
+*Author: [Michael Wybraniec](https://michaelwybraniec.com) | [ONE-FRONT.COM](https://one-front.com) | [OVERVIBING.COM](https://overvibing.com)*
+
+</div>
 
 ---
 
@@ -19,27 +26,61 @@
   - [🧠 Handling Memory Loss or Returning to Work (Diagram)](#-handling-memory-loss-or-returning-to-work-diagram)
   - [🗂️ MCP Agentic SDLC File Structure Explained](#️-mcp-agentic-sdlc-file-structure-explained)
   - [🛠️ How to Use MCP Agentic SDLC in Your Project](#️-how-to-use-mcp-agentic-sdlc-in-your-project)
+    - [Option 1: Using the MCP Server (Recommended)](#option-1-using-the-mcp-server-recommended)
+    - [Option 2: Manual Setup](#option-2-manual-setup)
+  - [🔧 MCP Server Tools and Resources](#-mcp-server-tools-and-resources)
+    - [Tools](#tools)
+    - [Resources](#resources)
+    - [Workflow](#workflow)
   - [📋 Best Practices](#-best-practices)
+    - [MCP Server Usage](#mcp-server-usage)
+    - [General Practices](#general-practices)
   - [📝 Example MCP Agentic SDLC YAML](#-example-mcp-agentic-sdlc-yaml)
 
 ---
 
 ## 🌟 What is MCP Agentic SDLC?
 
-**MCP Agentic SDLC** is a transparent, agentic, and collaborative Software Development Lifecycle management standard. It is designed for both solo developers and teams (including AI agents), ensuring everyone stays in sync, code and docs are always aligned, and progress is transparent. MCP Agentic SDLC is both human- and machine-readable, making it ideal for hybrid human/AI workflows.
+<div align="center">
+
+> **A revolutionary approach to software development that bridges human creativity with AI efficiency**
+
+</div>
+
+**MCP Agentic SDLC** is a transparent, agentic, and collaborative Software Development Lifecycle management standard designed for the future of development. It seamlessly integrates human expertise with AI capabilities, ensuring:
+
+- 🔄 **Perfect Synchronization** - Everyone stays in sync, code and docs are always aligned
+- 📊 **Complete Transparency** - Progress is visible and trackable at all times  
+- 🤖 **AI-Native Design** - Built for hybrid human/AI workflows from the ground up
+- 📖 **Human & Machine Readable** - Works perfectly for both humans and AI agents
+- 🚀 **Scalable Collaboration** - From solo developers to large distributed teams
+
+### 🎯 **Core Philosophy**
+
+*"Empower teams to achieve VIBE-CODING while preventing OVER-VIBING through structured, transparent collaboration."*
 
 ---
 
-## 🏷️ Key Terms
+## 🏷️ Key Concepts
 
-**VIBE-CODING**
-> A state of creative, uninterrupted coding flow, where you (and optionally your agent) are fully immersed in building, iterating, and shipping features. MCP Agentic SDLC helps you stay in this flow by keeping your roadmap and progress tracking frictionless and always up to date.
+<div align="center">
 
-**OVER-VIBING**
-> This is when you let your agent work for you too much, and then it forgets the context due to network or LLM limitations. It can lead to overlooking the context, and/or losing track of the project's progress, architecture, or complexity.
+| Concept | Definition | Impact |
+|---------|------------|---------|
+| **🎨 VIBE-CODING** | Creative, uninterrupted coding flow with full immersion in building and shipping | **Positive** - Peak productivity state |
+| **⚠️ OVER-VIBING** | Excessive AI delegation leading to context loss and project drift | **Negative** - Risk to project success |
+| **🛡️ MCP Agentic SDLC** | Structured framework preventing over-vibing through transparency | **Solution** - Balanced human-AI collaboration |
 
-**MCP Agentic SDLC**
-> MCP Agentic SDLC is designed to prevent over-vibing by making project strategy, progress, actions, and procedures always visible and reviewable for humans and agents through structured human-AI collaboration.
+</div>
+
+### 🎨 **VIBE-CODING**
+> A state of creative, uninterrupted coding flow where you (and optionally your AI agent) are fully immersed in building, iterating, and shipping features. MCP Agentic SDLC helps you maintain this flow by keeping your roadmap and progress tracking frictionless and always up to date.
+
+### ⚠️ **OVER-VIBING** 
+> When you delegate too much to your AI agent, leading to context loss due to network or LLM limitations. This can result in overlooking project context, losing track of progress, architecture, or complexity.
+
+### 🛡️ **MCP Agentic SDLC**
+> Our solution designed to prevent over-vibing by making project strategy, progress, actions, and procedures always visible and reviewable for both humans and AI agents through structured collaboration.
 
 ---
 
@@ -155,50 +196,102 @@ flowchart TD
 
 ## 🔧 MCP Server Tools and Resources
 
-The MCP Agentic SDLC server provides the following tools and resources:
+<div align="center">
 
-### Tools
+### *Professional-grade tools for seamless project initialization and management*
 
-| Tool | Description | Usage |
-|------|-------------|-------|
-| `base` | Collects project requirements | Use first to gather project information |
-| `init` | Creates complete project structure | Use after `base` to set up your project |
-| `get_backlog_recipe` | Provides backlog creation methodology | Use to understand how to create project backlogs |
+</div>
 
-### Resources
+### 🛠️ **Available Tools**
 
-| Resource | URI | Description |
-|----------|-----|-------------|
-| Backlog Recipe | `recipe://backlog-recipe` | Complete methodology for creating project backlogs using the Agentic SDLC approach |
+<div align="center">
 
-### Workflow
+| 🎯 Tool | 📝 Description | 🚀 Usage |
+|---------|----------------|----------|
+| **`base`** | Collects comprehensive project requirements | **Step 1:** Use first to gather all project information |
+| **`init`** | Creates complete project structure with backlog | **Step 2:** Use after `base` to set up your project |
+| **`get_backlog_recipe`** | Provides backlog creation methodology | **Reference:** Use to understand backlog creation principles |
 
-1. **Start with `base`** - Collect your project requirements
-2. **Use `init`** - Create your project structure with backlog
-3. **Access `recipe://backlog-recipe`** - Get guidance for backlog creation
-4. **Follow AWP procedures** - Use the generated `AWP.md` for project management
+</div>
+
+### 📚 **Available Resources**
+
+<div align="center">
+
+| 🌐 Resource | 🔗 URI | 📖 Description |
+|-------------|--------|----------------|
+| **Backlog Recipe** | `recipe://backlog-recipe` | Complete methodology for creating project backlogs using the Agentic SDLC approach |
+
+</div>
+
+### 🔄 **Recommended Workflow**
+
+<div align="center">
+
+```mermaid
+graph LR
+    A[🎯 base] --> B[🚀 init] --> C[📚 recipe] --> D[📋 AWP]
+    A --> |"Collect Requirements"| A1[Goals, Phases, Tech, Success]
+    B --> |"Create Structure"| B1[Project Files, Backlog, Tasks]
+    C --> |"Get Guidance"| C1[Backlog Methodology]
+    D --> |"Follow Procedures"| D1[Update, Commit, Next, Check]
+```
+
+</div>
+
+1. **🎯 Start with `base`** - Collect your project requirements comprehensively
+2. **🚀 Use `init`** - Create your complete project structure with backlog
+3. **📚 Access `recipe://backlog-recipe`** - Get professional guidance for backlog creation
+4. **📋 Follow AWP procedures** - Use the generated `AWP.md` for ongoing project management
 
 ---
 
 ## 📋 Best Practices
 
-### MCP Server Usage
-- Use the `base` tool first to collect all project requirements before proceeding
-- Always specify the `appDir` parameter when using the `init` tool to ensure correct project location
-- Access the backlog recipe resource (`recipe://backlog-recipe`) for guidance on task creation
-- Follow the generated `AWP.md` procedures for project management
+<div align="center">
 
-### General Practices
-- Always update both `AWP.md` and `README.md` after each step
-- Use the `procedures` section as your canonical workflow for update, commit, next, check, and handoff
-- Reference the step number in every commit message
-- Use the `commitStandard` for all commits to enable automation and traceability
-- Clearly define human vs AI task ownership to prevent confusion
-- Use handoff procedures when transferring work between human and AI
-- If you see blockers, critical points, or have suggestions, document and address them before moving on
-- Use the `init` section to onboard new contributors or agents
-- Review the `notes` section for project-wide policies
-- Set up approval gates for critical human decisions
+### *Professional guidelines for optimal MCP Agentic SDLC implementation*
+
+</div>
+
+### 🚀 **MCP Server Usage**
+
+<div align="center">
+
+| ✅ Do | ❌ Don't |
+|--------|----------|
+| Use `base` tool first to collect all requirements | Skip requirement collection |
+| Specify `appDir` parameter for correct project location | Assume default directory |
+| Access `recipe://backlog-recipe` for task creation guidance | Create tasks without methodology |
+| Follow generated `AWP.md` procedures | Ignore established procedures |
+
+</div>
+
+### 🎯 **General Practices**
+
+<div align="center">
+
+| 📋 Practice | 🎯 Purpose | 🔧 Implementation |
+|-------------|------------|-------------------|
+| **Update Documentation** | Keep everything in sync | Update `AWP.md` and `README.md` after each step |
+| **Follow Procedures** | Maintain consistency | Use procedures section as canonical workflow |
+| **Reference Steps** | Enable traceability | Include step number in every commit message |
+| **Use Commit Standards** | Enable automation | Follow `commitStandard` for all commits |
+| **Define Ownership** | Prevent confusion | Clearly define human vs AI task ownership |
+| **Document Blockers** | Maintain transparency | Document and address blockers before proceeding |
+
+</div>
+
+### 🛡️ **Quality Assurance**
+
+- ✅ **Always update** both `AWP.md` and `README.md` after each step
+- ✅ **Use procedures** section as your canonical workflow for update, commit, next, check, and handoff
+- ✅ **Reference step numbers** in every commit message for traceability
+- ✅ **Follow commit standards** for all commits to enable automation
+- ✅ **Define clear ownership** between human and AI to prevent confusion
+- ✅ **Use handoff procedures** when transferring work between human and AI
+- ✅ **Document blockers** and address them before moving on
+- ✅ **Set up approval gates** for critical human decisions
 
 ---
 
@@ -290,4 +383,22 @@ commitStandard:
 
 ---
 
+<div align="center">
+
+## 🤝 Contributing
+
 **MCP Agentic SDLC is a living protocol. Help improve it by contributing feedback, templates, and best practices!**
+
+[![Contributing](https://img.shields.io/badge/Contributing-Welcome-brightgreen.svg)](https://github.com/michaelwybraniec/mcp-agentic-sdlc)
+[![Issues](https://img.shields.io/badge/Issues-Report-red.svg)](https://github.com/michaelwybraniec/mcp-agentic-sdlc/issues)
+[![Discussions](https://img.shields.io/badge/Discussions-Join-blue.svg)](https://github.com/michaelwybraniec/mcp-agentic-sdlc/discussions)
+
+---
+
+### 🌟 **Star this repository if you find it helpful!**
+
+**Built with ❤️ by [Michael Wybraniec](https://michaelwybraniec.com)**
+
+*[ONE-FRONT.COM](https://one-front.com) | [OVERVIBING.COM](https://overvibing.com)*
+
+</div>
