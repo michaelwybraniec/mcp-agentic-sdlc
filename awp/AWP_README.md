@@ -120,6 +120,24 @@ flowchart TD
 
 ## 🛠️ How to Use MCP Agentic SDLC in Your Project
 
+### Option 1: Using the MCP Server (Recommended)
+
+1. **Install the MCP Agentic SDLC server** in your development environment
+2. **Use the `base` tool** to collect your project requirements:
+   - Project goals and objectives
+   - Development phases and milestones  
+   - Technology stack and tools
+   - Success criteria and outcomes
+3. **Use the `init` tool** to create your complete project structure:
+   - Creates `agentic-sdlc/` directory in your project
+   - Generates `AWP.md` with your project details
+   - Creates project backlog using the backlog recipe methodology
+   - Sets up task structure with planned/unplanned/completed directories
+4. **Use the `get_backlog_recipe` tool** to access the complete backlog creation methodology
+5. **Follow the AWP procedures** in your generated `AWP.md` file
+
+### Option 2: Manual Setup
+
 1. **Copy a template** (or start from scratch) and place it in your project root as `mcp-agentic-sdlc.yml`.
 2. **Edit the header**: Add your name, organization, and contact info.
 3. **Define your goal and outcome**: Clearly state what your project aims to achieve and what success looks like.
@@ -135,18 +153,52 @@ flowchart TD
 
 ---
 
+## 🔧 MCP Server Tools and Resources
+
+The MCP Agentic SDLC server provides the following tools and resources:
+
+### Tools
+
+| Tool | Description | Usage |
+|------|-------------|-------|
+| `base` | Collects project requirements | Use first to gather project information |
+| `init` | Creates complete project structure | Use after `base` to set up your project |
+| `get_backlog_recipe` | Provides backlog creation methodology | Use to understand how to create project backlogs |
+
+### Resources
+
+| Resource | URI | Description |
+|----------|-----|-------------|
+| Backlog Recipe | `recipe://backlog-recipe` | Complete methodology for creating project backlogs using the Agentic SDLC approach |
+
+### Workflow
+
+1. **Start with `base`** - Collect your project requirements
+2. **Use `init`** - Create your project structure with backlog
+3. **Access `recipe://backlog-recipe`** - Get guidance for backlog creation
+4. **Follow AWP procedures** - Use the generated `AWP.md` for project management
+
+---
+
 ## 📋 Best Practices
 
-- Always update both `mcp-agentic-sdlc.yml` and `README.md` after each step.
-- Use the `procedures` section as your canonical workflow for update, commit, next, check, and handoff.
-- Reference the step number in every commit message.
-- Use the `commitStandard` for all commits to enable automation and traceability.
-- Clearly define human vs AI task ownership to prevent confusion.
-- Use handoff procedures when transferring work between human and AI.
-- If you see blockers, critical points, or have suggestions, document and address them before moving on.
-- Use the `init` section to onboard new contributors or agents.
-- Review the `notes` section for project-wide policies.
-- Set up approval gates for critical human decisions.
+### MCP Server Usage
+- Use the `base` tool first to collect all project requirements before proceeding
+- Always specify the `appDir` parameter when using the `init` tool to ensure correct project location
+- Access the backlog recipe resource (`recipe://backlog-recipe`) for guidance on task creation
+- Follow the generated `AWP.md` procedures for project management
+
+### General Practices
+- Always update both `AWP.md` and `README.md` after each step
+- Use the `procedures` section as your canonical workflow for update, commit, next, check, and handoff
+- Reference the step number in every commit message
+- Use the `commitStandard` for all commits to enable automation and traceability
+- Clearly define human vs AI task ownership to prevent confusion
+- Use handoff procedures when transferring work between human and AI
+- If you see blockers, critical points, or have suggestions, document and address them before moving on
+- Use the `init` section to onboard new contributors or agents
+- Review the `notes` section for project-wide policies
+- Set up approval gates for critical human decisions
 
 ---
 
