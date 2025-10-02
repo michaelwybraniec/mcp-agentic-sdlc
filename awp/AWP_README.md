@@ -1,6 +1,6 @@
 <div align="center">
 
-![AWP Logo](https://raw.githubusercontent.com/michaelwybraniec/mcp-agentic-sdlc/main/docs/awp-logo.png)
+![AWP Logo](https://raw.githubusercontent.com/michaelwybraniec/mcp-agentic-sdlc/main/docs/logo1.png)
 
 # 🚀 MCP Agentic SDLC
 
@@ -11,10 +11,11 @@
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue.svg)](https://modelcontextprotocol.io)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Community](https://img.shields.io/badge/Maintained%20by-Community-orange.svg)](https://github.com/michaelwybraniec/mcp-agentic-sdlc)
+[![AI Engineering Barcelona](https://img.shields.io/badge/Community-AI%20Engineering%20Barcelona-purple.svg)](https://github.com/michaelwybraniec/mcp-agentic-sdlc)
 
 **Precision-engineered collaboration framework for controlled vibe coding and context preservation.**
 
-*Author: [Michael Wybraniec](https://michaelwybraniec.com) | [ONE-FRONT.COM](https://one-front.com) | [OVERVIBING.COM](https://overvibing.com)*
+*Community project: AI Engineering Barcelona | Author: [Michael Wybraniec](https://michaelwybraniec.com) | [ONE-FRONT.COM](https://one-front.com) | [OVERVIBING.COM](https://overvibing.com)*
 
 </div>
 
@@ -25,8 +26,10 @@
     - [**AGENTIC WORKFLOW PROTOCOL**](#agentic-workflow-protocol)
     - [*HUMAN-AI Precision Strike for Controlled Vibe Coding \& Context Engineering*](#human-ai-precision-strike-for-controlled-vibe-coding--context-engineering)
   - [📚 Table of Contents](#-table-of-contents)
+  - [⚡ Quick Start](#-quick-start)
   - [🌟 What is MCP Agentic SDLC?](#-what-is-mcp-agentic-sdlc)
     - [🎯 **Core Philosophy**](#-core-philosophy)
+    - [✨ **Key Features**](#-key-features)
   - [🏷️ Key Concepts](#️-key-concepts)
     - [🎨 **VIBE-CODING**](#-vibe-coding)
     - [⚠️ **OVER-VIBING**](#️-over-vibing)
@@ -43,19 +46,50 @@
     - [📚 **Available Resources**](#-available-resources)
     - [🔄 **Recommended Workflow**](#-recommended-workflow)
   - [📋 Best Practices](#-best-practices)
-     - [*Professional guidelines for optimal MCP Agentic SDLC implementation*](#professional-guidelines-for-optimal-mcp-agentic-sdlc-implementation)
-     - [🚀 **MCP Server Usage**](#-mcp-server-usage)
-     - [🎯 **General Practices**](#-general-practices)
-     - [🛡️ **Quality Assurance**](#️-quality-assurance)
+    - [*Professional guidelines for optimal MCP Agentic SDLC implementation*](#professional-guidelines-for-optimal-mcp-agentic-sdlc-implementation)
+    - [🚀 **MCP Server Usage**](#-mcp-server-usage)
+    - [🎯 **General Practices**](#-general-practices)
+    - [🛡️ **Quality Assurance**](#️-quality-assurance)
   - [🔧 MCP Configuration Examples](#-mcp-configuration-examples)
-     - [*Professional MCP Server Configuration for Cursor + Claude*](#professional-mcp-server-configuration-for-cursor--claude)
-     - [**Cursor Configuration**](#cursor-configuration)
-     - [**Claude Desktop Configuration**](#claude-desktop-configuration)
-     - [**Advanced Configuration**](#advanced-configuration)
-     - [**Quick Setup Steps**](#quick-setup-steps)
+    - [*Professional MCP Server Configuration for Cursor + Claude*](#professional-mcp-server-configuration-for-cursor--claude)
+    - [**Cursor Configuration**](#cursor-configuration)
+    - [**Claude Desktop Configuration**](#claude-desktop-configuration)
+    - [**Advanced Configuration**](#advanced-configuration)
+    - [**Quick Setup Steps**](#quick-setup-steps)
   - [📝 Example MCP Agentic SDLC YAML](#-example-mcp-agentic-sdlc-yaml)
   - [🤝 Contributing](#-contributing)
     - [🌟 **Star this repository if you find it helpful!**](#-star-this-repository-if-you-find-it-helpful)
+
+---
+
+## ⚡ Quick Start
+
+<div align="center">
+
+### *Get up and running in 3 simple steps*
+
+</div>
+
+1. **🎯 Collect Requirements**
+   ```
+   Use the 'base' tool to gather your project information
+   ```
+
+2. **🚀 Initialize Project**
+   ```
+   Use the 'init' tool to create your complete project structure
+   ```
+
+3. **📋 Follow AWP Procedures**
+   ```
+   Use the generated AWP.md for ongoing project management
+   ```
+
+<div align="center">
+
+**Ready to revolutionize your development workflow?** [Jump to Configuration](#-mcp-configuration-examples)
+
+</div>
 
 ---
 
@@ -78,6 +112,21 @@
 ### 🎯 **Core Philosophy**
 
 *"HUMAN-AI Precision Strike for Controlled Vibe Coding & Context Engineering"*
+
+### ✨ **Key Features**
+
+<div align="center">
+
+| 🚀 Feature | 📝 Description | 🎯 Benefit |
+|------------|----------------|------------|
+| **🎯 Precision Strike** | Targeted, controlled AI collaboration | Eliminates over-vibing and context loss |
+| **📊 Complete Transparency** | All progress and decisions are visible | Maintains project clarity and accountability |
+| **🔄 Seamless Integration** | Works with Cursor, Claude, and other MCP clients | Fits into existing workflows |
+| **📋 Structured Backlog** | Dynamic task generation based on project requirements | Ensures comprehensive project planning |
+| **🤖 AI-Native Design** | Built specifically for human-AI collaboration | Optimized for the future of development |
+| **⚡ Quick Setup** | 3-step initialization process | Get started in minutes, not hours |
+
+</div>
 
 ---
 
@@ -534,8 +583,21 @@ commitStandard:
 
 ### 🌟 **Star this repository if you find it helpful!**
 
+**Community Maintenance:** AI Engineering Barcelona  
 **Built with ❤️ by [Michael Wybraniec](https://michaelwybraniec.com)**
 
 *[ONE-FRONT.COM](https://one-front.com) | [OVERVIBING.COM](https://overvibing.com)*
+
+---
+
+<div align="center">
+
+**🎯 Ready to transform your development workflow?**
+
+[![Get Started](https://img.shields.io/badge/Get%20Started-Now-brightgreen.svg)](https://github.com/michaelwybraniec/mcp-agentic-sdlc#-quick-start)
+[![Documentation](https://img.shields.io/badge/Documentation-Read%20More-blue.svg)](https://github.com/michaelwybraniec/mcp-agentic-sdlc#-what-is-mcp-agentic-sdlc)
+[![Community](https://img.shields.io/badge/Community-Join%20Us-purple.svg)](https://github.com/michaelwybraniec/mcp-agentic-sdlc/discussions)
+
+</div>
 
 </div>
