@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![AWP Logo](https://raw.githubusercontent.com/michaelwybraniec/mcp-agentic-sdlc/main/docs/awp-logo.png)
+![AWP Logo](https://raw.githubusercontent.com/michaelwybraniec/mcp-agentic-sdlc/main/awp/logo1.png)
 
 ### *Professional MCP Server Configuration for Cursor + Claude*
 

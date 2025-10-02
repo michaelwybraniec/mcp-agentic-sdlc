@@ -1,6 +1,6 @@
 <div align="center">
 
-![AWP Logo](https://raw.githubusercontent.com/michaelwybraniec/mcp-agentic-sdlc/main/docs/logo1.png)
+![AWP Logo](https://raw.githubusercontent.com/michaelwybraniec/mcp-agentic-sdlc/main/awp/logo1.png)
 
 # 🚀 MCP Agentic SDLC
 
