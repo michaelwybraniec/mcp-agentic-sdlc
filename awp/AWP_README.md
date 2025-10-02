@@ -22,6 +22,7 @@
 ---
 
 ## 📚 Table of Contents
+
 - [🚀 MCP Agentic SDLC](#-mcp-agentic-sdlc)
     - [**AGENTIC WORKFLOW PROTOCOL**](#agentic-workflow-protocol)
     - [*HUMAN-AI Precision Strike for Controlled Vibe Coding \& Context Engineering*](#human-ai-precision-strike-for-controlled-vibe-coding--context-engineering)
