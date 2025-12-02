@@ -1,7 +1,8 @@
 # Backlog Recipe
 
-This canvas provides instructions on how to create, structure, and execute a software project backlog.  
-It is **topic-agnostic** and designed to be both **human- and AI-friendly**.
+This canvas provides instructions on how to create, structure, and execute a project backlog.  
+It is **framework-agnostic** (works with any methodology: Scrum, Kanban, Waterfall, etc.) and **topic-agnostic** (applies to any project type).  
+Designed to be both **human- and AI-friendly**.
 
 ## 1. Task Structure
 
@@ -41,13 +42,19 @@ It is **topic-agnostic** and designed to be both **human- and AI-friendly**.
 
   1.3.10 `risk`: Risks if task fails
 
-  1.3.11 `notes`: Optional extra info
+  1.3.11 `acceptance_criteria`: Explicit "done" conditions that must be met
 
-  1.3.12 `completed`: Boolean (true/false)
+  1.3.12 `definition_of_done`: Checklist of requirements for task completion
 
-  1.3.13 `children`: Optional array of sub-tasks
+  1.3.13 `measurable_outcomes`: Quantifiable success metrics and KPIs
 
-  1.3.14 `strengths`: Optional, why this task is valuable
+  1.3.14 `notes`: Optional extra info
+
+  1.3.15 `completed`: Boolean (true/false)
+
+  1.3.16 `children`: Optional array of sub-tasks
+
+  1.3.17 `strengths`: Optional, why this task is valuable
 
 ## 2. Common Issues & AI Considerations
 
@@ -59,7 +66,7 @@ It is **topic-agnostic** and designed to be both **human- and AI-friendly**.
 
 2.4 Use explicit dependencies for AI reasoning.
 
-2.5 Include testing, security, risks, and strengths at every level.
+2.5 Include testing, security, risks, acceptance criteria, definition of done, measurable outcomes, and strengths at every level.
 
 2.6 **Scope Creep Management**: When unplanned tasks arise, create them with U- prefix
 
@@ -93,6 +100,31 @@ Each task should be created as a separate Markdown file with the following struc
 ## Risk Assessment
 [What could go wrong if this task fails]
 
+## Acceptance Criteria
+[Explicit "done" conditions - what must be true for this task to be considered complete. Adapt criteria to your project context and methodology.]
+- [ ] Criterion 1: [Specific, testable condition]
+- [ ] Criterion 2: [Specific, testable condition]
+- [ ] Criterion 3: [Specific, testable condition]
+
+## Definition of Done
+[Checklist of requirements that must be met before task completion - adapt to your project context]
+- [ ] Deliverable completed as specified
+- [ ] Quality checks passed (testing, review, validation, etc.)
+- [ ] Documentation updated (if applicable)
+- [ ] Security/compliance review completed (if applicable)
+- [ ] All acceptance criteria met
+- [ ] Measurable outcomes achieved
+- [ ] Stakeholder approval obtained (if required)
+
+## Measurable Outcomes
+[Success indicators - use any combination that fits your task. Not all tasks need KPIs.]
+- **Quantitative Metrics** (when applicable): [Name] - Target: [value] - Current: [value]
+- **KPIs** (when applicable): [Key Performance Indicator] - Target: [value]
+- **Verification Criteria**: [Specific check that can be verified: yes/no, pass/fail, exists/doesn't exist]
+- **Observable Outcomes**: [What should be visible, working, or demonstrable when complete]
+- **Quality Attributes**: [Performance, reliability, usability, security levels achieved]
+- **Completion Indicators**: [Specific deliverables, artifacts, or states that indicate completion]
+
 ## Notes
 [Optional additional information]
 
@@ -108,6 +140,8 @@ Each task should be created as a separate Markdown file with the following struc
 ```
 
 ## 4. Project Backlog Example (Markdown Files)
+
+**Note**: The examples below are software development examples for illustration. Adapt the structure, acceptance criteria, definition of done, and measurable outcomes to your specific project type and methodology (e.g., marketing campaigns, research projects, hardware development, process improvements, etc.).
 
 ### Task File: `task-1.md`
 ```markdown
@@ -132,6 +166,25 @@ Check permissions and branch protection
 
 ## Risk Assessment
 Misconfigured repo may block future commits
+
+## Acceptance Criteria
+- [ ] Git repository created and accessible
+- [ ] Backend and frontend folder structure exists
+- [ ] README.md file is present and contains project description
+- [ ] Branch protection rules are configured
+- [ ] Repository permissions are set correctly
+
+## Definition of Done
+- [ ] Repository structure created
+- [ ] README.md added with project description
+- [ ] Branch protection configured
+- [ ] Permissions verified
+- [ ] All acceptance criteria met
+
+## Measurable Outcomes
+- **Verification Criteria**: Repository exists and is accessible
+- **Completion Indicators**: Backend and frontend folders created, README.md file present
+- **Observable Outcomes**: Repository structure visible in version control, branch protection rules active
 
 ## Strengths
 Foundation for all future development work
@@ -169,6 +222,28 @@ Ensure no secrets are hardcoded
 ## Risk Assessment
 Misconfiguration could block backend work
 
+## Acceptance Criteria
+- [ ] Node.js backend environment initialized
+- [ ] All dependencies installed successfully
+- [ ] Environment variables configured (no hardcoded secrets)
+- [ ] Basic server starts without errors
+- [ ] Health check endpoint responds with 200 status
+
+## Definition of Done
+- [ ] Dependencies installed
+- [ ] Environment variables configured
+- [ ] Server structure created
+- [ ] Server starts successfully
+- [ ] Health check endpoint working
+- [ ] No secrets in code (security review passed)
+- [ ] All acceptance criteria met
+
+## Measurable Outcomes
+- **Verification Criteria**: Server starts without errors, health endpoint returns 200 status
+- **Quantitative Metrics**: Response time < 100ms (p95), 0 hardcoded secrets found
+- **Observable Outcomes**: Server running, health check endpoint accessible, environment variables configured
+- **Quality Attributes**: Security review passed, no secrets in codebase
+
 ## Strengths
 Enables backend development to begin
 
@@ -204,6 +279,30 @@ Validate input, prevent injection attacks
 
 ## Risk Assessment
 Critical for MVP; delays block other features
+
+## Acceptance Criteria
+- [ ] Business logic module implemented
+- [ ] API endpoints exposed and functional
+- [ ] All unit tests passing (coverage ≥ 80%)
+- [ ] Integration tests passing
+- [ ] Input validation implemented
+- [ ] No security vulnerabilities detected
+
+## Definition of Done
+- [ ] API endpoints designed and documented
+- [ ] Business logic implemented
+- [ ] Unit tests written and passing (≥80% coverage)
+- [ ] Integration tests written and passing
+- [ ] Input validation implemented
+- [ ] Security review passed
+- [ ] Code reviewed and approved
+- [ ] All acceptance criteria met
+
+## Measurable Outcomes
+- **Quantitative Metrics**: Test coverage ≥ 80%, API response time < 200ms (p95)
+- **Verification Criteria**: All unit tests passing, all integration tests passing, 0 critical security vulnerabilities
+- **Observable Outcomes**: API endpoints respond correctly, business logic executes as expected
+- **Quality Attributes**: Code reviewed and approved, security review passed
 
 ## Strengths
 Core functionality for the application
@@ -261,6 +360,29 @@ Critical - implement secure authentication
 ## Risk Assessment
 Without auth, app cannot go to production
 
+## Acceptance Criteria
+- [ ] Login endpoint functional with secure authentication
+- [ ] Logout endpoint functional
+- [ ] Session management implemented securely
+- [ ] Authentication flow tested end-to-end
+- [ ] Security tests passing
+- [ ] No authentication vulnerabilities
+
+## Definition of Done
+- [ ] Authentication flow designed
+- [ ] Login endpoint implemented and tested
+- [ ] Logout endpoint implemented and tested
+- [ ] Session management implemented
+- [ ] Security tests written and passing
+- [ ] Security review passed
+- [ ] All acceptance criteria met
+
+## Measurable Outcomes
+- **Quantitative Metrics**: Authentication success rate ≥ 99.9%, 0 authentication vulnerabilities
+- **Verification Criteria**: Login/logout flows functional, session management secure, all security tests passing
+- **Observable Outcomes**: Users can log in, users can log out, sessions managed securely
+- **Quality Attributes**: Security review passed, authentication flows tested end-to-end
+
 ## Strengths
 Enables secure access to application features
 
@@ -293,7 +415,7 @@ Unplanned requirement discovered during security review
 
 7.3 Explicit dependencies allow AI to reason about execution order
 
-7.4 Completed, testing, security, risk fields help AI generate code, documentation, or QA checks
+7.4 Completed, testing, security, risk, acceptance criteria, definition of done, and measurable outcomes fields help AI generate code, documentation, QA checks, and validate task completion
 
 7.5 Hierarchical IDs enable easy slicing into subtasks
 
@@ -374,7 +496,7 @@ agentic-sdlc/
 
 9.3 **Task Slicing**: AI can suggest task slicing or sub-tasks if description is large
 
-9.4 **Validation**: AI can validate dependencies, testing steps, and risk notes
+9.4 **Validation**: AI can validate dependencies, testing steps, risk notes, acceptance criteria completion, definition of done checklist, and measurable outcomes
 
 9.5 **Prioritization**: AI can prioritize tasks based on metadata (priority, effort, risk)
 
