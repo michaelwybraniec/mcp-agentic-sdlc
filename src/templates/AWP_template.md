@@ -33,21 +33,80 @@
 
     1.11. Never use the word "AI" in any commit message.
 
-    1.12 Read this AWP.md and if exists the main README.md to understand the workflow and project goal.
+    1.12. MANDATORY: When you see "awp" commands, you MUST read this AWP.md file FIRST before taking any action. This is non-negotiable.
 
-    1.13 If you see blockers or have suggestions, document it in Unplanned Tasks section and notify human.
+    1.12.1. If you see "awp next", "awp commit", "awp update", or any "awp" command, and you are not aware about what awp.md is about STOP and read AWP.md immediately.
 
-    1.14 Always respect human oversight and approval gates
-    
-    1.15. Never make critical business decisions without human approval
+    1.12.2. Only after understanding what is written in the AWP.md may you proceed with the requested action.
 
-    1.16. Always document your reasoning and decisions
+    1.13. AWP COMMAND RECOGNITION: When you see commands starting with "awp", you MUST immediately recognize this as an AWP protocol trigger and follow AWP procedures.
 
-    1.17. Follow the commit standard and reference step numbers
+    1.13.1. AWP commands include: "awp next", "awp commit", "awp update", "awp check", "awp handoff"
 
-    1.18. The protocol is designed to ensure trust, clarity, and effective collaboration between human and AI.
+    1.13.2. Upon seeing any "awp" command, you MUST first read this AWP.md file before proceeding with any action.
 
-    
+    1.14. SCOPE CLARIFICATION: When commands contain ambiguous terms like "end", "all", "complete", you MUST ask for clarification before proceeding.
+
+    1.14.1. Examples of ambiguous commands requiring clarification:
+        - "awp next to the end" → Ask: "Do you mean the next task, or all remaining tasks?"
+        - "awp next all" → Ask: "Do you mean all tasks in current phase, or all tasks in project?"
+        - "awp next complete" → Ask: "Do you mean complete current task, or complete entire phase?"
+
+    1.15. ASSUMPTION PREVENTION: You MUST ask clarifying questions for any command that could be interpreted multiple ways.
+
+    1.15.1. Before taking action on ambiguous commands, you MUST ask:
+        - "What do you mean by [ambiguous term]?"
+        - "Do you want me to [specific interpretation 1] or [specific interpretation 2]?"
+        - "Should I [limited scope] or [expanded scope]?"
+
+    1.15.2. You MAY NOT proceed until the human provides clear clarification.
+
+    1.16. SELF-MONITORING: Before taking any action, ask yourself:
+        - "Did I read AWP.md first?"
+        - "Am I following the proper sequence?"
+        - "Am I making any assumptions?"
+        - "Have I asked for clarification if needed?"
+
+    1.16.1. If you answer "no" to any of these questions, STOP and correct your behavior before proceeding.
+
+    1.17. COMMAND VALIDATION: Before executing any "awp" command, you MUST validate:
+        - Is the command scope clear?
+        - Do I understand exactly what the human wants?
+        - Am I about to make any assumptions?
+        - Have I read AWP.md first?
+
+    1.17.1. If validation fails, you MUST ask for clarification before proceeding.
+
+    1.18. If you see blockers or have suggestions, document it in Unplanned Tasks section and notify human.
+
+    1.19. Always respect human oversight and approval gates
+ 
+    1.20. Never make critical business decisions without human approval
+
+    1.21. Always document your reasoning and decisions
+
+    1.22. Follow the commit standard and reference step numbers
+
+    1.23. The protocol is designed to ensure trust, clarity, and effective collaboration between human and AI.
+
+## Critical AWP Violations to Prevent
+
+**Based on actual violations that occurred, the following behaviors are STRICTLY FORBIDDEN:**
+
+1. **Skipping AWP.md Reading**: You MUST read AWP.md when you see "awp" commands. Never proceed without reading procedures first.
+
+2. **Making Scope Assumptions**: When you see ambiguous terms like "end", "all", "complete", you MUST ask for clarification. Never assume what the human means.
+
+3. **Skipping Workflow Sequence**: You MUST follow update → commit → next sequence. Never jump directly to task creation.
+
+4. **Creating Multiple Tasks Without Clarification**: You MUST ask "Do you want one task or multiple tasks?" before creating anything.
+
+5. **Over-Engineering Solutions**: You MUST focus on the specific request, not creating a complete system. Ask for clarification on scope.
+
+6. **Ignoring AWP Procedures**: You MUST follow AWP procedures exactly. They are not suggestions, they are mandatory.
+
+**If you catch yourself doing any of these, STOP immediately and follow error_recovery procedures (6.1-6.4).**
+
 ## Author
 
 Michael Wybraniec (ONE-FRONT.COM, OVERVIBING.COM)
@@ -169,15 +228,21 @@ Format:
 
     2.5. Include relevant files.
 
-3. **next**
+3.  **next**
 
-    3.1. Move to the next actionable step only after update and commit are complete.
+    3.1. MANDATORY SEQUENCE: You MUST follow this exact sequence for "awp next":
+        3.1.1. First: Execute "awp update" (read AWP.md, check status, identify blockers)
+        3.1.2. Second: Execute "awp commit" (commit any pending changes)
+        3.1.3. Third: Execute "awp next" (move to next actionable step)
+        3.1.4. You MAY NOT skip any step in this sequence.
 
-    3.2. Identify the next actionable step and begin work.
+    3.2. If you attempt to execute "awp next" without first completing "awp update" and "awp commit", you MUST stop and ask the human for permission to skip steps.
 
-    3.3. Check for blockers before proceeding, and confirm additional plan with human.
+    3.3. Identify the next actionable step and begin work.
 
-    3.4. Mark the current step 'check' [ ] as done before you start.
+    3.4. Check for blockers before proceeding, and confirm additional plan with human.
+
+    3.5. Mark the current step 'check' [ ] as done before you start.
 
 4. **check**
 
@@ -266,6 +331,25 @@ Format:
    6.8.3. Test mobile keyboard and form inputs
    6.8.4. Validate offline functionality if applicable
    6.8.5. Test mobile-specific features and flows
+
+7. **error_recovery**
+
+    6.1. If you realize you have violated AWP procedures, you MUST immediately:
+        6.1.1. Stop all current actions
+        6.1.2. Acknowledge the violation to the human
+        6.1.3. Ask for permission to correct the error
+        6.1.4. Follow proper AWP procedures going forward
+
+    6.2. Document the violation in the Unplanned Tasks section for future reference.
+
+    6.3. Ask the human how they want to proceed with the error.
+
+    6.4. Examples of AWP violations:
+        - Skipping AWP.md reading when seeing "awp" commands
+        - Making assumptions about command scope
+        - Skipping the update → commit → next sequence
+        - Creating multiple tasks without clarification
+        - Not asking for clarification on ambiguous commands
 
 ## Commit Standard
 
