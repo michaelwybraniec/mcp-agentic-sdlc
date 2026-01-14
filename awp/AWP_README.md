@@ -28,6 +28,7 @@
     - [*HUMAN-AI Precision Strike for Controlled Vibe Coding \& Context Engineering*](#human-ai-precision-strike-for-controlled-vibe-coding--context-engineering)
   - [📚 Table of Contents](#-table-of-contents)
   - [⚡ Quick Start](#-quick-start)
+    - [*Get up and running in 3 simple steps*](#get-up-and-running-in-3-simple-steps)
   - [🌟 What is MCP Agentic SDLC?](#-what-is-mcp-agentic-sdlc)
     - [🎯 **Core Philosophy**](#-core-philosophy)
     - [✨ **Key Features**](#-key-features)
