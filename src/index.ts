@@ -15,7 +15,7 @@ import * as yaml from 'yaml';
 // Helper function to create project backlog content using recipe resource
 function createProjectBacklog(goals: string[], overview: string[], technology: string[], outcome: string[]): string {
   // Read the backlog recipe to understand the structure and methodology
-  const recipePath = path.join(__dirname, "recipes/backlog-recipe.md");
+  const recipePath = path.join(__dirname, "recipes/pro-backlog-recipe.md");
   const recipe = fs.readFileSync(recipePath, 'utf8');
   
   // Create task links based on the overview phases
@@ -49,10 +49,10 @@ ${taskLinks}
   return backlogContent;
 }
 
-// Helper function to create initial task files using backlog-recipe.md as guide
+// Helper function to create initial task files using pro-backlog-recipe.md as guide
 function createInitialTasks(plannedDir: string, goals: string[], overview: string[], technology: string[], outcome: string[]): void {
   // Read the backlog recipe to understand how to create tasks
-  const recipePath = path.join(__dirname, "recipes/backlog-recipe.md");
+  const recipePath = path.join(__dirname, "recipes/pro-backlog-recipe.md");
   const recipe = fs.readFileSync(recipePath, 'utf8');
   
   // The recipe instructs the LLM to create tasks based on the collected project information
@@ -184,11 +184,66 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: "get_backlog_recipe",
+        name: "get_pro_backlog_recipe",
         description: `
-          Get the backlog recipe resource for creating project-specific backlogs.
+          Get the pro backlog recipe resource for creating project-specific backlogs.
           This provides the complete methodology and guidance for backlog creation.
           Use this when you need to understand how to structure and create project backlogs.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_pro_requirements_recipe",
+        description: `
+          Get the pro requirements recipe resource for creating and structuring project requirements documents.
+          This provides the complete methodology and guidance for requirements documentation.
+          Use this when you need to understand how to structure and create requirements documents.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_mvp_recipe",
+        description: `
+          Get the MVP recipe resource for defining, scoping, and delivering Minimum Viable Products.
+          This provides the complete methodology and guidance for MVP planning.
+          Use this when you need to understand how to define and scope an MVP.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_pro_tech_specs_recipe",
+        description: `
+          Get the pro tech specs recipe resource for creating and structuring full technical specifications.
+          This provides the complete methodology and guidance for full technical specification documentation.
+          Use this when you need to understand how to create full technical specifications.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_mvp_tech_specs_recipe",
+        description: `
+          Get the MVP tech specs recipe resource for creating MVP technical specifications.
+          This provides the complete methodology and guidance for MVP technical specification documentation.
+          Use this when you need to understand how to create MVP technical specifications.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_poc_tech_specs_recipe",
+        description: `
+          Get the POC tech specs recipe resource for creating POC technical specifications.
+          This provides the complete methodology and guidance for POC technical specification documentation.
+          Use this when you need to understand how to create POC technical specifications.`,
         inputSchema: {
           type: "object",
           properties: {},
@@ -203,9 +258,39 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
   return {
     resources: [
       {
-        uri: "recipe://backlog-recipe",
-        name: "Backlog Recipe",
+        uri: "recipe://pro-backlog-recipe",
+        name: "Pro Backlog Recipe",
         description: "Complete methodology and guidance for creating project backlogs using the Agentic SDLC approach",
+        mimeType: "text/markdown",
+      },
+      {
+        uri: "recipe://pro-requirements-recipe",
+        name: "Pro Requirements Recipe",
+        description: "Complete methodology and guidance for creating and structuring project requirements documents",
+        mimeType: "text/markdown",
+      },
+      {
+        uri: "recipe://mvp-recipe",
+        name: "MVP Recipe",
+        description: "Complete methodology and guidance for defining, scoping, and delivering Minimum Viable Products",
+        mimeType: "text/markdown",
+      },
+      {
+        uri: "recipe://pro-tech-specs-recipe",
+        name: "Pro Tech Specs Recipe",
+        description: "Complete methodology and guidance for creating and structuring full technical specifications",
+        mimeType: "text/markdown",
+      },
+      {
+        uri: "recipe://mvp-tech-specs-recipe",
+        name: "MVP Tech Specs Recipe",
+        description: "Complete methodology and guidance for creating MVP technical specifications",
+        mimeType: "text/markdown",
+      },
+      {
+        uri: "recipe://poc-tech-specs-recipe",
+        name: "POC Tech Specs Recipe",
+        description: "Complete methodology and guidance for creating POC technical specifications",
         mimeType: "text/markdown",
       },
     ],
@@ -216,9 +301,9 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const { uri } = request.params;
   
-  if (uri === "recipe://backlog-recipe") {
+  if (uri === "recipe://pro-backlog-recipe") {
     try {
-      const recipePath = path.join(__dirname, "recipes/backlog-recipe.md");
+      const recipePath = path.join(__dirname, "recipes/pro-backlog-recipe.md");
       const recipe = fs.readFileSync(recipePath, 'utf8');
       
       return {
@@ -231,7 +316,102 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
         ],
       };
     } catch (error: any) {
-      throw new Error(`Failed to read backlog recipe: ${error.message}`);
+      throw new Error(`Failed to read pro backlog recipe: ${error.message}`);
+    }
+  }
+  
+  if (uri === "recipe://pro-requirements-recipe") {
+    try {
+      const recipePath = path.join(__dirname, "recipes/pro-requirements-recipe.md");
+      const recipe = fs.readFileSync(recipePath, 'utf8');
+      
+      return {
+        contents: [
+          {
+            uri: uri,
+            mimeType: "text/markdown",
+            text: recipe,
+          },
+        ],
+      };
+    } catch (error: any) {
+      throw new Error(`Failed to read pro requirements recipe: ${error.message}`);
+    }
+  }
+  
+  if (uri === "recipe://mvp-recipe") {
+    try {
+      const recipePath = path.join(__dirname, "recipes/mvp-recipe.md");
+      const recipe = fs.readFileSync(recipePath, 'utf8');
+      
+      return {
+        contents: [
+          {
+            uri: uri,
+            mimeType: "text/markdown",
+            text: recipe,
+          },
+        ],
+      };
+    } catch (error: any) {
+      throw new Error(`Failed to read MVP recipe: ${error.message}`);
+    }
+  }
+  
+  if (uri === "recipe://pro-tech-specs-recipe") {
+    try {
+      const recipePath = path.join(__dirname, "recipes/pro-tech-specs-recipe.md");
+      const recipe = fs.readFileSync(recipePath, 'utf8');
+      
+      return {
+        contents: [
+          {
+            uri: uri,
+            mimeType: "text/markdown",
+            text: recipe,
+          },
+        ],
+      };
+    } catch (error: any) {
+      throw new Error(`Failed to read pro tech specs recipe: ${error.message}`);
+    }
+  }
+  
+  if (uri === "recipe://mvp-tech-specs-recipe") {
+    try {
+      const recipePath = path.join(__dirname, "recipes/mvp-tech-specs-recipe.md");
+      const recipe = fs.readFileSync(recipePath, 'utf8');
+      
+      return {
+        contents: [
+          {
+            uri: uri,
+            mimeType: "text/markdown",
+            text: recipe,
+          },
+        ],
+      };
+    } catch (error: any) {
+      throw new Error(`Failed to read MVP tech specs recipe: ${error.message}`);
+    }
+  }
+  
+  if (uri === "recipe://poc-tech-specs-recipe") {
+    try {
+      const recipePath = path.join(__dirname, "recipes/poc-tech-specs-recipe.md");
+      const recipe = fs.readFileSync(recipePath, 'utf8');
+      
+      return {
+        contents: [
+          {
+            uri: uri,
+            mimeType: "text/markdown",
+            text: recipe,
+          },
+        ],
+      };
+    } catch (error: any) {
+      throw new Error(`Failed to read POC tech specs recipe: ${error.message}`);
     }
   }
   
@@ -274,18 +454,18 @@ Please provide your answers to these 4 questions.`,
     };
   }
 
-  if (name === "get_backlog_recipe") {
+  if (name === "get_pro_backlog_recipe") {
     try {
-      const recipePath = path.join(__dirname, "recipes/backlog-recipe.md");
+      const recipePath = path.join(__dirname, "recipes/pro-backlog-recipe.md");
       const recipe = fs.readFileSync(recipePath, 'utf8');
       
       return {
         content: [
           {
             type: "text",
-            text: `# Backlog Recipe Resource
+            text: `# Pro Backlog Recipe Resource
 
-This is the complete backlog recipe for creating project backlogs using the Agentic SDLC methodology.
+This is the complete pro backlog recipe for creating project backlogs using the Agentic SDLC methodology.
 
 ${recipe}`,
           },
@@ -296,7 +476,157 @@ ${recipe}`,
         content: [
           {
             type: "text",
-            text: `Error reading backlog recipe: ${error.message}`,
+            text: `Error reading pro backlog recipe: ${error.message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  if (name === "get_pro_requirements_recipe") {
+    try {
+      const recipePath = path.join(__dirname, "recipes/pro-requirements-recipe.md");
+      const recipe = fs.readFileSync(recipePath, 'utf8');
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: `# Pro Requirements Recipe Resource
+
+This is the complete pro requirements recipe for creating and structuring project requirements documents using the Agentic SDLC methodology.
+
+${recipe}`,
+          },
+        ],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error reading pro requirements recipe: ${error.message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  if (name === "get_mvp_recipe") {
+    try {
+      const recipePath = path.join(__dirname, "recipes/mvp-recipe.md");
+      const recipe = fs.readFileSync(recipePath, 'utf8');
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: `# MVP Recipe Resource
+
+This is the complete MVP recipe for defining, scoping, and delivering Minimum Viable Products using the Agentic SDLC methodology.
+
+${recipe}`,
+          },
+        ],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error reading MVP recipe: ${error.message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  if (name === "get_pro_tech_specs_recipe") {
+    try {
+      const recipePath = path.join(__dirname, "recipes/pro-tech-specs-recipe.md");
+      const recipe = fs.readFileSync(recipePath, 'utf8');
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: `# Pro Tech Specs Recipe Resource
+
+This is the complete pro tech specs recipe for creating and structuring full technical specifications using the Agentic SDLC methodology.
+
+${recipe}`,
+          },
+        ],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error reading pro tech specs recipe: ${error.message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  if (name === "get_mvp_tech_specs_recipe") {
+    try {
+      const recipePath = path.join(__dirname, "recipes/mvp-tech-specs-recipe.md");
+      const recipe = fs.readFileSync(recipePath, 'utf8');
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: `# MVP Tech Specs Recipe Resource
+
+This is the complete MVP tech specs recipe for creating MVP technical specifications using the Agentic SDLC methodology.
+
+${recipe}`,
+          },
+        ],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error reading MVP tech specs recipe: ${error.message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  if (name === "get_poc_tech_specs_recipe") {
+    try {
+      const recipePath = path.join(__dirname, "recipes/poc-tech-specs-recipe.md");
+      const recipe = fs.readFileSync(recipePath, 'utf8');
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: `# POC Tech Specs Recipe Resource
+
+This is the complete POC tech specs recipe for creating POC technical specifications using the Agentic SDLC methodology.
+
+${recipe}`,
+          },
+        ],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error reading POC tech specs recipe: ${error.message}`,
           },
         ],
         isError: true,
@@ -383,7 +713,7 @@ ${recipe}`,
         content: [
           {
             type: "text",
-            text: `Successfully created agentic-sdlc folder with complete project structure in ${targetDir}\n\nCreated:\n- README.md\n- commitStandard.md\n- ASDLC.md\n- AWP.md\n- tasks/project-backlog.md\n- tasks/planned/ (with initial task files)\n- tasks/unplanned/ (empty)\n- tasks/completed/ (empty)\n\nProject Details:\n- Goal: ${goalArray.join(', ')}\n- Overview: ${overviewArray.join(', ')}\n- Technology: ${technologyArray.join(', ')}\n- Outcome: ${outcomeArray.join(', ')}\n\nThe project backlog has been created using the backlog-recipe.md methodology.`,
+            text: `Successfully created agentic-sdlc folder with complete project structure in ${targetDir}\n\nCreated:\n- README.md\n- commitStandard.md\n- ASDLC.md\n- AWP.md\n- tasks/project-backlog.md\n- tasks/planned/ (with initial task files)\n- tasks/unplanned/ (empty)\n- tasks/completed/ (empty)\n\nProject Details:\n- Goal: ${goalArray.join(', ')}\n- Overview: ${overviewArray.join(', ')}\n- Technology: ${technologyArray.join(', ')}\n- Outcome: ${outcomeArray.join(', ')}\n\nThe project backlog has been created using the pro-backlog-recipe.md methodology.`,
           },
         ],
       };

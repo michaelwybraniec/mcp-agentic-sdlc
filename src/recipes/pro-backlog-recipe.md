@@ -1,6 +1,6 @@
-# Backlog Recipe
+# Pro Backlog Recipe
 
-This canvas provides instructions on how to create, structure, and execute a project backlog.  
+This canvas provides instructions on how to create, structure, and execute a full project backlog.  
 It is **framework-agnostic** (works with any methodology: Scrum, Kanban, Waterfall, etc.) and **topic-agnostic** (applies to any project type).  
 Designed to be both **human- and AI-friendly**.
 
