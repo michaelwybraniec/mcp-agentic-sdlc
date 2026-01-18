@@ -8,7 +8,7 @@ Designed to be both **human- and AI-friendly**.
 
 0.1 This recipe uses a modular structure with clear markers:
 
-  0.1.1 `[FIXED]` - Core concepts that define what requirements are (rarely change)
+  0.1.1 `[UNCHANGEABLE]` - Core concepts that define what requirements are (rarely change)
 
   0.1.2 `[REPLACEABLE]` - Implementation patterns and sections that can be swapped or customized
 
@@ -26,7 +26,7 @@ Designed to be both **human- and AI-friendly**.
 
 0.3 **Recipe Integration**: This recipe can be used alongside other recipes (pro-backlog-recipe, pro-tech-specs-recipe, mvp-tech-specs-recipe, poc-tech-specs-recipe, mvp-recipe, etc.)
 
-## 1. Core Requirements Concepts [FIXED]
+## 1. Core Requirements Concepts [UNCHANGEABLE]
 
 1.1 A **requirement** is a statement that describes what a system, product, or service must do or possess.
 
@@ -918,22 +918,20 @@ Designed to be both **human- and AI-friendly**.
 
 31.1 **Project Structure**: Work within `agentic-sdlc/` directory - if it is not created, stop and ask the user if they initiated the project with Agentic SDLC.
 
-31.2 **Requirements Directory Structure**: Create a `requirements/` directory:
+31.2 **Requirements Directory Structure**: Create structure within `backlog-<name>/pro/`:
 
 ```
 agentic-sdlc/
-├── requirements/
-│   ├── requirements-document.md    # Main requirements document
-│   ├── individual-requirements/    # Optional: individual requirement files
-│   │   ├── FR-1.md
-│   │   ├── FR-2.md
-│   │   └── NFR-1.md
-│   └── traceability-matrix.md      # Optional: traceability matrix
-├── tasks/                          # Backlog tasks (from pro-backlog-recipe)
+├── backlog-<name>/
+│   └── pro/
+│       ├── requirements.md          # Main requirements document
+│       ├── backlog.md                # Project backlog
+│       ├── tech-specs.md            # Tech specs
+│       └── tasks/                   # Backlog tasks (from pro-backlog-recipe)
 └── other files described in other instructions
 ```
 
-31.3 **Main Requirements Document**: Create `requirements-document.md` following the schema in section 29.
+31.3 **Main Requirements Document**: Create `backlog-<name>/pro/requirements.md` following the schema in section 29.
 
 31.4 **Individual Requirements** (optional): If storing requirements separately, create individual files following the template in section 29.3.
 
@@ -972,3 +970,52 @@ agentic-sdlc/
 33.7 Requirements should inform backlog creation - use pro-backlog-recipe.md to convert requirements into actionable tasks.
 
 33.8 Regular review and validation of requirements helps prevent scope creep and ensures alignment with objectives.
+
+---
+
+## 34. Template Section [FOR FILE GENERATION]
+
+**Status**: Required for automated file generation  
+**Purpose**: This section contains the template with placeholders that the `init` tool uses to generate `requirements.md`
+
+**Placeholder Format**: `{{PLACEHOLDER_NAME}}` - will be replaced with actual data during file generation
+
+```markdown
+# Pro Requirements
+
+## Overview
+
+### Project Purpose
+To be defined based on core objectives.
+
+## Core Objectives
+{{CORE_OBJECTIVES_LIST}}
+
+## Target Users
+{{TARGET_USERS_LIST}}
+
+## Functional Requirements
+{{FUNCTIONAL_REQUIREMENTS_LIST}}
+
+## Non-Functional Requirements
+{{NON_FUNCTIONAL_REQUIREMENTS_LIST}}
+
+## Out of Scope
+{{OUT_OF_SCOPE_LIST}}
+
+## Success Criteria
+To be defined.
+
+## Implementation Assumptions
+To be defined.
+
+---
+*Created using pro-requirements-recipe.md*
+```
+
+**Placeholder Mappings**:
+- `{{CORE_OBJECTIVES_LIST}}` → Core objectives (numbered list)
+- `{{TARGET_USERS_LIST}}` → Target users (numbered list, or "To be defined")
+- `{{FUNCTIONAL_REQUIREMENTS_LIST}}` → Functional requirements (numbered list, or "To be defined")
+- `{{NON_FUNCTIONAL_REQUIREMENTS_LIST}}` → Non-functional requirements (numbered list, or "To be defined")
+- `{{OUT_OF_SCOPE_LIST}}` → Out of scope items (numbered list, or "None specified")

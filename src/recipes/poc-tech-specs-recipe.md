@@ -8,7 +8,7 @@ Designed to be both **human- and AI-friendly**.
 
 0.1 This recipe uses a modular structure with clear markers:
 
-  0.1.1 `[FIXED]` - Core concepts that define what POC tech specs are (rarely change)
+  0.1.1 `[UNCHANGEABLE]` - Core concepts that define what POC tech specs are (rarely change)
 
   0.1.2 `[REPLACEABLE]` - Implementation patterns and sections that can be swapped or customized
 
@@ -30,11 +30,11 @@ Designed to be both **human- and AI-friendly**.
   - `pro-requirements-recipe.md` (for requirements understanding)
   - `pro-backlog-recipe.md` (for creating POC-focused tasks)
 
-0.4 **POC Tech Specs Purpose**: Create `poc-tech-specs.md` - proof-of-concept technical specification filtered to POC scope only.
+0.4 **POC Tech Specs Purpose**: Create `backlog-<name>/poc/tech-specs.md` - proof-of-concept technical specification filtered to POC scope only.
 
-## 1. Core POC Tech Specs Concepts [FIXED]
+## 1. Core POC Tech Specs Concepts [UNCHANGEABLE]
 
-1.1 **POC Tech Specs** (`poc-tech-specs.md`) is a technical specification document filtered to POC scope only.
+1.1 **POC Tech Specs** (`backlog-<name>/poc/tech-specs.md`) is a technical specification document filtered to POC scope only.
 
 1.2 POC Tech Specs characteristics:
 
@@ -58,7 +58,7 @@ Designed to be both **human- and AI-friendly**.
 
 1.4 POC Tech Specs relationship to other documents:
 
-  1.4.1 Source: Filtered from `tech-specs.md` based on `poc-requirements.md`
+  1.4.1 Source: Filtered from `backlog-<name>/pro/tech-specs.md` based on `backlog-<name>/poc/requirements.md`
 
   1.4.2 Links to: POC requirements, POC scope, POC backlog
 
@@ -77,9 +77,9 @@ Designed to be both **human- and AI-friendly**.
 
 2.1 **Approach A: Filter from Full Tech Specs**
 
-  2.1.1 Start with full `tech-specs.md` (if it exists)
+  2.1.1 Start with full `backlog-<name>/pro/tech-specs.md` (if it exists)
 
-  2.1.2 Review `poc-requirements.md` to identify POC scope
+  2.1.2 Review `backlog-<name>/poc/requirements.md` to identify POC scope
 
   2.1.3 Filter tech specs to only POC proof features
 
@@ -89,7 +89,7 @@ Designed to be both **human- and AI-friendly**.
 
 2.2 **Approach B: Create Directly from POC Requirements**
 
-  2.2.1 Start with `poc-requirements.md`
+  2.2.1 Start with `backlog-<name>/poc/requirements.md`
 
   2.2.2 Use `pro-tech-specs-recipe.md` as structure guide
 
@@ -519,7 +519,7 @@ Designed to be both **human- and AI-friendly**.
 
 15.1 **How AI Should Use This Recipe**:
 
-  15.1.1 Read `poc-requirements.md` to understand POC scope
+  15.1.1 Read `backlog-<name>/poc/requirements.md` to understand POC scope
 
   15.1.2 Read `pro-tech-specs-recipe.md` for base structure (if needed)
 
@@ -551,24 +551,22 @@ Designed to be both **human- and AI-friendly**.
 
 ```
 agentic-sdlc/
-├── requirements/
-│   └── requirements-document.md    # Full requirements
-├── poc/
-│   └── poc-requirements.md          # POC requirements
-├── tech-specs/
-│   ├── tech-specs.md                # Full technical specification (optional)
-│   └── poc-tech-specs.md            # POC technical specification
-├── tasks/                           # Backlog tasks (from pro-backlog-recipe)
+├── backlog-<name>/
+│   └── poc/
+│       ├── requirements.md          # POC requirements
+│       ├── backlog.md                # POC backlog
+│       ├── tech-specs.md            # POC technical specification
+│       └── tasks/                   # Backlog tasks (from poc-backlog-recipe)
 └── other files described in other instructions
 ```
 
-16.3 **POC Tech Specs Document**: Create `poc-tech-specs.md` following the schema in section 14.
+16.3 **POC Tech Specs Document**: Create `backlog-<name>/poc/tech-specs.md` following the schema in section 14.
 
 16.4 **AI Instructions**: When AI creates POC tech specs structure, it should:
 
-  16.4.1 Create `tech-specs/` directory if it doesn't exist
+  16.4.1 Create `backlog-<name>/poc/` directory if it doesn't exist
 
-  16.4.2 Create `poc-tech-specs.md` from POC requirements
+  16.4.2 Create `backlog-<name>/poc/tech-specs.md` from POC requirements
 
   16.4.3 Filter from full tech specs if it exists, or create directly from POC requirements
 
@@ -605,3 +603,39 @@ agentic-sdlc/
 18.9 POC tech specs enable **concept validation** ("Can we build this?").
 
 18.10 POC success = concept proven (not production-ready).
+
+---
+
+## 19. Template Section [FOR FILE GENERATION]
+
+**Status**: Required for automated file generation  
+**Purpose**: This section contains the template with placeholders that the `init` tool uses to generate `tech-specs.md`
+
+**Placeholder Format**: `{{PLACEHOLDER_NAME}}` - will be replaced with actual data during file generation
+
+```markdown
+# POC Tech Specs
+
+## POC Technical Context
+
+### Technology Stack
+{{TECHNOLOGY_LIST}}
+
+### Technology Decisions
+{{ARCHITECTURE_APPROACH}}
+
+## POC Implementation Approach
+
+### Architecture Pattern
+{{ARCHITECTURE_APPROACH}}
+
+### Key Design Decisions
+{{ARCHITECTURE_APPROACH}}
+
+---
+*Created using poc-tech-specs-recipe.md*
+```
+
+**Placeholder Mappings**:
+- `{{TECHNOLOGY_LIST}}` → Technologies (numbered list)
+- `{{ARCHITECTURE_APPROACH}}` → Architecture approach and key design decisions

@@ -8,7 +8,7 @@ Designed to be both **human- and AI-friendly**.
 
 0.1 This recipe uses a modular structure with clear markers:
 
-  0.1.1 `[FIXED]` - Core concepts that define what MVP tech specs are (rarely change)
+  0.1.1 `[UNCHANGEABLE]` - Core concepts that define what MVP tech specs are (rarely change)
 
   0.1.2 `[REPLACEABLE]` - Implementation patterns and sections that can be swapped or customized
 
@@ -26,15 +26,15 @@ Designed to be both **human- and AI-friendly**.
 
 0.3 **Recipe Integration**: This recipe integrates with:
   - `pro-tech-specs-recipe.md` (base recipe for full tech specs structure)
-  - `mvp-recipe.md` (for MVP scope definition)
+  - `mvp-requirements-recipe.md` (for MVP scope definition)
   - `pro-requirements-recipe.md` (for requirements understanding)
   - `pro-backlog-recipe.md` (for creating MVP-focused tasks)
 
-0.4 **MVP Tech Specs Purpose**: Create `mvp-tech-specs.md` - production-ready technical specification filtered to MVP scope only.
+0.4 **MVP Tech Specs Purpose**: Create `backlog-<name>/mvp/tech-specs.md` - production-ready technical specification filtered to MVP scope only.
 
-## 1. Core MVP Tech Specs Concepts [FIXED]
+## 1. Core MVP Tech Specs Concepts [UNCHANGEABLE]
 
-1.1 **MVP Tech Specs** (`mvp-tech-specs.md`) is a technical specification document filtered to MVP scope only.
+1.1 **MVP Tech Specs** (`backlog-<name>/mvp/tech-specs.md`) is a technical specification document filtered to MVP scope only.
 
 1.2 MVP Tech Specs characteristics:
 
@@ -58,7 +58,7 @@ Designed to be both **human- and AI-friendly**.
 
 1.4 MVP Tech Specs relationship to other documents:
 
-  1.4.1 Source: Filtered from `tech-specs.md` based on `mvp-requirements.md`
+  1.4.1 Source: Filtered from `backlog-<name>/pro/tech-specs.md` based on `backlog-<name>/mvp/requirements.md`
 
   1.4.2 Links to: MVP requirements, MVP scope, MVP backlog
 
@@ -71,9 +71,9 @@ Designed to be both **human- and AI-friendly**.
 
 2.1 **Approach A: Filter from Full Tech Specs**
 
-  2.1.1 Start with full `tech-specs.md` (if it exists)
+  2.1.1 Start with full `backlog-<name>/pro/tech-specs.md` (if it exists)
 
-  2.1.2 Review `mvp-requirements.md` to identify MVP scope
+  2.1.2 Review `backlog-<name>/mvp/requirements.md` to identify MVP scope
 
   2.1.3 Filter tech specs to only MVP features
 
@@ -83,7 +83,7 @@ Designed to be both **human- and AI-friendly**.
 
 2.2 **Approach B: Create Directly from MVP Requirements**
 
-  2.2.1 Start with `mvp-requirements.md`
+  2.2.1 Start with `backlog-<name>/mvp/requirements.md`
 
   2.2.2 Use `pro-tech-specs-recipe.md` as structure guide
 
@@ -520,9 +520,9 @@ Designed to be both **human- and AI-friendly**.
 
 15.1 **How AI Should Use This Recipe**:
 
-  15.1.1 Read `mvp-recipe.md` to understand MVP scope
+  15.1.1 Read `mvp-requirements-recipe.md` to understand MVP scope
 
-  15.1.2 Read `mvp-requirements.md` to understand MVP requirements
+  15.1.2 Read `backlog-<name>/mvp/requirements.md` to understand MVP requirements
 
   15.1.3 Read `pro-tech-specs-recipe.md` for base structure (if needed)
 
@@ -554,22 +554,20 @@ Designed to be both **human- and AI-friendly**.
 
 ```
 agentic-sdlc/
-├── requirements/
-│   └── requirements-document.md    # Full requirements
-├── mvp/
-│   └── mvp-requirements.md          # MVP requirements
-├── tech-specs/
-│   ├── tech-specs.md                # Full technical specification (optional)
-│   └── mvp-tech-specs.md            # MVP technical specification
-├── tasks/                           # Backlog tasks (from pro-backlog-recipe)
+├── backlog-<name>/
+│   └── mvp/
+│       ├── requirements.md          # MVP requirements
+│       ├── backlog.md                # MVP backlog
+│       ├── tech-specs.md            # MVP technical specification
+│       └── tasks/                   # Backlog tasks (from mvp-backlog-recipe)
 └── other files described in other instructions
 ```
 
-16.3 **MVP Tech Specs Document**: Create `mvp-tech-specs.md` following the schema in section 14.
+16.3 **MVP Tech Specs Document**: Create `backlog-<name>/mvp/tech-specs.md` following the schema in section 14.
 
 16.4 **AI Instructions**: When AI creates MVP tech specs structure, it should:
 
-  16.4.1 Create `tech-specs/` directory if it doesn't exist
+  16.4.1 Create `backlog-<name>/mvp/` directory if it doesn't exist
 
   16.4.2 Create `mvp-tech-specs.md` from MVP requirements
 
@@ -608,3 +606,45 @@ agentic-sdlc/
 18.9 MVP tech specs enable **production-ready MVP delivery**.
 
 18.10 MVP success = production-ready, usable by real users.
+
+---
+
+## 19. Template Section [FOR FILE GENERATION]
+
+**Status**: Required for automated file generation  
+**Purpose**: This section contains the template with placeholders that the `init` tool uses to generate `tech-specs.md`
+
+**Placeholder Format**: `{{PLACEHOLDER_NAME}}` - will be replaced with actual data during file generation
+
+```markdown
+# MVP Tech Specs
+
+## MVP Technical Context
+
+### Technology Stack
+{{TECHNOLOGY_LIST}}
+
+### Technology Decisions
+{{ARCHITECTURE_APPROACH}}
+
+## MVP Implementation Approach
+
+### Architecture Pattern
+{{ARCHITECTURE_APPROACH}}
+
+### Key Design Decisions
+{{ARCHITECTURE_APPROACH}}
+
+## MVP Data Models
+
+### Core Data Structures
+{{DATA_MODELS}}
+
+---
+*Created using mvp-tech-specs-recipe.md*
+```
+
+**Placeholder Mappings**:
+- `{{TECHNOLOGY_LIST}}` → Technologies (numbered list)
+- `{{ARCHITECTURE_APPROACH}}` → Architecture approach and key design decisions
+- `{{DATA_MODELS}}` → Core data structures/entities and relationships

@@ -177,7 +177,7 @@ steps:
    - Set expectations and timeouts
 
 ## commitStandard
-@src/templates/commitStandard.yaml
+@src/templates/commitStandard.md
 
 ## Best Practices
 

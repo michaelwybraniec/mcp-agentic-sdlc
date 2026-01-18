@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![AWP Logo](https://raw.githubusercontent.com/michaelwybraniec/mcp-agentic-sdlc/main/awp/logo1.png)
+![AWP Logo](https://raw.githubusercontent.com/michaelwybraniec/mcp-agentic-sdlc/main/public/logo1.png)
 
 ### *Professional MCP Server Configuration for Cursor + Claude*
 
@@ -205,11 +205,16 @@ your-project/
 │   ├── README.md                # Project documentation
 │   ├── ASDLC.md                 # Agentic SDLC lifecycle
 │   ├── commitStandard.md        # Commit message standards
-│   └── tasks/                   # Project backlog
-│       ├── project-backlog.md   # Main backlog index
-│       ├── planned/             # Planned tasks
-│       ├── unplanned/           # Unplanned tasks
-│       └── completed/           # Completed tasks
+│   └── backlog-<name>/         # Project backlog directory
+│       └── <type>/              # mvp, poc, or pro
+│           ├── base.md          # AWP Project Foundation Agreement
+│           ├── requirements.md  # Project requirements
+│           ├── backlog.md       # Project backlog
+│           ├── tech-specs.md    # Technical specifications
+│           └── tasks/            # Task structure
+│               ├── planned/     # Planned tasks
+│               ├── unplanned/   # Unplanned tasks
+│               └── completed/   # Completed tasks
 ├── src/                         # Your project source code
 ├── docs/                        # Project documentation
 └── README.md                    # Project overview
@@ -221,7 +226,7 @@ your-project/
 mcp-agentic-sdlc/
 ├── dist/                        # Built server files
 │   ├── index.js                 # Main server file
-│   ├── templates/               # AWP templates
+│   ├── templates/               # Template files (README, commitStandard)
 │   └── recipes/                 # Backlog recipe
 ├── src/                         # Source code
 │   ├── index.ts                 # Main server implementation
@@ -414,17 +419,42 @@ tail -f ~/Library/Application\ Support/Claude/logs/claude_desktop.log
 
 1. **Start a new project:**
    ```
-   Use the 'base' tool to collect project requirements
+   Use the 'base' tool to collect project requirements:
+   - Provide backlog name (e.g., "ecommerce", "crm")
+   - Choose project type: MVP, POC, or Full/Pro
+   - Answer type-specific questions
+   - Say "I don't know" or "AI" for any question you need help with
    ```
 
-2. **Initialize project structure:**
+2. **Review AI recommendations (if needed):**
    ```
-   Use the 'init' tool with your project details
+   If you said "I don't know" or "AI" for any questions:
+   - AI will use 'recommend' tool to generate suggestions
+   - Review and confirm or modify recommendations
    ```
 
-3. **Access backlog recipe:**
+3. **Initialize project structure:**
    ```
-   Use the 'get_backlog_recipe' tool for guidance
+   Use the 'init' tool with all confirmed project details
+   This creates the complete project structure with:
+   - base.md (AWP Project Foundation Agreement)
+   - requirements.md (populated)
+   - backlog.md (populated)
+   - tech-specs.md (populated)
+   - tasks/ directory structure
+   ```
+
+4. **Access recipe resources:**
+   ```
+   Use recipe tools like:
+   - 'get_pro_backlog_recipe', 'get_pro_requirements_recipe', 'get_pro_tech_specs_recipe'
+   - 'get_mvp_backlog_recipe', 'get_mvp_requirements_recipe', 'get_mvp_tech_specs_recipe'
+   - 'get_poc_backlog_recipe', 'get_poc_requirements_recipe', 'get_poc_tech_specs_recipe'
+   
+   Or access resources via URIs:
+   - recipe://pro-backlog-recipe, recipe://pro-requirements-recipe, recipe://pro-tech-specs-recipe
+   - recipe://mvp-backlog-recipe, recipe://mvp-requirements-recipe, recipe://mvp-tech-specs-recipe
+   - recipe://poc-backlog-recipe, recipe://poc-requirements-recipe, recipe://poc-tech-specs-recipe
    ```
 
 ### Advanced Usage
@@ -433,16 +463,28 @@ tail -f ~/Library/Application\ Support/Claude/logs/claude_desktop.log
    ```json
    {
      "appDir": "/Users/your-username/Documents/GitHub/my-project",
-     "goal": ["Build a web application"],
-     "overview": ["Setup", "Development", "Testing", "Deployment"],
-     "technology": ["React", "Node.js", "PostgreSQL"],
-     "outcome": ["Working web application", "Documentation", "Tests"]
+     "backlogName": "my-project",
+     "projectType": "pro",
+     "proCoreObjectives": ["Build a web application"],
+     "proPhases": ["Setup", "Development", "Testing", "Deployment"],
+     "proTechnologies": ["React", "Node.js", "PostgreSQL"],
+     "proFunctionalRequirements": ["User authentication", "Data management"],
+     "proTargetUsers": ["End users", "Administrators"]
    }
    ```
 
 2. **Access MCP resources:**
    ```
-   Access recipe://backlog-recipe for complete methodology
+   Available recipe resources:
+   - recipe://pro-backlog-recipe
+   - recipe://pro-requirements-recipe
+   - recipe://mvp-backlog-recipe
+   - recipe://mvp-requirements-recipe
+   - recipe://poc-backlog-recipe
+   - recipe://poc-requirements-recipe
+   - recipe://pro-tech-specs-recipe
+   - recipe://mvp-tech-specs-recipe
+   - recipe://poc-tech-specs-recipe
    ```
 
 ---

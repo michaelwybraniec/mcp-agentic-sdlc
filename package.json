@@ -10,7 +10,8 @@
     "dev": "ts-node src/index.ts",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
-    "copy-assets": "cp -r src/templates dist && cp -r src/recipes dist"
+    "copy-assets": "cp -r src/templates dist && cp -r src/recipes dist",
+    "test": "node test/workflow.test.js"
   },
   "keywords": [
     "mcp",

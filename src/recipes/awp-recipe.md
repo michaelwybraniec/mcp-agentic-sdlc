@@ -1,3 +1,95 @@
+# AWP Recipe
+
+This recipe provides instructions on how to create and structure the Agentic Workflow Protocol (AWP) file for Agentic SDLC projects.  
+It is **framework-agnostic** (works with any methodology: Scrum, Kanban, Waterfall, etc.) and **topic-agnostic** (applies to any project type).  
+Designed to be both **human- and AI-friendly**.
+
+## 0. Recipe Integration
+
+0.1 **Recipe Integration**: This recipe integrates with:
+  - `mvp-backlog-recipe.md`, `poc-backlog-recipe.md`, `pro-backlog-recipe.md` (for backlog structure)
+  - `mvp-requirements-recipe.md`, `poc-requirements-recipe.md`, `pro-requirements-recipe.md` (for requirements)
+  - `mvp-tech-specs-recipe.md`, `poc-tech-specs-recipe.md`, `pro-tech-specs-recipe.md` (for technical specifications)
+
+0.2 **AWP Purpose**: Create the Agentic Workflow Protocol file that governs collaboration between human and AI contributors, ensuring trust, clarity, and effective collaboration.
+
+## 1. AWP Structure
+
+1.1 **Core Sections**: The AWP.md file must include:
+  - Init instructions
+  - Hard instructions for AI agents
+  - Critical AWP Violations to Prevent
+  - Author information
+  - Goal (project goals/features)
+  - Overview (project phases)
+  - Technology (technology stack)
+  - Outcome (success criteria)
+  - Collaboration (roles and settings)
+  - Project Backlog (reference to detailed backlog - see backlog recipes for task structure)
+  - Unplanned Tasks section
+  - Risks Tasks section
+  - Procedures (update, commit, next, check, handoff, test, error_recovery)
+  - Commit Standard reference
+
+1.2 **Project-Specific Content**: The AWP.md file is populated with project-specific information:
+  - Goals are derived from project features/objectives
+  - Overview is derived from project phases
+  - Technology is derived from technology stack
+  - Outcome is derived from success criteria
+  - Project Backlog references the detailed backlog file
+
+1.3 **Task Structure Reference**: Task structure and format are defined in backlog recipes, not in AWP:
+  - For task structure definitions, see: `pro-backlog-recipe.md`, `mvp-backlog-recipe.md`, or `poc-backlog-recipe.md`
+  - AWP only references the backlog location and provides workflow procedures
+  - Task format, schema, and creation guidelines are in the backlog recipes (Section 1 and Section 3)
+
+## 2. AWP Generation Process
+
+2.1 **Template-Based Generation**: The AWP.md file is generated using a template with placeholders:
+  - `{{GOAL}}` → Project goals/features (numbered list)
+  - `{{OVERVIEW}}` → Project phases (numbered list)
+  - `{{TECHNOLOGY}}` → Technology stack (numbered list)
+  - `{{OUTCOME}}` → Success criteria (numbered list)
+  - `{{BACKLOG_REFERENCE}}` → Reference to detailed backlog file
+
+2.2 **Placeholder Population**: During project initialization:
+  - Goals are extracted from project features/objectives
+  - Overview is extracted from project phases
+  - Technology is extracted from technology stack
+  - Outcome is extracted from success criteria
+  - Backlog reference is generated based on project type and backlog name
+
+## 3. AWP File Location
+
+3.1 **File Location**: The AWP.md file is created at:
+  - `agentic-sdlc/AWP.md` (project root level)
+
+3.2 **Integration**: The AWP.md file references:
+  - `backlog-<name>/<type>/backlog.md` for detailed task breakdown
+  - `commitStandard.md` for commit standards
+  - `README.md` for project overview
+  - `ASDLC.md` for lifecycle documentation
+
+## 4. AI Considerations
+
+4.1 **How AI Should Use This Recipe**:
+  - This recipe is used by the `init` tool to generate AWP.md
+  - AI should not modify AWP.md directly without following AWP procedures
+  - AI must read AWP.md when seeing "awp" commands
+
+4.2 **AWP Compliance**:
+  - All AI agents must follow AWP procedures exactly
+  - AWP violations are strictly forbidden
+  - Human oversight is required for all critical decisions
+
+## 5. Template Section [FOR FILE GENERATION]
+
+**Status**: Required for automated file generation  
+**Purpose**: This section contains the template with placeholders that the `init` tool uses to generate `AWP.md`
+
+**Placeholder Format**: `{{PLACEHOLDER_NAME}}` - will be replaced with actual data during file generation
+
+```markdown
 # Agentic Workflow Protocol (AWP)
 
 ## Init instructions
@@ -113,19 +205,19 @@ Michael Wybraniec (ONE-FRONT.COM, OVERVIBING.COM)
 
 ## Goal
 
-PLACEHOLDER_GOAL
+{{GOAL}}
 
 ## Overview
 
-PLACEHOLDER_OVERVIEW
+{{OVERVIEW}}
 
 ## Technology
 
-PLACEHOLDER_TECHNOLOGY
+{{TECHNOLOGY}}
 
 ## Outcome
 
-PLACEHOLDER_OUTCOME
+{{OUTCOME}}
 
 ## Collaboration
 
@@ -150,39 +242,36 @@ PLACEHOLDER_OUTCOME
 
 ## Project Backlog
 
-### 1. Main task, Name, Title, Description, etc.
-- [ ] 1.1: Subtask, Name, Title, Description, etc.
-- [ ] 1.2: Subtask, Name, Title, Description, etc.
+{{BACKLOG_REFERENCE}}
 
-### 2. Main task, Name, Title, Description, etc.
-- [ ] 2.1: Subtask, Name, Title, Description, etc.
-- [ ] 2.2: Subtask, Name, Title, Description, etc.
+**Note**: For task structure definitions, format, and creation guidelines, refer to the backlog recipe:
+- `pro-backlog-recipe.md` (for Pro projects)
+- `mvp-backlog-recipe.md` (for MVP projects)
+- `poc-backlog-recipe.md` (for POC projects)
 
-### 3. Main task, Name, Title, Description, etc.
-- [ ] 3.1: Subtask, Name, Title, Description, etc.
-
-### 4. Main task, Name, Title, Description, etc.
-- [ ] 4.1: Subtask, Name, Title, Description, etc.
-
-### 5. Main task, Name, Title, Description, etc.
-- [ ] 5.1: Subtask, Name, Title, Description, etc.
+The backlog recipes define task schema, hierarchical numbering, dependencies, acceptance criteria, and all task-related structure.
 
 ## Unplanned Tasks
 
-- Use the format U.1 U.2 U.3
-- This is for every task that you have discovered or wasn't planned in the project backlog
-- We have to save it, and if it's not urgent, we can do these tasks later
-- Do not override this, just put the tasks below, and remember to notify the human
+**Purpose**: Track tasks discovered during execution that weren't in the original backlog.
 
-Format:
-- [ ] U.1: Unplanned task, Name, Title, Description, etc.
-- [ ] U.2: Unplanned task, Name, Title, Description, etc.
+**Format**: Use the format defined in backlog recipes (e.g., `U-1`, `U-2`, `U-1.1` for hierarchical unplanned tasks). See backlog recipes for complete task structure.
 
-Do not override the above message. Add tasks below:
+**Guidelines**:
+- Document every task discovered during execution that wasn't planned
+- Save tasks here even if not urgent - can be done later
+- Always notify the human when adding unplanned tasks
+- Do not override this section header - add tasks below
+
+**Reference**: For task structure and format details, see the backlog recipe (`pro-backlog-recipe.md`, `mvp-backlog-recipe.md`, or `poc-backlog-recipe.md`).
+
+Add unplanned tasks below:
+
 ## Risks Tasks
 
-It is critical to report to-do risks or tasks that are potentially in scope
+**Purpose**: Track risks, concerns, or tasks that are potentially in scope but need attention.
 
+**Types of risks to document**:
 - Security concerns, limitations or standards to consider
 - Overcomplicated code, modules, architecture
 - Any enhancements that are relevant to the project
@@ -190,10 +279,14 @@ It is critical to report to-do risks or tasks that are potentially in scope
 - Complexity overkill
 - When AI is not following the scope, why and what was overvibed
 
-Do not override the above message. Add tasks below:
-Format:
-- [ ] R.1: Unplanned task, Name, Title, Description, etc.
-- [ ] R.2: Unplanned task, Name, Title, Description, etc.
+**Format**: Use the format `R.1`, `R.2`, etc. for risk tracking. For full task structure, see backlog recipes.
+
+**Guidelines**:
+- Document risks as they are discovered
+- Do not override this section header - add risks below
+- Always notify the human when adding risk tasks
+
+Add risk tasks below:
 
 
 ## Procedures
@@ -353,4 +446,12 @@ Format:
 
 ## Commit Standard
 
-@commitStandard.yaml
+@commitStandard.md
+```
+
+**Placeholder Mappings**:
+- `{{GOAL}}` → Project goals/features (numbered list format: "1. Goal1\n2. Goal2")
+- `{{OVERVIEW}}` → Project phases (numbered list format: "1. Phase1\n2. Phase2")
+- `{{TECHNOLOGY}}` → Technology stack (numbered list format: "1. Tech1\n2. Tech2")
+- `{{OUTCOME}}` → Success criteria (numbered list format: "1. Outcome1\n2. Outcome2")
+- `{{BACKLOG_REFERENCE}}` → Reference to detailed backlog (markdown link format)

@@ -29,6 +29,12 @@ It provides a clear structure for onboarding, collaboration, and handoff between
 - 'AWP.md' - Agentic Workflow Protocol template for your project.
 - 'src/' - Source code for your project.
 - 'agentic-sdlc/' - Generated folder for SDLC and workflow docs.
+  - 'backlog-<name>/<type>/' - Project backlog directory (mvp, poc, or pro)
+    - 'base.md' - AWP Project Foundation Agreement (reference document)
+    - 'requirements.md' - Project requirements
+    - 'backlog.md' - Project backlog
+    - 'tech-specs.md' - Technical specifications
+    - 'tasks/' - Task structure (planned, unplanned, completed)
 
 ---
 

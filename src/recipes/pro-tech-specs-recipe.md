@@ -8,7 +8,7 @@ Designed to be both **human- and AI-friendly**.
 
 0.1 This recipe uses a modular structure with clear markers:
 
-  0.1.1 `[FIXED]` - Core concepts that define what technical specifications are (rarely change)
+  0.1.1 `[UNCHANGEABLE]` - Core concepts that define what technical specifications are (rarely change)
 
   0.1.2 `[REPLACEABLE]` - Implementation patterns and sections that can be swapped or customized
 
@@ -30,7 +30,7 @@ Designed to be both **human- and AI-friendly**.
   - For MVP tech specs, use `mvp-tech-specs-recipe.md` (production-ready, MVP-scoped)
   - For POC tech specs, use `poc-tech-specs-recipe.md` (proof-focused, POC-scoped)
 
-## 1. Core Tech Specs Concepts [FIXED]
+## 1. Core Tech Specs Concepts [UNCHANGEABLE]
 
 1.1 A **technical specification** is a document that describes HOW a system will be implemented technically.
 
@@ -660,7 +660,7 @@ Designed to be both **human- and AI-friendly**.
 
   17.1.1 Read pro-requirements-recipe.md to understand requirements
 
-  17.1.2 Read mvp-recipe.md or poc-recipe.md to understand scope (if applicable)
+  17.1.2 Read mvp-requirements-recipe.md or poc-requirements-recipe.md to understand scope (if applicable)
 
   17.1.3 Use this recipe to create technical specifications
 
@@ -690,21 +690,22 @@ Designed to be both **human- and AI-friendly**.
 
 ```
 agentic-sdlc/
-├── requirements/
-│   └── requirements-document.md    # Full requirements
-├── tech-specs/
-│   └── tech-specs.md                # Full technical specification
-├── tasks/                           # Backlog tasks (from pro-backlog-recipe)
+├── backlog-<name>/
+│   └── pro/
+│       ├── requirements.md          # Full requirements
+│       ├── backlog.md                # Project backlog
+│       ├── tech-specs.md            # Full technical specification
+│       └── tasks/                   # Backlog tasks (from pro-backlog-recipe)
 └── other files described in other instructions
 ```
 
-18.3 **Tech Specs Document**: Create `tech-specs.md` following the schema in section 15.
+18.3 **Tech Specs Document**: Create `backlog-<name>/pro/tech-specs.md` following the schema in section 15.
 
 18.4 **AI Instructions**: When AI creates tech specs structure, it should:
 
-  18.4.1 Create `tech-specs/` directory structure
+  18.4.1 Create `backlog-<name>/pro/` directory structure
 
-  18.4.2 Create full `tech-specs.md` from all requirements
+  18.4.2 Create full `backlog-<name>/pro/tech-specs.md` from all requirements
 
   18.4.3 Maintain traceability to requirements
 
@@ -741,3 +742,45 @@ agentic-sdlc/
 20.9 For MVP tech specs (production-ready, MVP-scoped), use `mvp-tech-specs-recipe.md`.
 
 20.10 For POC tech specs (proof-focused, POC-scoped), use `poc-tech-specs-recipe.md`.
+
+---
+
+## 21. Template Section [FOR FILE GENERATION]
+
+**Status**: Required for automated file generation  
+**Purpose**: This section contains the template with placeholders that the `init` tool uses to generate `tech-specs.md`
+
+**Placeholder Format**: `{{PLACEHOLDER_NAME}}` - will be replaced with actual data during file generation
+
+```markdown
+# Pro Tech Specs
+
+## Technical Context
+
+### Technology Stack
+{{TECHNOLOGY_LIST}}
+
+### Technology Decisions
+{{ARCHITECTURE_APPROACH}}
+
+## Implementation Approach
+
+### Architecture Pattern
+{{ARCHITECTURE_APPROACH}}
+
+### Key Design Decisions
+{{ARCHITECTURE_APPROACH}}
+
+## Data Models
+
+### Core Data Structures
+{{DATA_MODELS}}
+
+---
+*Created using pro-tech-specs-recipe.md*
+```
+
+**Placeholder Mappings**:
+- `{{TECHNOLOGY_LIST}}` → Technologies (numbered list)
+- `{{ARCHITECTURE_APPROACH}}` → Architecture approach and key design decisions
+- `{{DATA_MODELS}}` → Core data structures/entities and relationships

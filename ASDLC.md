@@ -577,7 +577,7 @@ steps:
 - **handoff**: Transfer ownership
 
 #### 5. commitStandard
-@src/templates/commitStandard.yaml
+@src/templates/commitStandard.md
 
 ### AWP Benefits
 1. **Clear Ownership**
