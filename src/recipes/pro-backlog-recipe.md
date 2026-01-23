@@ -1,18 +1,20 @@
-# Backlog Recipe
+# Pro Backlog Recipe
 
-This canvas provides instructions on how to create, structure, and execute a project backlog.  
+This canvas provides instructions on how to create, structure, and execute a full project backlog.  
 It is **framework-agnostic** (works with any methodology: Scrum, Kanban, Waterfall, etc.) and **topic-agnostic** (applies to any project type).  
 Designed to be both **human- and AI-friendly**.
 
 ## 1. Task Structure
 
-1.1 Use **hierarchical numbering** for tasks:
+1.1 Use **hierarchical numbering** for tasks (supports up to 3 levels):
 
-  1.1.1 Parent task: main feature or epic → `1`, `2`, `3`  
+  1.1.1 Level 1 (Top-level parent): main feature → `1`, `2`, `3` (filename: `task-1.0.md`, `task-2.0.md`)
 
-  1.1.2 Child task: smaller sub-tasks → `1.1`, `1.1.1`, `2.1.1`
+  1.1.2 Level 2 (Tasks): child tasks → `1.1`, `1.2`, `2.1` (filename: `task-1.1.md`, `task-1.2.md`)
 
-  1.1.3 Unplanned tasks → `U-1`, `U-2`, `U-1.1`, `U-1.1.1`  
+  1.1.3 Level 3 (Subtasks): sub-tasks → `1.2.1`, `1.2.2`, `2.1.1` (filename: `task-1.2.1.md`, `task-1.2.2.md`)
+
+  1.1.4 Unplanned tasks → `U-1`, `U-2`, `U-1.1`, `U-1.1.1` (filename: `task-U-1.md`, `task-U-1.1.md`)  
 
 1.2. Track task execution using **checkboxes**:
 
@@ -143,7 +145,7 @@ Each task should be created as a separate Markdown file with the following struc
 
 **Note**: The examples below are software development examples for illustration. Adapt the structure, acceptance criteria, definition of done, and measurable outcomes to your specific project type and methodology (e.g., marketing campaigns, research projects, hardware development, process improvements, etc.).
 
-### Task File: `task-1.md`
+### Task File: `task-1.0.md` (Level 1 - Top-level parent)
 ```markdown
 # Task ID: 1
 # Title: Set up Project Repository
@@ -198,7 +200,7 @@ Initial project setup
 - [ ] Configure branch protection
 ```
 
-### Task File: `task-1-1.md`
+### Task File: `task-1.1.md` (Level 2 - Task)
 ```markdown
 # Task ID: 1.1
 # Title: Initialize Backend Environment
@@ -256,7 +258,7 @@ Backend foundation setup
 - [ ] Set up basic server structure
 ```
 
-### Task File: `task-2.md`
+### Task File: `task-2.0.md` (Level 1 - Top-level parent)
 ```markdown
 # Task ID: 2
 # Title: Implement Core Feature
@@ -399,13 +401,52 @@ Unplanned requirement discovered during security review
 
 ## 6. Task Slicing & Hierarchy
 
-6.1 Break large tasks into smaller subtasks (Feature → Module → Task → Sub-task)
+6.1 **Break large tasks into smaller subtasks** (Feature → Module → Task → Sub-task)
 
-6.2 Use explicit dependencies to avoid AI needing external context
+6.2 **When to Break Down Tasks**: AI should break down tasks when:
+   - Task description is longer than 200 words
+   - Estimated effort exceeds 8 hours or 1 story point
+   - Task involves multiple distinct deliverables or components
+   - Task requires multiple skills or roles to complete
+   - Task has unclear acceptance criteria or definition of done
+   - Task description contains words like "and", "also", "additionally", "including" (indicating multiple parts)
 
-6.3 Include testing and security for each task without overkill
+6.3 **How to Break Down Tasks**: AI should:
+   - Create Level 2 tasks (1.1, 1.2, etc.) for major components or phases
+   - Create Level 3 subtasks (1.2.1, 1.2.2, etc.) for specific implementation steps
+   - Each subtask should be independently testable and completable
+   - Each subtask should have clear acceptance criteria
+   - Subtasks should follow logical sequence (setup → implementation → testing → documentation)
+   - Use hierarchical numbering: parent task `1.0` → child tasks `1.1`, `1.2` → subtasks `1.2.1`, `1.2.2`
 
-6.4 Track risks and strengths for planning and prioritization
+6.4 **Task Size Guidelines**:
+   - **Level 1 (Epic/Feature)**: 1-2 weeks, multiple components
+   - **Level 2 (Task)**: 4-8 hours, single component or feature
+   - **Level 3 (Subtask)**: 1-4 hours, specific implementation step
+   - If a task exceeds these sizes, it MUST be broken down further
+
+6.5 **AI Task Breakdown Process**:
+   - When AI encounters a large task, it should:
+     1. Analyze the task description for distinct components
+     2. Identify logical breakdown points (setup, implementation, testing, etc.)
+     3. Create subtask files (task-1.1.md, task-1.2.md, etc.) for each component
+     4. Update the parent task to reference its subtasks
+     5. Ensure each subtask is self-contained with its own acceptance criteria
+   - AI should NOT mark parent tasks as complete until ALL subtasks are complete
+   - AI should proactively suggest breakdowns when reviewing tasks
+
+6.6 **Task Status Management**:
+   - Tasks start as `[ ] Pending` - NEVER mark as `[x] Completed` initially
+   - Only mark as `[x] Completed` when ALL acceptance criteria are met AND all subtasks (if any) are complete
+   - Parent tasks (Level 1) are only complete when ALL child tasks (Level 2) are complete
+   - Level 2 tasks are only complete when ALL subtasks (Level 3) are complete
+   - AI must verify completion by checking acceptance criteria, definition of done, and subtask status
+
+6.7 Use explicit dependencies to avoid AI needing external context
+
+6.8 Include testing and security for each task without overkill
+
+6.9 Track risks and strengths for planning and prioritization
 
 ## 7. Key Takeaways
 
@@ -425,37 +466,46 @@ Unplanned requirement discovered during security review
 
 8.1 **Project Structure**: Work within `agentic-sdlc/` directory - if is not created stop and ask the user if he initiated project with Agentic SDLC.
 
-8.2 **Backlog Directory Structure**: Create a `tasks/` directory with subdirectories:
+8.2 **Backlog Directory Structure**: Create structure within `backlog-<name>/pro/`:
 
 ```
 agentic-sdlc/
-├── tasks/
-│   ├── planned/          # Regular tasks (1, 1.1, 2, etc.)
-│   ├── unplanned/        # U- prefixed tasks (U-1, U-1.1, etc.)
-│   └── completed/        # Completed tasks (moved here when done)
-├── project-backlog.md    # Main backlog index file
+├── backlog-<name>/
+│   └── pro/
+│       ├── requirements.md          # Full requirements
+│       ├── backlog.md               # Main backlog index file
+│       ├── tech-specs.md            # Full tech specs
+│       └── tasks/
+│           ├── planned/          # All tasks flat: task-1.0.md, task-1.1.md, task-1.2.1.md, etc.
+│           ├── unplanned/        # U- prefixed tasks: task-U-1.md, task-U-1.1.md, etc.
+│           └── completed/        # Completed tasks (moved here when done)
 └── other files described in other instructions
 ```
 
 **Backlog Files Created:**
-- **`project-backlog.md`**: Main backlog index with links to all tasks
-- **`tasks/`**: Directory containing all individual task files
+- **`backlog-<name>/pro/backlog.md`**: Main backlog index with links to all tasks
+- **`backlog-<name>/pro/tasks/`**: Directory containing all individual task files
 
-8.3 **Main Backlog Index File**: Create `project-backlog.md` with task index:
+8.3 **Main Backlog Index File**: Create `backlog-<name>/pro/backlog.md` with task index:
 
 ```markdown
 # Project Backlog
 
 ## Planned Tasks
-- [ ] [Task 1: Set up Project Repository](tasks/planned/task-1.md)
-- [ ] [Task 1.1: Initialize Backend Environment](tasks/planned/task-1-1.md)
-- [ ] [Task 2: Implement Core Feature](tasks/planned/task-2.md)
+- [ ] [Task 1: Set up Project Repository](tasks/planned/task-1.0.md)
+- [ ] [Task 1.1: Initialize Backend Environment](tasks/planned/task-1.1.md)
+- [ ] [Task 1.2: Configure Database](tasks/planned/task-1.2.md)
+- [ ] [Task 1.2.1: Database Schema Design](tasks/planned/task-1.2.1.md)
+- [ ] [Task 2: Implement Core Feature](tasks/planned/task-2.0.md)
 
 ## Unplanned Tasks
 - [ ] [Task U-1: Add User Authentication](tasks/unplanned/task-U-1.md)
 
 ## Completed Tasks
 - [x] [Task 0: Project Planning](tasks/completed/task-0.md)
+
+---
+**Location**: `backlog-<name>/pro/backlog.md`
 ```
 
 ## 8.4 **File Creation Process**
@@ -464,7 +514,7 @@ agentic-sdlc/
 
 8.4.2 Create individual task files in appropriate subdirectories
 
-8.4.3 Update `project-backlog.md` index when adding new tasks
+8.4.3 Update `backlog-<name>/pro/backlog.md` index when adding new tasks
 
 8.4.4 Move completed tasks to `completed/` directory
 
@@ -476,11 +526,17 @@ agentic-sdlc/
    - Create `tasks/` directory with subdirectories (`planned/`, `unplanned/`, `completed/`)
 
 8.5.2 **Create Individual Task Files**:
-   - Create individual `.md` files in appropriate subdirectories
-   - Use filename format: `task-[ID].md` (e.g., `task-1.md`, `task-U-1.md`)
+   - Create individual `.md` files in `planned/` directory (flat structure, no subfolders)
+   - Use filename format: `task-[ID].md` where:
+     - **Level 1 (top-level parent)**: `task-1.0.md`, `task-2.0.md` (use `.0` suffix to ensure correct alphabetical sorting - parent comes before children)
+     - **Level 2 (tasks)**: `task-1.1.md`, `task-1.2.md`, `task-2.1.md`
+     - **Level 3 (subtasks)**: `task-1.2.1.md`, `task-1.2.2.md`, `task-2.1.1.md`
+     - **Unplanned**: `task-U-1.md`, `task-U-1.1.md` (or `task-U-1.0.md` for top-level unplanned)
+   - **Important**: All task files are stored flat in `planned/` folder - no nested folders for hierarchy
+   - **Sorting**: Files sort correctly alphabetically: `task-1.0.md` → `task-1.1.md` → `task-1.2.md` → `task-1.2.1.md` → `task-2.0.md`
 
 8.5.3 **Create Main Backlog Index**:
-   - Create `project-backlog.md` with links to all tasks
+   - Create `backlog-<name>/pro/backlog.md` with links to all tasks
    - Update the index when adding new tasks
 
 8.5.4 **Follow Backlog Standards**:
@@ -494,7 +550,12 @@ agentic-sdlc/
 
 9.2 **AI Integration**: Use AI to convert text descriptions into Markdown task files automatically
 
-9.3 **Task Slicing**: AI can suggest task slicing or sub-tasks if description is large
+9.3 **Task Slicing**: AI MUST proactively break down large tasks into subtasks:
+   - Analyze task size, complexity, and description length
+   - Create Level 2 and Level 3 subtasks following guidelines in section 6
+   - Ensure each subtask is independently completable and testable
+   - Update parent task to reference created subtasks
+   - Never mark parent tasks complete until all subtasks are done
 
 9.4 **Validation**: AI can validate dependencies, testing steps, risk notes, acceptance criteria completion, definition of done checklist, and measurable outcomes
 
@@ -510,3 +571,41 @@ agentic-sdlc/
 - Version control friendly
 - Can be converted to other formats if needed
 - Supports rich formatting and checkboxes
+
+---
+
+## 10. Template Section [FOR FILE GENERATION]
+
+**Status**: Required for automated file generation  
+**Purpose**: This section contains the template with placeholders that the `init` tool uses to generate `backlog.md`
+
+**Placeholder Format**: `{{PLACEHOLDER_NAME}}` - will be replaced with actual data during file generation
+
+```markdown
+# Project Backlog
+
+## Planned Tasks
+
+{{TASK_LINKS}}
+
+## Unplanned Tasks
+
+*No unplanned tasks yet*
+
+## Completed Tasks
+
+*No completed tasks yet*
+
+---
+
+**Project Goals:** {{GOALS_LIST}}
+**Technology Stack:** {{TECHNOLOGY_LIST}}
+**Success Criteria:** {{OUTCOME_LIST}}
+**Location:** This backlog is located at \`backlog-<name>/<type>/backlog.md\`
+```
+
+**Placeholder Mappings**:
+- `{{TASK_LINKS}}` → Task links based on phases (formatted as markdown links)
+- `{{GOALS_LIST}}` → Project objectives (comma-separated)
+- `{{TECHNOLOGY_LIST}}` → Technologies (comma-separated)
+- `{{OUTCOME_LIST}}` → Success criteria (comma-separated)

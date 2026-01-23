@@ -8,110 +8,12 @@ import {
   ListResourcesRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import * as fs from 'fs';
-import * as path from 'path';
-import * as yaml from 'yaml';
 
-// Helper function to create project backlog content using recipe resource
-function createProjectBacklog(goals: string[], overview: string[], technology: string[], outcome: string[]): string {
-  // Read the backlog recipe to understand the structure and methodology
-  const recipePath = path.join(__dirname, "recipes/backlog-recipe.md");
-  const recipe = fs.readFileSync(recipePath, 'utf8');
-  
-  // Create task links based on the overview phases
-  const taskLinks = overview.map((phase, index) => {
-    const taskId = index + 1;
-    const taskTitle = phase.replace(/^\d+\.\s*/, ''); // Remove leading numbers
-    return `- [ ] [Task ${taskId}: ${taskTitle}](tasks/planned/task-${taskId}.md)`;
-  }).join('\n');
-
-  // Generate backlog following the recipe structure (section 8.3 from recipe)
-  const backlogContent = `# Project Backlog
-
-## Planned Tasks
-
-${taskLinks}
-
-## Unplanned Tasks
-
-*No unplanned tasks yet*
-
-## Completed Tasks
-
-*No completed tasks yet*
-
----
-
-**Project Goals:** ${goals.join(', ')}
-**Technology Stack:** ${technology.join(', ')}
-**Success Criteria:** ${outcome.join(', ')}`;
-  
-  return backlogContent;
-}
-
-// Helper function to create initial task files using backlog-recipe.md as guide
-function createInitialTasks(plannedDir: string, goals: string[], overview: string[], technology: string[], outcome: string[]): void {
-  // Read the backlog recipe to understand how to create tasks
-  const recipePath = path.join(__dirname, "recipes/backlog-recipe.md");
-  const recipe = fs.readFileSync(recipePath, 'utf8');
-  
-  // The recipe instructs the LLM to create tasks based on the collected project information
-  // Following the recipe's guidance: "Use AI to convert text descriptions into Markdown task files automatically"
-  // and "AI can suggest task slicing or sub-tasks if description is large"
-  
-  // Create tasks based on the overview phases provided by the user
-  // The recipe says to break tasks into smaller subtasks and use explicit dependencies
-  
-  let taskCounter = 1;
-  const tasks: string[] = [];
-  
-  // Create tasks based on the overview phases
-  overview.forEach((phase, index) => {
-    const taskId = taskCounter;
-    const taskTitle = phase.replace(/^\d+\.\s*/, ''); // Remove leading numbers
-    
-    const task = `# Task ID: ${taskId}
-# Title: ${taskTitle}
-# Status: [ ] Pending
-# Priority: ${index === 0 ? 'high' : index === overview.length - 1 ? 'medium' : 'high'}
-# Owner: Dev Team
-# Estimated Effort: ${index === 0 ? '4h' : index === overview.length - 1 ? '3h' : '6h'}
-
-## Description
-${phase} - This phase focuses on achieving the project goals: ${goals.join(', ')}. Technology stack: ${technology.join(', ')}.
-
-## Dependencies
-${taskId === 1 ? '- None' : `- [ ] Task ID: ${taskId - 1}`}
-
-## Testing Instructions
-Verify that this phase meets the requirements and contributes to the success criteria: ${outcome.join(', ')}
-
-## Security Review
-Apply appropriate security measures for this phase
-
-## Risk Assessment
-Delays in this phase may impact overall project timeline
-
-## Strengths
-Essential for achieving project goals and success criteria
-
-## Notes
-Phase ${index + 1} of ${overview.length}: ${phase}
-
-## Sub-tasks
-- [ ] Analyze requirements for this phase
-- [ ] Implement core functionality
-- [ ] Test and validate implementation
-- [ ] Document phase completion
-
-## Completed
-[ ] Pending / [x] Completed`;
-    
-    tasks.push(task);
-    fs.writeFileSync(path.join(plannedDir, `task-${taskId}.md`), task);
-    taskCounter++;
-  });
-}
+// Import modules
+import { handleBaseTool } from './tools/base.js';
+import { handleRecommendTool } from './tools/recommend.js';
+import { handleInitTool } from './tools/init.js';
+import { handleRecipeResource, handleRecipeUri, getRecipeResources } from './resources/recipes.js';
 
 /**
  * Create MCP server with the init tool
@@ -136,22 +38,174 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "base",
         description: `
-          STEP 1: Collect project requirements by asking the user 4 essential questions. 
+          STEP 1: Collect project requirements and create base.md agreement file.
+          
+          MODE 1 (Questions): Call with no parameters to get the list of questions to ask the user.
+          
+          MODE 2 (Create base.md): After collecting all answers through conversation, call with all parameters to create base.md file.
+          
           This tool starts the Agentic SDLC project setup process. 
-          Use this FIRST to gather project information before creating any files.`,
+          Use this FIRST to gather project information and create the foundation agreement (base.md).
+          
+          Workflow:
+          1. Call base tool (no params) → Get questions
+          2. Discuss with user → Collect all answers
+          3. Call base tool (with all params) → Creates base.md file
+          4. Then proceed to init tool`,
         inputSchema: {
           type: "object",
-          properties: {},
+          properties: {
+            appDir: {
+              type: "string",
+              description: "Directory where to create the agentic-sdlc folder (required when creating base.md)",
+            },
+            backlogName: {
+              type: "string",
+              description: "Name for the backlog directory (required when creating base.md)",
+            },
+            projectType: {
+              type: "string",
+              description: "Project type: 'mvp', 'poc', or 'pro' (required when creating base.md)",
+            },
+            // MVP-specific parameters
+            mvpCoreValueProposition: {
+              type: "object",
+              description: "MVP Core Value Proposition: {problem, primaryUser, coreUserJourney}",
+            },
+            mvpEssentialFeatures: {
+              type: "array",
+              items: { type: "string" },
+              description: "Essential MVP Features",
+            },
+            mvpOutOfScope: {
+              type: "array",
+              items: { type: "string" },
+              description: "Out of MVP Scope",
+            },
+            mvpSuccessCriteria: {
+              type: "array",
+              items: { type: "string" },
+              description: "MVP Success Criteria",
+            },
+            mvpNonFunctionalRequirements: {
+              type: "array",
+              items: { type: "string" },
+              description: "MVP Non-Functional Requirements",
+            },
+            mvpTechnologies: {
+              type: "array",
+              items: { type: "string" },
+              description: "MVP Technologies",
+            },
+            mvpArchitectureApproach: {
+              type: "string",
+              description: "MVP Architecture Approach",
+            },
+            mvpDataModels: {
+              type: "string",
+              description: "MVP Data Models",
+            },
+            mvpPhases: {
+              type: "array",
+              items: { type: "string" },
+              description: "MVP Phases",
+            },
+            // POC-specific parameters
+            pocCoreConcept: {
+              type: "object",
+              description: "POC Core Concept: {hypothesis, technicalFeasibility}",
+            },
+            pocEssentialProofPoints: {
+              type: "array",
+              items: { type: "string" },
+              description: "POC Essential Proof Points",
+            },
+            pocOutOfScope: {
+              type: "array",
+              items: { type: "string" },
+              description: "Out of POC Scope",
+            },
+            pocSuccessCriteria: {
+              type: "array",
+              items: { type: "string" },
+              description: "POC Success Criteria",
+            },
+            pocTechnologies: {
+              type: "array",
+              items: { type: "string" },
+              description: "POC Technologies",
+            },
+            pocArchitectureApproach: {
+              type: "string",
+              description: "POC Architecture Approach",
+            },
+            pocPhases: {
+              type: "array",
+              items: { type: "string" },
+              description: "POC Phases",
+            },
+            // Pro-specific parameters
+            proCoreObjectives: {
+              type: "array",
+              items: { type: "string" },
+              description: "Pro Core Objectives",
+            },
+            proTargetUsers: {
+              type: "array",
+              items: { type: "string" },
+              description: "Pro Target Users",
+            },
+            proFunctionalRequirements: {
+              type: "array",
+              items: { type: "string" },
+              description: "Pro Functional Requirements",
+            },
+            proNonFunctionalRequirements: {
+              type: "array",
+              items: { type: "string" },
+              description: "Pro Non-Functional Requirements",
+            },
+            proOutOfScope: {
+              type: "array",
+              items: { type: "string" },
+              description: "Pro Out of Scope",
+            },
+            proTechnologies: {
+              type: "array",
+              items: { type: "string" },
+              description: "Pro Technologies",
+            },
+            proArchitectureApproach: {
+              type: "string",
+              description: "Pro Architecture Approach",
+            },
+            proDataModels: {
+              type: "string",
+              description: "Pro Data Models",
+            },
+            proPhases: {
+              type: "array",
+              items: { type: "string" },
+              description: "Pro Phases",
+            },
+          },
         },
       },
       {
         name: "init",
         description: `
-          STEP 2: Create the complete Agentic SDLC project structure with README.md, ASDLC.md, AWP.md files, and project backlog. 
-          This tool requires the project details collected from the 'base' tool. 
-          Use this ONLY IF the 'base' tool has been called.
-          Use this ONLY IF you have collected user requirements.
-          IMPORTANT: Specify the appDir parameter to indicate where to create the agentic-sdlc folder.`,
+          STEP 2: Create requirements.md, backlog.md, tech-specs.md, and tasks/ using recipe methodology.
+          
+          This tool:
+          1. Reads base.md (created by base tool)
+          2. Reads full recipes (methodology sections 1-8, not just templates)
+          3. Uses recipe methodology to ensure all questions are answered
+          4. Validates completeness
+          5. Generates files using recipe templates (section 9)
+          6. Creates tasks/ directory
+          
+          Use this ONLY AFTER base.md has been created and reviewed.
+          IMPORTANT: Specify the appDir parameter to indicate where the agentic-sdlc folder is located.`,
         inputSchema: {
           type: "object",
           properties: {
@@ -159,36 +213,288 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "string",
               description: "Directory where to create the agentic-sdlc folder (defaults to current directory)",
             },
-            goal: {
-              type: "array",
-              items: { type: "string" },
-              description: "Project objectives from user",
+            backlogName: {
+              type: "string",
+              description: "Name for the backlog directory (e.g., 'ecommerce', 'crm')",
             },
-            overview: {
-              type: "array",
-              items: { type: "string" },
-              description: "Project phases from user",
+            projectType: {
+              type: "string",
+              description: "Project type: 'mvp', 'poc', or 'pro'",
             },
-            technology: {
-              type: "array",
-              items: { type: "string" },
-              description: "Technologies from user",
+            // MVP-specific parameters
+            mvpCoreValueProposition: {
+              type: "object",
+              description: "MVP Core Value Proposition: problem, primary user, core user journey",
+              properties: {
+                problem: { type: "string" },
+                primaryUser: { type: "string" },
+                coreUserJourney: { type: "string" },
+              },
             },
-            outcome: {
+            mvpEssentialFeatures: {
               type: "array",
               items: { type: "string" },
-              description: "Success criteria from user",
+              description: "Essential MVP features (only core value delivery)",
+            },
+            mvpOutOfScope: {
+              type: "array",
+              items: { type: "string" },
+              description: "Features explicitly excluded from MVP",
+            },
+            mvpSuccessCriteria: {
+              type: "array",
+              items: { type: "string" },
+              description: "Measurable conditions for MVP success",
+            },
+            mvpNonFunctionalRequirements: {
+              type: "array",
+              items: { type: "string" },
+              description: "Quality attributes and constraints for MVP",
+            },
+            mvpTechnologies: {
+              type: "array",
+              items: { type: "string" },
+              description: "Technologies, frameworks, or tools for MVP",
+            },
+            mvpArchitectureApproach: {
+              type: "string",
+              description: "Architecture pattern and key design decisions for MVP",
+            },
+            mvpDataModels: {
+              type: "string",
+              description: "Core data structures/entities and key data relationships",
+            },
+            mvpPhases: {
+              type: "array",
+              items: { type: "string" },
+              description: "Key development phases for MVP delivery",
+            },
+            // POC-specific parameters
+            pocCoreConcept: {
+              type: "object",
+              description: "POC Core Concept: hypothesis and technical feasibility to prove",
+              properties: {
+                hypothesis: { type: "string" },
+                technicalFeasibility: { type: "string" },
+              },
+            },
+            pocEssentialProofPoints: {
+              type: "array",
+              items: { type: "string" },
+              description: "Requirements necessary to prove the concept works",
+            },
+            pocOutOfScope: {
+              type: "array",
+              items: { type: "string" },
+              description: "Features explicitly excluded from POC",
+            },
+            pocSuccessCriteria: {
+              type: "array",
+              items: { type: "string" },
+              description: "Measurable conditions for POC success",
+            },
+            pocTechnologies: {
+              type: "array",
+              items: { type: "string" },
+              description: "Technologies, frameworks, or tools for POC",
+            },
+            pocArchitectureApproach: {
+              type: "string",
+              description: "Simplified architecture pattern and key design decisions for POC",
+            },
+            pocPhases: {
+              type: "array",
+              items: { type: "string" },
+              description: "Key phases to demonstrate proof",
+            },
+            // Pro-specific parameters
+            proCoreObjectives: {
+              type: "array",
+              items: { type: "string" },
+              description: "Main goals the project must achieve",
+            },
+            proTargetUsers: {
+              type: "array",
+              items: { type: "string" },
+              description: "Who will use or benefit from the system",
+            },
+            proFunctionalRequirements: {
+              type: "array",
+              items: { type: "string" },
+              description: "Main functional capabilities the system must provide",
+            },
+            proNonFunctionalRequirements: {
+              type: "array",
+              items: { type: "string" },
+              description: "Quality attributes and constraints",
+            },
+            proOutOfScope: {
+              type: "array",
+              items: { type: "string" },
+              description: "Features or capabilities explicitly excluded",
+            },
+            proTechnologies: {
+              type: "array",
+              items: { type: "string" },
+              description: "Technologies, frameworks, or tools for the project",
+            },
+            proArchitectureApproach: {
+              type: "string",
+              description: "Architecture pattern and key design decisions",
+            },
+            proDataModels: {
+              type: "string",
+              description: "Core data structures/entities and key data relationships",
+            },
+            proPhases: {
+              type: "array",
+              items: { type: "string" },
+              description: "Key development phases or milestones",
             },
           },
-          required: ["goal", "overview", "technology", "outcome"],
+          required: ["backlogName", "projectType"],
         },
       },
       {
-        name: "get_backlog_recipe",
+        name: "recommend",
         description: `
-          Get the backlog recipe resource for creating project-specific backlogs.
+          Generate AI recommendations for missing project elements when user responds "I don't know" or "AI".
+          
+          This tool:
+          1. Takes foundational information already collected
+          2. Takes a list of missing elements
+          3. Generates intelligent recommendations based on project type and best practices
+          4. Returns recommendations for user review before proceeding with init
+          
+          Use this when the user doesn't know answers to specific questions during the base tool workflow.`,
+        inputSchema: {
+          type: "object",
+          properties: {
+            projectType: {
+              type: "string",
+              description: "Project type: 'mvp', 'poc', or 'pro'",
+            },
+            backlogName: {
+              type: "string",
+              description: "Name for the backlog directory",
+            },
+            foundationalInfo: {
+              type: "object",
+              description: "Foundational information already collected (e.g., core value proposition, problem statement)",
+            },
+            missingElements: {
+              type: "object",
+              description: "Object containing missing elements that need recommendations (e.g., {mvpEssentialFeatures: true, mvpTechnologies: true})",
+            },
+          },
+          required: ["projectType", "backlogName", "foundationalInfo", "missingElements"],
+        },
+      },
+      {
+        name: "get_pro_backlog_recipe",
+        description: `
+          Get the pro backlog recipe resource for creating project-specific backlogs.
           This provides the complete methodology and guidance for backlog creation.
           Use this when you need to understand how to structure and create project backlogs.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_pro_requirements_recipe",
+        description: `
+          Get the pro requirements recipe resource for creating and structuring project requirements documents.
+          This provides the complete methodology and guidance for requirements documentation.
+          Use this when you need to understand how to structure and create requirements documents.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_mvp_backlog_recipe",
+        description: `
+          Get the MVP backlog recipe resource for creating MVP-focused project backlogs.
+          This provides the complete methodology and guidance for MVP backlog creation.
+          Use this when you need to understand how to structure and create MVP backlogs.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_mvp_requirements_recipe",
+        description: `
+          Get the MVP requirements recipe resource for creating MVP requirements documents.
+          This provides the complete methodology and guidance for MVP requirements documentation.
+          Use this when you need to understand how to structure and create MVP requirements.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_poc_backlog_recipe",
+        description: `
+          Get the POC backlog recipe resource for creating POC-focused project backlogs.
+          This provides the complete methodology and guidance for POC backlog creation.
+          Use this when you need to understand how to structure and create POC backlogs.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_poc_requirements_recipe",
+        description: `
+          Get the POC requirements recipe resource for creating POC requirements documents.
+          This provides the complete methodology and guidance for POC requirements documentation.
+          Use this when you need to understand how to structure and create POC requirements.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_pro_tech_specs_recipe",
+        description: `
+          Get the pro tech specs recipe resource for creating and structuring full technical specifications.
+          This provides the complete methodology and guidance for full technical specification documentation.
+          Use this when you need to understand how to create full technical specifications.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_mvp_tech_specs_recipe",
+        description: `
+          Get the MVP tech specs recipe resource for creating MVP technical specifications.
+          This provides the complete methodology and guidance for MVP technical specification documentation.
+          Use this when you need to understand how to create MVP technical specifications.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_poc_tech_specs_recipe",
+        description: `
+          Get the POC tech specs recipe resource for creating POC technical specifications.
+          This provides the complete methodology and guidance for POC technical specification documentation.
+          Use this when you need to understand how to create POC technical specifications.`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_awp_recipe",
+        description: `
+          Get the AWP recipe resource for creating and structuring the Agentic Workflow Protocol (AWP) file.
+          This provides the complete methodology and guidance for AWP file creation.
+          Use this when you need to understand how to structure and create AWP.md files.`,
         inputSchema: {
           type: "object",
           properties: {},
@@ -201,14 +507,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 // List available resources
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
   return {
-    resources: [
-      {
-        uri: "recipe://backlog-recipe",
-        name: "Backlog Recipe",
-        description: "Complete methodology and guidance for creating project backlogs using the Agentic SDLC approach",
-        mimeType: "text/markdown",
-      },
-    ],
+    resources: getRecipeResources(),
   };
 });
 
@@ -216,22 +515,11 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const { uri } = request.params;
   
-  if (uri === "recipe://backlog-recipe") {
-    try {
-      const recipePath = path.join(__dirname, "recipes/backlog-recipe.md");
-      const recipe = fs.readFileSync(recipePath, 'utf8');
-      
-      return {
-        contents: [
-          {
-            uri: uri,
-            mimeType: "text/markdown",
-            text: recipe,
-          },
-        ],
-      };
-    } catch (error: any) {
-      throw new Error(`Failed to read backlog recipe: ${error.message}`);
+  // Handle recipe URIs
+  if (uri.startsWith("recipe://")) {
+    const result = handleRecipeUri(uri);
+    if (result) {
+      return result;
     }
   }
   
@@ -243,164 +531,45 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
   if (name === "base") {
-    return {
-      content: [
-        {
-          type: "text",
-          text: `🚀 **Agentic SDLC Project Setup - STEP 1: Requirements Collection**
-
-I need to collect 4 essential pieces of information to set up your Agentic SDLC project:
-
-**Please answer these questions:**
-
-1. **What are the main objectives?** - What do you want to achieve with this project?
-2. **What are the main phases?** - What are the key development phases or milestones?
-3. **What technologies?** - What technologies, frameworks, or tools will you use?
-4. **What does success look like?** - How will you know the project is successful?
-
-**Next Step:**
-After you provide all 4 answers, I will use the 'init' tool to create your complete project structure with:
-- README.md (project overview and philosophy)
-- ASDLC.md (Agentic SDLC lifecycle plan)
-- AWP.md (Agentic Workflow Protocol template)
-- tasks/ directory with project backlog and individual task files
-
-**Workflow:** base → collect answers → init → project created
-**Important:** The init tool will create the agentic-sdlc folder in your current working directory.
-
-Please provide your answers to these 4 questions.`,
-        },
-      ],
-    };
+    return handleBaseTool(args || {});
   }
 
-  if (name === "get_backlog_recipe") {
-    try {
-      const recipePath = path.join(__dirname, "recipes/backlog-recipe.md");
-      const recipe = fs.readFileSync(recipePath, 'utf8');
-      
-      return {
-        content: [
-          {
-            type: "text",
-            text: `# Backlog Recipe Resource
+  // Recipe resource handlers (tools)
+  const recipeHandlers = [
+    'get_pro_backlog_recipe',
+    'get_pro_requirements_recipe',
+    'get_mvp_backlog_recipe',
+    'get_mvp_requirements_recipe',
+    'get_poc_backlog_recipe',
+    'get_poc_requirements_recipe',
+    'get_pro_tech_specs_recipe',
+    'get_mvp_tech_specs_recipe',
+    'get_poc_tech_specs_recipe',
+    'get_awp_recipe',
+  ];
+  
+  if (recipeHandlers.includes(name)) {
+    const result = handleRecipeResource(name);
+    if (result) return result;
+  }
 
-This is the complete backlog recipe for creating project backlogs using the Agentic SDLC methodology.
-
-${recipe}`,
-          },
-        ],
-      };
-    } catch (error: any) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Error reading backlog recipe: ${error.message}`,
-          },
-        ],
-        isError: true,
-      };
-    }
+  if (name === "recommend") {
+    return handleRecommendTool(args || {});
   }
 
   if (name === "init") {
-    // Use the appDir parameter if provided, otherwise use current working directory
-    // The client should specify the correct directory where they want the project created
-    const appDir = (args?.appDir as string) || process.cwd();
-    const goal = args?.goal;
-    const overview = args?.overview;
-    const technology = args?.technology;
-    const outcome = args?.outcome;
-
-    if (!goal || !overview || !technology || !outcome) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: "ERROR: You must ask the user for project details first!\n\n1. What are the main objectives?\n2. What are the main phases?\n3. What technologies?\n4. What does success look like?",
-          },
-        ],
-        isError: true,
-      };
-    }
-
-    const targetDir = path.join(appDir, 'agentic-sdlc');
-    const readmePath = path.join(targetDir, 'README.md');
-    const asdlcPath = path.join(targetDir, 'ASDLC.md');
-    const awpPath = path.join(targetDir, 'AWP.md');
-    const tasksDir = path.join(targetDir, 'tasks');
-    const plannedDir = path.join(tasksDir, 'planned');
-    const unplannedDir = path.join(tasksDir, 'unplanned');
-    const completedDir = path.join(tasksDir, 'completed');
-    const projectBacklogPath = path.join(tasksDir, 'project-backlog.md');
-
-    try {
-      // Create directory structure
-      if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
-      }
-      if (!fs.existsSync(tasksDir)) {
-        fs.mkdirSync(tasksDir, { recursive: true });
-      }
-      if (!fs.existsSync(plannedDir)) {
-        fs.mkdirSync(plannedDir, { recursive: true });
-      }
-      if (!fs.existsSync(unplannedDir)) {
-        fs.mkdirSync(unplannedDir, { recursive: true });
-      }
-      if (!fs.existsSync(completedDir)) {
-        fs.mkdirSync(completedDir, { recursive: true });
-      }
-      const readmeTemplate = fs.readFileSync(path.join(__dirname, "templates/readme_template.md"));
-      fs.writeFileSync(readmePath, readmeTemplate);
-      fs.copyFileSync(path.join(__dirname, "templates/commitStandard.md"), path.join(targetDir, 'commitStandard.md'))
-      fs.writeFileSync(asdlcPath, 'Work in progres - overvibing.com\n');
-      const goalArray = Array.isArray(goal) ? goal : [goal];
-      const overviewArray = Array.isArray(overview) ? overview : [overview];
-      const technologyArray = Array.isArray(technology) ? technology : [technology];
-      const outcomeArray = Array.isArray(outcome) ? outcome : [outcome];
-
-      // Create initial project backlog based on the collected information
-      const backlogContent = createProjectBacklog(goalArray, overviewArray, technologyArray, outcomeArray);
-      fs.writeFileSync(projectBacklogPath, backlogContent);
-
-      // Create initial task files based on the backlog
-      createInitialTasks(plannedDir, goalArray, overviewArray, technologyArray, outcomeArray);
-
-      // Create AWP.md with populated content and backlog reference
-      const joinArr = (arr: Array<string>) => arr.map((e: string, index: number) => `${index + 1}. ${e}`).join('\n')
-      const awpTemplate = fs.readFileSync(path.join(__dirname, "templates/AWP_template.md"))
-        .toString()
-        .replace("PLACEHOLDER_GOAL", joinArr(goalArray))
-        .replace("PLACEHOLDER_OVERVIEW", joinArr(overviewArray))
-        .replace("PLACEHOLDER_TECHNOLOGY", joinArr(technologyArray))
-        .replace("PLACEHOLDER_OUTCOME", joinArr(outcomeArray))
-        .replace("## Project Backlog\n\n### 1. Main task, Name, Title, Description, etc.\n- [ ] 1.1: Subtask, Name, Title, Description, etc.\n- [ ] 1.2: Subtask, Name, Title, Description, etc.\n\n### 2. Main task, Name, Title, Description, etc.\n- [ ] 2.1: Subtask, Name, Title, Description, etc.\n- [ ] 2.2: Subtask, Name, Title, Description, etc.\n\n### 3. Main task, Name, Title, Description, etc.\n- [ ] 3.1: Subtask, Name, Title, Description, etc.\n\n### 4. Main task, Name, Title, Description, etc.\n- [ ] 4.1: Subtask, Name, Title, Description, etc.\n\n### 5. Main task, Name, Title, Description, etc.\n- [ ] 5.1: Subtask, Name, Title, Description, etc.", "## Project Backlog\n\nSee [Project Backlog](tasks/project-backlog.md) for detailed task breakdown and individual task files.");
-      fs.writeFileSync(awpPath, awpTemplate);
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Successfully created agentic-sdlc folder with complete project structure in ${targetDir}\n\nCreated:\n- README.md\n- commitStandard.md\n- ASDLC.md\n- AWP.md\n- tasks/project-backlog.md\n- tasks/planned/ (with initial task files)\n- tasks/unplanned/ (empty)\n- tasks/completed/ (empty)\n\nProject Details:\n- Goal: ${goalArray.join(', ')}\n- Overview: ${overviewArray.join(', ')}\n- Technology: ${technologyArray.join(', ')}\n- Outcome: ${outcomeArray.join(', ')}\n\nThe project backlog has been created using the backlog-recipe.md methodology.`,
-          },
-        ],
-      };
-    } catch (error: any) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Error creating agentic-sdlc folder: ${error.message}`,
-          },
-        ],
-        isError: true,
-      };
-    }
+    return handleInitTool(args || {});
   }
 
-  throw new Error(`Unknown tool: ${name}`);
+      return {
+        content: [
+          {
+            type: "text",
+        text: `ERROR: Unknown tool: ${name}`,
+          },
+        ],
+        isError: true,
+      };
 });
 
 // Start the server
