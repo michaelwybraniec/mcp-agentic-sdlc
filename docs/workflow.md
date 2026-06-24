@@ -30,6 +30,7 @@ The server is an **MCP (Model Context Protocol) server** that exposes tools and 
 - **Two Modes**:
   - **MODE 1**: No params → Returns questions to ask
   - **MODE 2**: With params → Creates `base.md` file
+- **Optional param**: `appDir` — directory where `agentic-sdlc/` is created (defaults to current working directory)
 - **Flow**:
   ```
   User → "base" (no params) → AI gets questions
@@ -49,13 +50,15 @@ The server is an **MCP (Model Context Protocol) server** that exposes tools and 
 
 #### 3. `init` Tool (`src/tools/init.ts`)
 - **Purpose**: Create complete project structure
-- **Reads**: `base.md` (created by `base` tool)
+- **Reads**: `base.md` (created by `base` tool; not overwritten)
+- **Optional param**: `appDir` — directory containing `agentic-sdlc/` (defaults to current working directory)
 - **Generates**:
   - `requirements.md` (from recipe template)
   - `backlog.md` (from recipe template)
   - `tech-specs.md` (from recipe template)
   - `tasks/` directory structure
   - `AWP.md` (from AWP recipe)
+  - Root files: `README.md`, `commitStandard.md`, `ASDLC.md`
 
 ### B. Resources (Read-Only Content)
 
@@ -75,7 +78,7 @@ The server is an **MCP (Model Context Protocol) server** that exposes tools and 
 - `extractTemplateFromRecipe()` - Extracts template section from recipe
 - `populateTemplate()` - Replaces placeholders with actual data
 - `createProjectBacklog()` - Generates backlog markdown
-- `createInitialTasks()` - Creates task files
+- `createInitialTasks()` - Creates task files (top-level tasks use `task-{id}.0.md` for correct sort order)
 - `parseBaseMd()` - Parses `base.md` to extract data
 
 ## 3. Complete Workflow
@@ -270,7 +273,7 @@ agentic-sdlc/
 │       ├── backlog.md           # Project backlog
 │       ├── tech-specs.md        # Technical specifications
 │       └── tasks/
-│           ├── planned/         # Active tasks
+│           ├── planned/         # task-1.0.md, task-1.1.md, task-1.2.1.md (flat layout)
 │           ├── unplanned/       # Unplanned tasks (U- prefix)
 │           └── completed/      # Completed tasks
 ├── README.md
@@ -278,6 +281,15 @@ agentic-sdlc/
 ├── AWP.md
 └── commitStandard.md
 ```
+
+### Task File Naming
+
+All task files live flat under `tasks/planned/` (no nested subdirectories):
+
+- **Level 1 (top-level parent)**: `task-1.0.md`, `task-2.0.md` — `.0` suffix ensures correct alphabetical sort (parent before children)
+- **Level 2 (tasks)**: `task-1.1.md`, `task-1.2.md`, `task-2.1.md`
+- **Level 3 (subtasks)**: `task-1.2.1.md`, `task-1.2.2.md`
+- **Unplanned**: `task-U-1.md`, `task-U-1.1.md` (or `task-U-1.0.md` for top-level unplanned)
 
 ## 10. Technical Details
 
@@ -288,7 +300,7 @@ agentic-sdlc/
 - Handles requests via `CallToolRequestSchema` and `ReadResourceRequestSchema`
 
 ### Module Organization
-- `src/index.ts` - Server setup and routing (553 lines)
+- `src/index.ts` - Server setup and routing
 - `src/tools/` - Tool handlers (base, init, recommend)
 - `src/resources/` - Resource handlers (recipes)
 - `src/utils/` - Shared helper functions
@@ -296,8 +308,8 @@ agentic-sdlc/
 - `src/templates/` - Template files (README, commitStandard)
 
 ### Recipe Access
-- **As Tools**: `get_mvp_backlog_recipe` → Returns recipe content
-- **As Resources**: `recipe://mvp-backlog-recipe` → Direct URI access
+- **As Tools**: `get_mvp_backlog_recipe`, `get_awp_recipe` → Returns recipe content
+- **As Resources**: `recipe://mvp-backlog-recipe`, `recipe://awp-recipe` → Direct URI access
 - Both methods return the same recipe content
 
 ---
