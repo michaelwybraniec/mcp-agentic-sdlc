@@ -30,6 +30,7 @@ It provides a clear structure for onboarding, collaboration, and handoff between
 - 'src/' - Source code for your project.
 - 'agentic-sdlc/' - Generated folder for SDLC and workflow docs.
   - 'backlog-<name>/<type>/' - Project backlog directory (mvp, poc, or pro)
+    - 'user.md' - Raw user input preserved before base.md
     - 'base.md' - AWP Project Foundation Agreement (reference document)
     - 'requirements.md' - Project requirements
     - 'backlog.md' - Project backlog

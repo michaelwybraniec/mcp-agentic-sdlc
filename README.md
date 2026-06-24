@@ -25,10 +25,10 @@ MCP Agentic SDLC consists of two main components:
 After running the `init` tool in your project:
 
 ```bash
-npm run backlog:watch -- --appDir /path/to/your/project
+cd agentic-sdlc/kanban && npm run watch
 ```
 
-Open **http://localhost:4173** for a live read-only board. Use the `backlog_sync` MCP tool to refresh JSON, or `backlog://<name>/snapshot` for agent-readable state. See [workflow.md — Section 11](./docs/workflow.md#11-live-kanban-board).
+Open **http://localhost:4173** for a live read-only board. After `init`, the board starts automatically in **Cursor Simple Browser** when available, otherwise in your system browser. Use the `backlog_sync` MCP tool to refresh JSON, or `backlog://<name>/snapshot` for agent-readable state. See [workflow.md — Section 11](./docs/workflow.md#11-live-kanban-board).
 
 ## Architecture
 
@@ -111,7 +111,8 @@ graph TB
    - Review and confirm or modify recommendations
 
 3. **Call the `base` tool again** with all confirmed parameters:
-   - Creates `base.md` (AWP Project Foundation Agreement) in `backlog-<name>/<type>/`
+   - Pass `userSource` (user's first message) and/or `userSourceFile` (e.g. `idea1.md`)
+   - Creates `user.md` (raw user input) and `base.md` (AWP Project Foundation Agreement) in `backlog-<name>/<type>/`
 
 4. **Call the `init` tool** to create project structure:
    - Reads existing `base.md` (does not overwrite it)
@@ -126,6 +127,7 @@ After initialization, your project will have:
 agentic-sdlc/
 ├── backlog-<name>/
 │   └── <type>/          # mvp, poc, or pro
+│       ├── user.md              # Raw user input (before base.md)
 │       ├── base.md              # AWP Project Foundation Agreement
 │       ├── requirements.md      # Project requirements
 │       ├── backlog.md           # Project backlog

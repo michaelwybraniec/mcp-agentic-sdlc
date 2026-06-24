@@ -44,7 +44,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           
           MODE 1 (Questions): Call with no parameters to get the list of questions to ask the user.
           
-          MODE 2 (Create base.md): After collecting all answers through conversation, call with all parameters to create base.md file.
+          MODE 2 (Create base.md): After collecting all answers through conversation, call with all parameters to create base.md and user.md files.
           
           This tool starts the Agentic SDLC project setup process. 
           Use this FIRST to gather project information and create the foundation agreement (base.md).
@@ -52,7 +52,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           Workflow:
           1. Call base tool (no params) → Get questions
           2. Discuss with user → Collect all answers
-          3. Call base tool (with all params) → Creates base.md file
+          3. Call base tool (with all params) → Creates base.md and user.md files
           4. Then proceed to init tool`,
         inputSchema: {
           type: "object",
@@ -68,6 +68,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             projectType: {
               type: "string",
               description: "Project type: 'mvp', 'poc', or 'pro' (required when creating base.md)",
+            },
+            userSource: {
+              type: "string",
+              description: "Verbatim user first message or brief (creates user.md beside base.md)",
+            },
+            userSourceFile: {
+              type: "string",
+              description: "Repo file path relative to appDir (e.g. idea1.md) — content preserved in user.md",
             },
             // MVP-specific parameters
             mvpCoreValueProposition: {
@@ -205,8 +213,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           4. Validates completeness
           5. Generates files using recipe templates (section 9)
           6. Creates tasks/ directory (planned/ with initial tasks; unplanned/ and completed/ empty)
+          7. Scaffolds kanban/ and starts the live board (browser opens at http://localhost:4173)
           
-          Use this ONLY AFTER base.md has been created and reviewed.
+          After init: tell the user Kanban is already running — NOT optional. Next work begins with awp next / task-1.0.
           During development, AI agents add subtasks to planned/ and unplanned tasks to unplanned/
           per the backlog recipe (get_*_backlog_recipe) section 5 and docs/workflow.md section 9.
           IMPORTANT: Specify the appDir parameter to indicate where the agentic-sdlc folder is located.`,
@@ -509,7 +518,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: `
           Recompile kanban/backlog.json from markdown backlog files in the user's agentic-sdlc/ directory.
           Use after batch task edits or when the Kanban board needs a fresh snapshot.
-          Run backlog:watch separately for live browser updates at http://localhost:4173`,
+          Run \`cd agentic-sdlc/kanban && npm run watch\` in the user's repo for live browser updates at http://localhost:4173`,
         inputSchema: {
           type: "object",
           properties: {

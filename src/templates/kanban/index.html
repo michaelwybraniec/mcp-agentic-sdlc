@@ -27,6 +27,113 @@
     }
     .project-bar .meta { font-size: 14px; }
     .project-bar .summary { font-size: 13px; color: #666; width: 100%; }
+    .awp-toolbar {
+      padding: 10px 24px;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .awp-toolbar-label { font-size: 11px; text-transform: uppercase; color: #666; font-weight: 600; margin-right: 4px; }
+    .awp-btn {
+      font-size: 12px;
+      font-family: ui-monospace, monospace;
+      padding: 5px 10px;
+      border: 1px solid #d4d4d4;
+      border-radius: 4px;
+      background: #fff;
+      color: #111;
+      cursor: pointer;
+    }
+    .awp-btn:hover { border-color: #2563eb; color: #2563eb; background: #f8faff; }
+    .awp-btn.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .awp-btn.primary:hover { background: #1d4ed8; color: #fff; }
+    .awp-btn[data-tip] { position: relative; }
+    .awp-btn[data-tip]::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%);
+      padding: 8px 10px;
+      background: #111;
+      color: #fff;
+      font-size: 11px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 400;
+      line-height: 1.4;
+      text-align: left;
+      white-space: normal;
+      width: max-content;
+      max-width: 260px;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.15s, visibility 0.15s;
+      z-index: 50;
+    }
+    .awp-btn[data-tip]::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 2px);
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #111;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.15s, visibility 0.15s;
+      z-index: 50;
+    }
+    .awp-btn[data-tip]:hover::after,
+    .awp-btn[data-tip]:hover::before,
+    .awp-btn[data-tip]:focus-visible::after,
+    .awp-btn[data-tip]:focus-visible::before {
+      opacity: 1;
+      visibility: visible;
+    }
+    .awp-toast {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: #111;
+      color: #fff;
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      z-index: 300;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .awp-toast.show { opacity: 1; }
+    .commits-panel {
+      margin: 0 24px 12px;
+      padding: 12px;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+    .commits-panel h4 { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .commits-panel ul { list-style: none; }
+    .commits-panel li {
+      font-size: 12px;
+      padding: 4px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-family: ui-monospace, monospace;
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+    }
+    .commits-panel li:last-child { border-bottom: none; }
+    .commit-hash { color: #2563eb; flex-shrink: 0; }
+    .commit-subject { color: #333; flex: 1; }
+    .commit-meta { color: #999; font-size: 11px; flex-shrink: 0; }
     .live { font-size: 12px; color: #666; }
     .live.on .dot { color: #2563eb; }
     .link-btn {
@@ -166,6 +273,37 @@
     <p class="summary" id="summary-line"></p>
   </div>
 
+  <div class="awp-toolbar" id="awp-toolbar">
+    <span class="awp-toolbar-label">AWP commands</span>
+    <button type="button" class="awp-btn primary" data-awp="awp check"
+      data-tip="Start session: review AWP.md, find the first actionable step, restore context, and begin work."
+      title="Start — awp check">Start</button>
+    <button type="button" class="awp-btn" data-awp="awp update"
+      data-tip="Review README.md and AWP.md, sync docs with code, check blockers, and update unplanned tasks if needed."
+      title="Update — awp update">Update</button>
+    <button type="button" class="awp-btn" data-awp="awp commit"
+      data-tip="Commit pending changes using commitStandard: type(scope step): subject — reference the current step number."
+      title="Commit — awp commit">Commit</button>
+    <button type="button" class="awp-btn" data-awp="awp next"
+      data-tip="Advance to the next actionable step. Mandatory order: update → commit → next. Mark the current step done before starting."
+      title="Next — awp next">Next</button>
+    <button type="button" class="awp-btn" data-awp="awp check"
+      data-tip="Find where you left off: open AWP.md, locate the first unchecked step, and restore full task context."
+      title="Check — awp check">Check</button>
+    <button type="button" class="awp-btn" data-awp="awp handoff"
+      data-tip="Transfer work between human and agent: package context, deliverables, expectations, and escalation rules."
+      title="Handoff — awp handoff">Handoff</button>
+    <span style="font-size:11px;color:#999;margin-left:8px">Hover for description · click to copy — paste into agent chat</span>
+  </div>
+
+  <div class="commits-panel" id="commits-panel">
+    <h4>
+      <span>Agent commits</span>
+      <button type="button" class="link-btn" id="refresh-commits">Refresh</button>
+    </h4>
+    <ul id="commits-list"><li class="empty">Loading…</li></ul>
+  </div>
+
   <div class="board" id="board"></div>
 
   <div class="activity-feed">
@@ -174,6 +312,7 @@
   </div>
 
   <footer class="disclaimer hidden" id="disclaimer"></footer>
+  <div class="awp-toast" id="awp-toast">Copied</div>
 
   <div class="drawer-backdrop" id="drawer-backdrop">
     <aside class="drawer" id="drawer"></aside>
@@ -202,6 +341,60 @@
     let syncing = false;
     let pulseIds = new Set();
     let activityLog = [];
+    let commitsData = [];
+
+    function showToast(msg) {
+      const t = document.getElementById('awp-toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyAwpCommand(cmd) {
+      navigator.clipboard.writeText(cmd).then(() => {
+        showToast('Copied: ' + cmd);
+      }).catch(() => showToast(cmd));
+    }
+
+    function setupAwpToolbar() {
+      document.querySelectorAll('.awp-btn[data-awp]').forEach((btn) => {
+        btn.addEventListener('click', () => copyAwpCommand(btn.getAttribute('data-awp')));
+      });
+    }
+
+    function formatCommitDate(iso) {
+      try {
+        return new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      } catch { return ''; }
+    }
+
+    function renderCommits() {
+      const ul = document.getElementById('commits-list');
+      if (!commitsData.length) {
+        ul.innerHTML = '<li class="empty">No AWP-format commits yet (type(scope step): subject)</li>';
+        return;
+      }
+      ul.innerHTML = commitsData.map((c) =>
+        `<li title="${esc(c.author)}">
+          <span class="commit-hash">${esc(c.shortHash)}</span>
+          <span class="commit-subject">${esc(c.subject)}</span>
+          <span class="commit-meta">${formatCommitDate(c.date)}</span>
+        </li>`
+      ).join('');
+    }
+
+    async function fetchCommits() {
+      try {
+        const res = await fetch('/api/commits.json');
+        if (!res.ok) throw new Error('commits');
+        const json = await res.json();
+        commitsData = json.commits || [];
+        renderCommits();
+      } catch {
+        document.getElementById('commits-list').innerHTML =
+          '<li class="empty">Git history unavailable (not a git repo or git not installed)</li>';
+      }
+    }
 
     const COLS = [
       { key: 'unplanned', label: 'Unplanned' },
@@ -404,6 +597,7 @@
             }
           }
           fetchData().catch(console.error);
+          fetchCommits().catch(console.error);
         } catch (e) { console.error(e); }
       };
     }
@@ -421,7 +615,13 @@
       if (e.key === 'Escape') { closeDrawer(); closeModal(); }
     });
 
-    fetchData().then(connectSse).catch((e) => {
+    document.getElementById('refresh-commits').onclick = () => fetchCommits();
+    setupAwpToolbar();
+
+    fetchData().then(() => {
+      connectSse();
+      fetchCommits();
+    }).catch((e) => {
       console.error(e);
       setLive(false);
     });

@@ -10,6 +10,20 @@ export function getTemplatesDir(): string {
   return path.join(__dirname, '..', 'templates', 'kanban');
 }
 
+function copyDirRecursive(src: string, dest: string): void {
+  if (!fs.existsSync(src)) return;
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirRecursive(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
 export function scaffoldKanban(
   agenticSdlcDir: string,
   backlogName: string,
@@ -29,6 +43,20 @@ export function scaffoldKanban(
   const indexDest = path.join(kanbanDir, 'index.html');
   if (fs.existsSync(indexSrc)) {
     fs.copyFileSync(indexSrc, indexDest);
+  }
+
+  const runnerSrc = path.join(templatesDir, 'runner');
+  const runnerDest = path.join(kanbanDir, 'runner');
+  copyDirRecursive(runnerSrc, runnerDest);
+
+  const packageSrc = path.join(templatesDir, 'package.json');
+  if (fs.existsSync(packageSrc)) {
+    fs.copyFileSync(packageSrc, path.join(kanbanDir, 'package.json'));
+  }
+
+  const kanbanMdSrc = path.join(templatesDir, 'KANBAN.md');
+  if (fs.existsSync(kanbanMdSrc)) {
+    fs.copyFileSync(kanbanMdSrc, path.join(kanbanDir, 'KANBAN.md'));
   }
 
   const config: KanbanConfig = {

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import * as path from 'path';
 import * as fs from 'fs';
-import chokidar from 'chokidar';
 import { detectAppDirForCli, getAgenticSdlcDir, syncBacklog } from './compiler.js';
 import { broadcastSse, readPortFromConfig, startKanbanServer } from './server.js';
 import { taskIdFromFilename } from './parser.js';
@@ -37,6 +36,31 @@ function runSync(appDir?: string): void {
   console.log(`Synced backlog.json (${Object.keys(snapshot.tasks).length} tasks)`);
 }
 
+function watchWithFs(watchPaths: string[], onChange: (filePath: string) => void): void {
+  const watched = new Set<string>();
+
+  for (const watchPath of watchPaths) {
+    if (!fs.existsSync(watchPath)) continue;
+
+    const stat = fs.statSync(watchPath);
+    if (stat.isDirectory()) {
+      for (const name of fs.readdirSync(watchPath)) {
+        const child = path.join(watchPath, name);
+        if (!watched.has(child)) {
+          watched.add(child);
+          fs.watch(child, () => onChange(child));
+        }
+      }
+      fs.watch(watchPath, (_event, filename) => {
+        if (filename) onChange(path.join(watchPath, filename));
+      });
+    } else {
+      watched.add(watchPath);
+      fs.watch(watchPath, () => onChange(watchPath));
+    }
+  }
+}
+
 function runWatch(appDir?: string, portOverride?: number, openBrowser = true): void {
   const { agentic, kanban } = getDirs(appDir);
   if (!fs.existsSync(kanban)) {
@@ -60,12 +84,7 @@ function runWatch(appDir?: string, portOverride?: number, openBrowser = true): v
 
   let debounce: ReturnType<typeof setTimeout> | null = null;
 
-  const watcher = chokidar.watch(watchPaths, {
-    ignoreInitial: true,
-    awaitWriteFinish: { stabilityThreshold: 200 },
-  });
-
-  watcher.on('all', (_event, filePath) => {
+  watchWithFs(watchPaths, (filePath) => {
     if (debounce) clearTimeout(debounce);
     debounce = setTimeout(() => {
       const rel = path.relative(agentic, filePath).replace(/\\/g, '/');
@@ -79,7 +98,7 @@ function runWatch(appDir?: string, portOverride?: number, openBrowser = true): v
         taskIds,
       });
       console.log(`Updated: ${rel}`);
-    }, 150);
+    }, 200);
   });
 
   console.log(`Watching ${backlogDir}`);
@@ -99,10 +118,11 @@ export function main(argv: string[]): void {
   if (cmd === 'sync') {
     runSync(args.appDir as string | undefined);
   } else if (cmd === 'watch') {
+    const openBrowser = !args.noOpen;
     runWatch(
       args.appDir as string | undefined,
       args.port ? parseInt(args.port as string, 10) : undefined,
-      !args.noOpen
+      openBrowser
     );
   } else if (cmd === 'serve') {
     runServe(

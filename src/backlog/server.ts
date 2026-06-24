@@ -2,6 +2,13 @@ import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
 import { KanbanConfig } from './types.js';
+import { readKanbanConfig } from './compiler.js';
+import { openKanbanInBrowser } from './launch.js';
+import { loadAgentCommits, loadGitCommits } from './gitCommits.js';
+
+export interface KanbanServerOptions {
+  openBrowser?: boolean;
+}
 
 export type SsePayload = {
   type: string;
@@ -20,7 +27,8 @@ export function broadcastSse(payload: SsePayload): void {
 
 export function startKanbanServer(
   kanbanDir: string,
-  port: number
+  port: number,
+  options?: KanbanServerOptions
 ): http.Server {
   const server = http.createServer((req, res) => {
     const url = req.url?.split('?')[0] || '/';
@@ -70,6 +78,24 @@ export function startKanbanServer(
       return;
     }
 
+    if (url === '/api/commits.json') {
+      const config = readKanbanConfig(kanbanDir);
+      const appDir = config?.appDir ? path.resolve(config.appDir) : '';
+    const agentOnly = !req.url?.includes('all=1');
+      const commits = appDir
+        ? agentOnly
+          ? loadAgentCommits(appDir)
+          : loadGitCommits(appDir)
+        : [];
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Access-Control-Allow-Origin': '*',
+      });
+      res.end(JSON.stringify({ commits, appDir, generatedAt: new Date().toISOString() }));
+      return;
+    }
+
     let filePath = url === '/' ? '/index.html' : url;
     const safe = path.normalize(filePath).replace(/^(\.\.[/\\])+/, '');
     const abs = path.join(kanbanDir, safe);
@@ -92,7 +118,11 @@ export function startKanbanServer(
   });
 
   server.listen(port, () => {
-    console.log(`Kanban board: http://localhost:${port}`);
+    const url = `http://localhost:${port}`;
+    console.log(`Kanban board: ${url}`);
+    if (options?.openBrowser !== false) {
+      openKanbanInBrowser(url);
+    }
   });
 
   return server;

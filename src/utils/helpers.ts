@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+export { parseBaseMd } from '../backlog/parseBaseMd.js';
+
 // Helper function to extract template section from recipe
 export function extractTemplateFromRecipe(recipeContent: string): string | null {
   // Look for "Template Section" heading (can be any section number)
@@ -151,153 +153,119 @@ Phase ${index + 1} of ${overview.length}: ${phase}
   });
 }
 
-// Helper function to parse base.md and extract information
-export function parseBaseMd(content: string, type: string): any {
-  const data: any = {};
-  
-  if (type === 'mvp') {
-    // Parse MVP base.md structure
-    const problemMatch = content.match(/\*\*Problem:\*\*\s*(.+?)(?:\n|$)/);
-    const primaryUserMatch = content.match(/\*\*Primary User:\*\*\s*(.+?)(?:\n|$)/);
-    const coreUserJourneyMatch = content.match(/\*\*Core User Journey:\*\*\s*(.+?)(?:\n|$)/);
-    
-    if (problemMatch && primaryUserMatch && coreUserJourneyMatch) {
-      data.mvpCoreValueProposition = {
-        problem: problemMatch[1].trim(),
-        primaryUser: primaryUserMatch[1].trim(),
-        coreUserJourney: coreUserJourneyMatch[1].trim(),
-      };
-    }
-    
-    const featuresMatch = content.match(/##\s+\d+\.\s+Essential MVP Features\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (featuresMatch) {
-      data.mvpFeatures = featuresMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const outOfScopeMatch = content.match(/##\s+\d+\.\s+Out of MVP Scope\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (outOfScopeMatch) {
-      data.mvpOutOfScope = outOfScopeMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const successMatch = content.match(/##\s+\d+\.\s+MVP Success Criteria\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (successMatch) {
-      data.mvpSuccessCriteria = successMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const techMatch = content.match(/##\s+\d+\.\s+Key Technologies\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (techMatch) {
-      data.mvpTech = techMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const archMatch = content.match(/##\s+\d+\.\s+Architecture Approach\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (archMatch) {
-      data.mvpArchitectureApproach = archMatch[1].trim();
-    }
-    
-    const nonFuncMatch = content.match(/##\s+\d+\.\s+Non-Functional Requirements\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (nonFuncMatch) {
-      data.mvpNonFunctional = nonFuncMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const dataModelsMatch = content.match(/##\s+\d+\.\s+Data Models\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (dataModelsMatch) {
-      data.mvpDataModels = dataModelsMatch[1].trim();
-    }
-    
-    const phasesMatch = content.match(/##\s+\d+\.\s+Project Phases\s*\(MVP\)\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (phasesMatch) {
-      data.phases = phasesMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-  } else if (type === 'poc') {
-    // Parse POC base.md structure
-    const hypothesisMatch = content.match(/\*\*Hypothesis:\*\*\s*(.+?)(?:\n|$)/);
-    const technicalFeasibilityMatch = content.match(/\*\*Technical Feasibility:\*\*\s*(.+?)(?:\n|$)/);
-    
-    if (hypothesisMatch && technicalFeasibilityMatch) {
-      data.pocCoreConcept = {
-        hypothesis: hypothesisMatch[1].trim(),
-        technicalFeasibility: technicalFeasibilityMatch[1].trim(),
-      };
-    }
-    
-    const proofPointsMatch = content.match(/##\s+\d+\.\s+Essential Proof Points\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (proofPointsMatch) {
-      data.pocProofPoints = proofPointsMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const outOfScopeMatch = content.match(/##\s+\d+\.\s+Out of POC Scope\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (outOfScopeMatch) {
-      data.pocOutOfScope = outOfScopeMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const successMatch = content.match(/##\s+\d+\.\s+POC Success Criteria\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (successMatch) {
-      data.pocSuccessCriteria = successMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const techMatch = content.match(/##\s+\d+\.\s+Key Technologies\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (techMatch) {
-      data.pocTech = techMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const archMatch = content.match(/##\s+\d+\.\s+Architecture Approach\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (archMatch) {
-      data.pocArchitecture = archMatch[1].trim();
-    }
-    
-    const phasesMatch = content.match(/##\s+\d+\.\s+Project Phases\s*\(POC\)\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (phasesMatch) {
-      data.phases = phasesMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-  } else if (type === 'pro') {
-    // Parse Pro base.md structure
-    const objectivesMatch = content.match(/##\s+\d+\.\s+Core Objectives\s*\(User Provided\)\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (objectivesMatch) {
-      data.proObjectives = objectivesMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const targetUsersMatch = content.match(/##\s+\d+\.\s+Target Users\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (targetUsersMatch) {
-      data.proTargetUsers = targetUsersMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const functionalMatch = content.match(/##\s+\d+\.\s+Functional Requirements\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (functionalMatch) {
-      data.proFunctional = functionalMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const nonFuncMatch = content.match(/##\s+\d+\.\s+Non-Functional Requirements\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (nonFuncMatch) {
-      data.proNonFunctional = nonFuncMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const outOfScopeMatch = content.match(/##\s+\d+\.\s+Out of Scope\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (outOfScopeMatch) {
-      data.proOutOfScope = outOfScopeMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const techMatch = content.match(/##\s+\d+\.\s+Key Technologies\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (techMatch) {
-      data.proTech = techMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
-    }
-    
-    const archMatch = content.match(/##\s+\d+\.\s+Architecture Approach\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (archMatch) {
-      data.proArchitecture = archMatch[1].trim();
-    }
-    
-    const dataModelsMatch = content.match(/##\s+\d+\.\s+Data Models\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (dataModelsMatch) {
-      data.proDataModels = dataModelsMatch[1].trim();
-    }
-    
-    const phasesMatch = content.match(/##\s+\d+\.\s+Project Phases\s*\(PRO\)\s*\n\n([\s\S]*?)(?=\n##|$)/);
-    if (phasesMatch) {
-      data.phases = phasesMatch[1].split('\n').filter((line: string) => line.trim() !== '').map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
+export interface UserSourceInput {
+  userSource?: string;
+  userSourceFile?: string;
+  appDir: string;
+}
+
+const ROOT_MD_EXCLUDE = new Set([
+  'readme.md',
+  'changelog.md',
+  'license.md',
+  'contributing.md',
+  'awp.md',
+  'asdlc.md',
+]);
+
+/** Ranked list of likely user brief files at project root (relative paths). */
+export function discoverUserSourceFileCandidates(appDir: string): string[] {
+  if (!fs.existsSync(appDir)) return [];
+
+  const rootMd: string[] = [];
+  for (const entry of fs.readdirSync(appDir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith('.md')) continue;
+    if (ROOT_MD_EXCLUDE.has(entry.name.toLowerCase())) continue;
+    if (entry.name.startsWith('.')) continue;
+    rootMd.push(entry.name);
+  }
+
+  if (rootMd.length === 0) return [];
+
+  const score = (name: string): number => {
+    const lower = name.toLowerCase();
+    if (/^idea\d*\.md$/.test(lower)) return 0;
+    if (/^idea.*\.md$/.test(lower)) return 1;
+    if (/^brief.*\.md$/.test(lower)) return 2;
+    if (/^concept.*\.md$/.test(lower)) return 3;
+    if (/^proposal.*\.md$/.test(lower)) return 4;
+    return 10;
+  };
+
+  return rootMd.sort((a, b) => {
+    const diff = score(a) - score(b);
+    return diff !== 0 ? diff : a.localeCompare(b);
+  });
+}
+
+export function discoverUserSourceFile(appDir: string): string | undefined {
+  return discoverUserSourceFileCandidates(appDir)[0];
+}
+
+export function resolveUserSourceContent(input: UserSourceInput): {
+  content: string;
+  sourceFile?: string;
+  warnings: string[];
+  autoDetected?: boolean;
+} {
+  const warnings: string[] = [];
+  const parts: string[] = [];
+  let sourceFile: string | undefined;
+  let autoDetected = false;
+
+  const effectiveFile =
+    input.userSourceFile || (!input.userSource?.trim() ? discoverUserSourceFile(input.appDir) : undefined);
+
+  if (effectiveFile && !input.userSourceFile) {
+    autoDetected = true;
+  }
+
+  if (effectiveFile) {
+    const filePath = path.resolve(input.appDir, effectiveFile);
+    if (fs.existsSync(filePath)) {
+      parts.push(fs.readFileSync(filePath, 'utf8'));
+      sourceFile = effectiveFile;
+      if (autoDetected) {
+        warnings.push(`Auto-detected user source from repo file: ${effectiveFile}`);
+      }
+    } else if (input.userSourceFile) {
+      warnings.push(`userSourceFile not found: ${input.userSourceFile}`);
     }
   }
-  
-  return data;
+
+  if (input.userSource?.trim()) {
+    if (parts.length > 0) {
+      parts.push(`\n\n---\n\n## User message\n\n${input.userSource.trim()}`);
+    } else {
+      parts.push(input.userSource.trim());
+    }
+  }
+
+  if (parts.length === 0) {
+    warnings.push(
+      'No userSource or userSourceFile provided, and no user brief file found in project root — user.md was not created'
+    );
+    return { content: '', warnings };
+  }
+
+  return { content: parts.join(''), sourceFile, warnings, autoDetected };
+}
+
+export function createUserMd(options: {
+  content: string;
+  sourceFile?: string;
+  capturedAt?: string;
+}): string {
+  const capturedAt = options.capturedAt ?? new Date().toISOString();
+  let header = `# User Source Material
+
+Preserved before base.md was created. base.md is the structured AWP agreement; this file is the raw user input.
+
+**Captured:** ${capturedAt}
+`;
+  if (options.sourceFile) {
+    header += `**Source file:** ${options.sourceFile}\n`;
+  }
+  header += '\n---\n\n';
+  return header + options.content;
 }

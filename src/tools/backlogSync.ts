@@ -36,7 +36,7 @@ export async function handleBacklogSyncTool(args: Record<string, unknown>) {
       content: [
         {
           type: 'text',
-          text: `Synced kanban/backlog.json\n\nTasks: ${Object.keys(snapshot.tasks).length}\nSource: ${snapshot.meta.sourcePath}\nApp dir: ${snapshot.config.appDir} (stored in .kanban-config.json for agents)\n\nRun: npm run backlog:watch -- --appDir ${appDir}\nOpen: http://localhost:${port}`,
+          text: `Synced kanban/backlog.json\n\nTasks: ${Object.keys(snapshot.tasks).length}\nSource: ${snapshot.meta.sourcePath}\nApp dir: ${snapshot.config.appDir} (stored in .kanban-config.json for agents)\n\nRun: cd agentic-sdlc/kanban && npm run watch (browser opens automatically)\nURL: http://localhost:${port}`,
         },
       ],
     };

@@ -29,14 +29,14 @@ The server is an **MCP (Model Context Protocol) server** that exposes tools and 
 - **Purpose**: Collect project requirements
 - **Two Modes**:
   - **MODE 1**: No params → Returns questions to ask
-  - **MODE 2**: With params → Creates `base.md` file
+  - **MODE 2**: With params → Creates `user.md` and `base.md` files
 - **Optional param**: `appDir` — directory where `agentic-sdlc/` is created (defaults to current working directory)
 - **Flow**:
   ```
   User → "base" (no params) → AI gets questions
   AI → asks user questions
   User → provides answers
-  AI → "base" (with params) → creates base.md
+  AI → "base" (with params) → creates user.md + base.md
   ```
 
 #### 2. `recommend` Tool (`src/tools/recommend.ts`)
@@ -116,12 +116,14 @@ If user said "I don't know":
   User: Reviews, accepts, or modifies
 
 ┌─────────────────────────────────────────────────────────────┐
-│ STEP 4: Create base.md (base tool - MODE 2)                  │
+│ STEP 4: Create user.md + base.md (base tool - MODE 2)        │
 └─────────────────────────────────────────────────────────────┘
 AI: Calls base tool (with all params)
     ↓
 base.ts:
   - Creates directory: agentic-sdlc/backlog-<name>/<type>/
+  - Agent passes userSource and/or userSourceFile (first message or repo file)
+  - Creates user.md with raw user input
   - Creates base.md with all agreed information
   - Format: "Base: AWP Project Foundation Agreement"
 
@@ -199,7 +201,7 @@ recommend tool (if needed) → Recommendations
     ↓
 User Confirms
     ↓
-base tool (MODE 2) → base.md
+base tool (MODE 2) → user.md + base.md
     ↓
 init tool → Reads base.md
     ↓
@@ -269,6 +271,7 @@ After initialization, your project will have:
 agentic-sdlc/
 ├── backlog-<name>/
 │   └── <type>/          # mvp, poc, or pro
+│       ├── user.md              # Raw user input (before base.md)
 │       ├── base.md              # AWP Project Foundation Agreement
 │       ├── requirements.md      # Project requirements
 │       ├── backlog.md           # Project backlog
@@ -370,15 +373,19 @@ The Kanban board is a **read-only** live view of your markdown backlog. Markdown
 agentic-sdlc/
 ├── backlog-<name>/
 │   └── <type>/
+│       ├── user.md          ← raw user input (preserved before base.md)
 │       ├── base.md          ← foundation agreement (shown in modal)
 │       ├── backlog.md
 │       └── tasks/
 │           ├── planned/     ← In Progress inferred from # Status: [~]
 │           ├── unplanned/
 │           └── completed/
-└── kanban/                  ← generated viewer + JSON
+└── kanban/                  ← generated viewer + JSON + in-repo runner
     ├── index.html
     ├── backlog.json
+    ├── package.json
+    ├── runner/
+    ├── KANBAN.md
     ├── activity.json
     └── .kanban-config.json  ← includes appDir for MCP resources
 ```
@@ -394,15 +401,51 @@ agentic-sdlc/
 
 ### After `init`
 
-1. From the MCP package (or your project with the package built):
+The Kanban board **starts automatically** when `init` completes. It opens in **Cursor/VS Code Simple Browser** when available (integrated preview beside your code); otherwise your **system browser** opens at http://localhost:4173.
+
+To start manually:
 
 ```bash
-npm run backlog:watch -- --appDir /path/to/your/project
+cd agentic-sdlc/kanban && npm run watch
 ```
 
-2. Open **http://localhost:4173** in a browser or Cursor Simple Browser.
+Preview/browser open is automatic. Environment overrides:
 
-3. When the AI edits task `.md` files, the board updates within ~1s (file watcher + SSE).
+| Variable | Effect |
+|----------|--------|
+| `AWP_KANBAN_NO_OPEN=1` | Do not open any window |
+| `AWP_KANBAN_FORCE_BROWSER=1` | Skip Cursor preview; use system browser only |
+
+When the AI edits task `.md` files, the board updates within ~1s (file watcher + SSE).
+
+See `agentic-sdlc/kanban/KANBAN.md` for copy-paste instructions agents can quote to users.
+
+### AWP command bar (Kanban UI)
+
+The board header includes buttons for standard AWP chat commands:
+
+| Button | Copies to clipboard |
+|--------|---------------------|
+| Start | `awp check` — find current actionable step |
+| Update | `awp update` |
+| Commit | `awp commit` |
+| Next | `awp next` |
+| Check | `awp check` |
+| Handoff | `awp handoff` |
+
+Hover a button for its description, click to copy, then paste into the agent chat. The board is read-only; commands run in the IDE agent, not in the browser.
+
+For `awp next`, the agent must follow the mandatory sequence: **update → commit → next** (see AWP.md).
+
+### Agent commits panel
+
+The **Agent commits** section lists recent git commits from the project root that match the AWP commit standard (`type(scope step): subject` from `commitStandard.md`). This surfaces work the agent committed during the workflow.
+
+- Live API: `GET /api/commits.json` (filtered to AWP-format commits)
+- All commits: `GET /api/commits.json?all=1`
+- Refreshes when the backlog syncs; use **Refresh** to reload git log
+
+Requires a git repository at `appDir` (from `.kanban-config.json`).
 
 ### MCP tools and resources
 
@@ -413,10 +456,18 @@ npm run backlog:watch -- --appDir /path/to/your/project
 
 Set `AGENTIC_SDLC_APP_DIR` to your project root in MCP config if the server cwd is not your project (so snapshot resources resolve correctly).
 
-### NPM scripts (not MCP)
+### In-repo NPM scripts (`agentic-sdlc/kanban/`)
+
+- `npm run sync` — one-shot compile
+- `npm run watch` — watch + serve on port 4173
+- `npm run serve` — serve only
+
+### MCP package scripts (developers only)
+
+When working on the `mcp-agentic-sdlc` repo itself:
 
 - `npm run backlog:sync` — one-shot compile
-- `npm run backlog:watch` — watch + serve on port 4173
+- `npm run backlog:watch` — watch + serve (optional `--appDir`)
 - `npm run backlog:serve` — serve only
 
 ---

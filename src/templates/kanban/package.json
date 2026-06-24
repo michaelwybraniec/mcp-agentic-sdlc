@@ -1,0 +1,9 @@
+{
+  "name": "awp-kanban",
+  "private": true,
+  "scripts": {
+    "watch": "node runner/cli.js watch",
+    "sync": "node runner/cli.js sync",
+    "serve": "node runner/cli.js serve"
+  }
+}

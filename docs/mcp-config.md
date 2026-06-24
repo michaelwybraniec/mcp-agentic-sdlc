@@ -471,13 +471,15 @@ tail -f ~/Library/Application\ Support/Claude/logs/claude_desktop.log
 
 After `init`, the user's project contains `agentic-sdlc/kanban/` with a compiled `backlog.json` and HTML viewer.
 
-**Start the live board** (from the MCP package directory, after `npm run build`):
+**Start the live board** — `init` starts it automatically. Opens in **Cursor/VS Code Simple Browser** when available, otherwise the system browser at **http://localhost:4173**.
 
 ```bash
-npm run backlog:watch -- --appDir /Users/your-username/Documents/GitHub/my-project
+cd agentic-sdlc/kanban && npm run watch
 ```
 
-Open **http://localhost:4173** in a browser or Cursor Simple Browser. Task markdown edits refresh the board via file watcher + SSE.
+Task markdown edits refresh the board via file watcher + SSE. No project-root `package.json` is required.
+
+The MCP package's `npm run backlog:watch` scripts are for **MCP developers only** when working on this repository.
 
 **MCP tool — `backlog_sync`:**
 

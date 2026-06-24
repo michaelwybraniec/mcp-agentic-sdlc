@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { parseBaseMd } from '../utils/helpers.js';
+import { parseBaseMd } from './parseBaseMd.js';
 import {
   appendGlobalEvents,
   diffTasks,
@@ -320,4 +320,37 @@ export function syncBacklog(agenticSdlcDir: string, changedFiles?: string[]): Ba
 
 export function getAgenticSdlcDir(appDir: string): string {
   return path.join(appDir, 'agentic-sdlc');
+}
+
+/** Resolve project root for Kanban CLI when --appDir is omitted. */
+export function detectAppDirForCli(explicitAppDir?: string): string {
+  if (explicitAppDir) {
+    return path.resolve(explicitAppDir);
+  }
+
+  const kanbanCandidates: string[] = [];
+
+  const cwdKanban = process.cwd();
+  if (fs.existsSync(path.join(cwdKanban, '.kanban-config.json'))) {
+    kanbanCandidates.push(cwdKanban);
+  }
+
+  const scriptKanban = path.join(__dirname, '..');
+  if (fs.existsSync(path.join(scriptKanban, '.kanban-config.json'))) {
+    kanbanCandidates.push(scriptKanban);
+  }
+
+  const nestedKanban = path.join(process.cwd(), 'agentic-sdlc', 'kanban');
+  if (fs.existsSync(path.join(nestedKanban, '.kanban-config.json'))) {
+    kanbanCandidates.push(nestedKanban);
+  }
+
+  for (const kanbanDir of kanbanCandidates) {
+    const config = readKanbanConfig(kanbanDir);
+    if (config?.appDir) {
+      return path.resolve(config.appDir);
+    }
+  }
+
+  return process.cwd();
 }

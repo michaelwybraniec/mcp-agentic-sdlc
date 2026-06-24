@@ -101,8 +101,31 @@ if (test('scaffoldKanban creates kanban dir', () => {
   scaffoldKanban(agentic, 'demo', 'mvp', { appDir: tmp });
   assert(fs.existsSync(path.join(agentic, 'kanban', 'index.html')));
   assert(fs.existsSync(path.join(agentic, 'kanban', 'backlog.json')));
+  assert(fs.existsSync(path.join(agentic, 'kanban', 'package.json')));
+  assert(fs.existsSync(path.join(agentic, 'kanban', 'runner', 'cli.js')));
+  assert(fs.existsSync(path.join(agentic, 'kanban', 'KANBAN.md')));
   const cfg = readKanbanConfig(path.join(agentic, 'kanban'));
   assert(path.resolve(cfg.appDir) === path.resolve(tmp), 'appDir stored in config');
+})) passed++;
+
+const { execSync } = require('child_process');
+
+if (test('in-repo runner sync works without project root package.json', () => {
+  const syncTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kanban-sync-'));
+  const syncAgentic = path.join(syncTmp, 'agentic-sdlc');
+  const syncBacklogDir = path.join(syncAgentic, 'backlog-sync', 'mvp');
+  fs.mkdirSync(path.join(syncBacklogDir, 'tasks', 'planned'), { recursive: true });
+  fs.writeFileSync(
+    path.join(syncBacklogDir, 'base.md'),
+    '# Base\n\n**Problem:** x\n**Primary User:** y\n**Core User Journey:** z\n\n## 1. Essential MVP Features\n\n1. A\n'
+  );
+  scaffoldKanban(syncAgentic, 'sync', 'mvp', { appDir: syncTmp });
+  const out = execSync('node runner/cli.js sync', {
+    cwd: path.join(syncAgentic, 'kanban'),
+    encoding: 'utf8',
+  });
+  assert(out.includes('Synced backlog.json'), 'sync output');
+  assert(!fs.existsSync(path.join(syncTmp, 'package.json')), 'no root package.json');
 })) passed++;
 
 if (test('compileBacklog splits columns', () => {
@@ -116,5 +139,5 @@ if (test('compileBacklog splits columns', () => {
   assert(path.resolve(snap.config.appDir) === path.resolve(tmp), 'snapshot includes appDir');
 })) passed++;
 
-console.log(`\n${passed}/3 backlog tests passed`);
-process.exit(passed === 3 ? 0 : 1);
+console.log(`\n${passed}/4 backlog tests passed`);
+process.exit(passed === 4 ? 0 : 1);
