@@ -155,6 +155,7 @@ User: Works on project following:
   - Recipe methodologies (from recipe resources)
   - AWP protocol (from AWP.md)
   - Task structure (from tasks/)
+  - Unplanned task rules (see **Unplanned Tasks (AI Instructions)** under section 9)
 ```
 
 ## 4. Recipe System
@@ -284,12 +285,58 @@ agentic-sdlc/
 
 ### Task File Naming
 
-All task files live flat under `tasks/planned/` (no nested subdirectories):
+Task files use a flat layout within each status folder (no nested subdirectories for hierarchy):
+
+- **Planned tasks** → `tasks/planned/`
+- **Unplanned tasks** → `tasks/unplanned/`
+- **Completed tasks** → `tasks/completed/`
+
+ID and filename conventions:
 
 - **Level 1 (top-level parent)**: `task-1.0.md`, `task-2.0.md` — `.0` suffix ensures correct alphabetical sort (parent before children)
 - **Level 2 (tasks)**: `task-1.1.md`, `task-1.2.md`, `task-2.1.md`
 - **Level 3 (subtasks)**: `task-1.2.1.md`, `task-1.2.2.md`
 - **Unplanned**: `task-U-1.md`, `task-U-1.1.md` (or `task-U-1.0.md` for top-level unplanned)
+
+### Unplanned Tasks (AI Instructions)
+
+**For AI agents consuming this MCP server:** Unplanned tasks are not created by `base` or `init`. They are added **during development** when work is discovered that was not in the original backlog. Read the type-specific backlog recipe (`get_*_backlog_recipe` tool) — especially `pro-backlog-recipe.md` section 5 — and follow `AWP.md` procedure 1.8.
+
+#### When is something an unplanned task?
+
+Not everything "missing" during development is unplanned. Use this decision guide:
+
+| Situation | What to create | Where |
+|-----------|----------------|-------|
+| A step needed to **finish a planned task** you are already working on | **Subtask** (e.g., `1.2.1`) | `tasks/planned/task-1.2.1.md` |
+| New work **not in original backlog or requirements** (forgotten feature, new requirement, bug fix, scope expansion) | **Unplanned task** (`U-1`, `U-1.1`) | `tasks/unplanned/task-U-1.md` |
+| A **concern or risk** to track, not yet actionable work | **Risk entry** (`R.1`, `R.2`) | `AWP.md` → Risks Tasks section |
+| Unsure whether it belongs in planned or unplanned scope | **Ask the human** before creating | — |
+
+**Examples:**
+- Implementing task 1.2 and realizing you need a database migration script → **subtask** `1.2.1` under the planned task
+- Discovering the app needs login, but auth was never in requirements or backlog → **unplanned** `U-1`
+- Fixing a bug found while working on task 2.0 → **unplanned** `U-2` (per AWP procedure 1.8)
+- Noticing the architecture may not scale — worth tracking but not a task yet → **risk** `R.1` in AWP.md
+
+#### How to create an unplanned task (step-by-step)
+
+1. **Confirm with the human** before creating U- tasks (required by backlog recipes)
+2. **Assign the next U- ID** (e.g., `U-1`, then `U-2`; use `U-1.1` for child work under `U-1`)
+3. **Create the task file** at `tasks/unplanned/task-U-1.md` using the same schema as planned tasks (see backlog recipe section 3)
+4. **Update `backlog.md`** — add a link under the `## Unplanned Tasks` section:
+   `- [ ] [Task U-1: Title](tasks/unplanned/task-U-1.md)`
+5. **Log in `AWP.md`** — add an entry under the `## Unplanned Tasks` section (AWP procedure 1.8)
+6. **Notify the human** that a new unplanned task was added
+
+#### What `init` creates vs what you add later
+
+| Created by `init` | Added during development |
+|-------------------|--------------------------|
+| `tasks/planned/` with Level 1 tasks (`task-1.0.md`, …) | Subtasks (`task-1.1.md`, `task-1.2.1.md`, …) |
+| Empty `tasks/unplanned/` directory | Unplanned tasks (`task-U-*.md`) |
+| `backlog.md` with Planned Tasks section populated | Updates to Unplanned Tasks section in `backlog.md` |
+| `AWP.md` from awp-recipe | Entries in AWP.md Unplanned Tasks and Risks sections |
 
 ## 10. Technical Details
 

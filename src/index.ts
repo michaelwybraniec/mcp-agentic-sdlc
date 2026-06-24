@@ -202,9 +202,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           3. Uses recipe methodology to ensure all questions are answered
           4. Validates completeness
           5. Generates files using recipe templates (section 9)
-          6. Creates tasks/ directory
+          6. Creates tasks/ directory (planned/ with initial tasks; unplanned/ and completed/ empty)
           
           Use this ONLY AFTER base.md has been created and reviewed.
+          During development, AI agents add subtasks to planned/ and unplanned tasks to unplanned/
+          per the backlog recipe (get_*_backlog_recipe) section 5 and docs/workflow.md section 9.
           IMPORTANT: Specify the appDir parameter to indicate where the agentic-sdlc folder is located.`,
         inputSchema: {
           type: "object",
