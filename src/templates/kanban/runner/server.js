@@ -194,7 +194,7 @@ function startKanbanServer(kanbanDir, port, options) {
         if (!gitWatchStarted) {
             const config = (0, compiler_js_1.readKanbanConfig)(kanbanDir);
             const appDir = (0, compiler_js_1.resolveAppDirFromKanban)(kanbanDir, config);
-            if (appDir && fs.existsSync(path.join(appDir, '.git'))) {
+            if (appDir && (0, gitCommits_js_1.resolveGitRepo)(appDir)) {
                 (0, watchGit_js_1.watchGitHead)(appDir, () => broadcastSse({ type: 'commits_updated' }));
                 gitWatchStarted = true;
             }

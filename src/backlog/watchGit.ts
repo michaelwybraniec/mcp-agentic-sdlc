@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { resolveGitRepo } from './gitCommits.js';
 
 /** Watch git refs/logs so the Kanban server can push commit updates over SSE. */
 export function watchGitHead(
@@ -7,8 +8,10 @@ export function watchGitHead(
   onChange: () => void,
   debounceMs = 400
 ): void {
-  const gitDir = path.join(appDir, '.git');
-  if (!fs.existsSync(gitDir)) return;
+  const ctx = resolveGitRepo(appDir);
+  if (!ctx) return;
+
+  const gitDir = ctx.gitDir;
 
   let debounce: ReturnType<typeof setTimeout> | null = null;
   const fire = () => {

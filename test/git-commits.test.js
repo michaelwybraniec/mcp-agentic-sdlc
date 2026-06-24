@@ -55,5 +55,26 @@ if (test('loadAgentCommits excludes batch step ranges', () => {
   assert(!agent.some((c) => c.subject.includes('1.0-9.0')), 'batch commit excluded');
 })) passed++;
 
-console.log(`\n${passed}/3 gitCommits tests passed`);
-process.exit(passed === 3 ? 0 : 1);
+const monoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'git-mono-'));
+const monoApp = path.join(monoRoot, 'projects', 'demo-app');
+fs.mkdirSync(monoApp, { recursive: true });
+execSync('git init', { cwd: monoRoot });
+execSync('git config user.email "agent@test.com"', { cwd: monoRoot });
+execSync('git config user.name "Agent"', { cwd: monoRoot });
+fs.writeFileSync(path.join(monoRoot, 'other.txt'), 'other');
+execSync('git add other.txt', { cwd: monoRoot });
+execSync('git commit -m "chore: root only"', { cwd: monoRoot });
+fs.writeFileSync(path.join(monoApp, 'app.txt'), 'app');
+execSync('git add projects/demo-app/app.txt', { cwd: monoRoot });
+execSync('git commit -m "feat(demo 1.0): scaffold subproject"', { cwd: monoRoot });
+
+if (test('loadGitCommits works when .git is only on parent repo', () => {
+  assert(!fs.existsSync(path.join(monoApp, '.git')), 'subdir has no .git');
+  const all = loadGitCommits(monoApp, 10);
+  assert(all.some((c) => c.subject.includes('scaffold subproject')), 'finds commits via parent git');
+  const agent = loadAgentCommits(monoApp, 10);
+  assert(agent.some((c) => c.subject.includes('feat(demo 1.0)')), 'awp commits in subdir');
+})) passed++;
+
+console.log(`\n${passed}/4 gitCommits tests passed`);
+process.exit(passed === 4 ? 0 : 1);

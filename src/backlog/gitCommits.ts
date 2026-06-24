@@ -1,5 +1,4 @@
 import { execSync } from 'child_process';
-import * as fs from 'fs';
 import * as path from 'path';
 
 /** Matches commitStandard: type(scope taskId): subject — taskId is 1.0 or U-1 */
@@ -15,15 +14,46 @@ export interface AgentCommit {
   isAwp: boolean;
 }
 
+export interface GitRepoContext {
+  gitDir: string;
+  logCwd: string;
+  pathArgs: string[];
+}
+
+/** Locate git root for appDir (works when .git is only on a parent, e.g. monorepo). */
+export function resolveGitRepo(appDir: string): GitRepoContext | null {
+  const resolved = path.resolve(appDir);
+  try {
+    const top = execSync('git rev-parse --show-toplevel', {
+      cwd: resolved,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
+    const gitDir = execSync('git rev-parse --absolute-git-dir', {
+      cwd: resolved,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
+    const rel = path.relative(top, resolved);
+    const pathArgs =
+      rel && rel !== '.' && !rel.startsWith('..') ? ['--', rel.replace(/\\/g, '/')] : [];
+    return { gitDir, logCwd: top, pathArgs };
+  } catch {
+    return null;
+  }
+}
+
 export function loadGitCommits(appDir: string, limit = 30): AgentCommit[] {
-  const gitDir = path.join(appDir, '.git');
-  if (!fs.existsSync(gitDir)) return [];
+  const ctx = resolveGitRepo(appDir);
+  if (!ctx) return [];
 
   try {
-    const out = execSync(
-      `git log -n ${limit} --pretty=format:%H%x1f%ai%x1f%an%x1f%s`,
-      { cwd: appDir, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
-    );
+    const pathSpec = ctx.pathArgs.length ? ` ${ctx.pathArgs.join(' ')}` : '';
+    const out = execSync(`git log -n ${limit} --pretty=format:%H%x1f%ai%x1f%an%x1f%s${pathSpec}`, {
+      cwd: ctx.logCwd,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
     return out
       .trim()
       .split('\n')

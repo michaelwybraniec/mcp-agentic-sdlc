@@ -36,11 +36,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.watchGitHead = watchGitHead;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const gitCommits_js_1 = require("./gitCommits.js");
 /** Watch git refs/logs so the Kanban server can push commit updates over SSE. */
 function watchGitHead(appDir, onChange, debounceMs = 400) {
-    const gitDir = path.join(appDir, '.git');
-    if (!fs.existsSync(gitDir))
+    const ctx = (0, gitCommits_js_1.resolveGitRepo)(appDir);
+    if (!ctx)
         return;
+    const gitDir = ctx.gitDir;
     let debounce = null;
     const fire = () => {
         if (debounce)

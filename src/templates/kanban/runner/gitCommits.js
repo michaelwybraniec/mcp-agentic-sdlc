@@ -33,21 +33,48 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.resolveGitRepo = resolveGitRepo;
 exports.loadGitCommits = loadGitCommits;
 exports.taskIdFromCommitSubject = taskIdFromCommitSubject;
 exports.isBatchStepCommit = isBatchStepCommit;
 exports.loadAgentCommits = loadAgentCommits;
 const child_process_1 = require("child_process");
-const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 /** Matches commitStandard: type(scope taskId): subject — taskId is 1.0 or U-1 */
 const AWP_COMMIT_PATTERN = /^(feat|fix|docs|test|chore|refactor|perf|build|ci|revert)(\([^)]+\s+(?:\d+(?:\.\d+)*|U-\d+(?:\.\d+)*)\)):\s+.+/;
+/** Locate git root for appDir (works when .git is only on a parent, e.g. monorepo). */
+function resolveGitRepo(appDir) {
+    const resolved = path.resolve(appDir);
+    try {
+        const top = (0, child_process_1.execSync)('git rev-parse --show-toplevel', {
+            cwd: resolved,
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe'],
+        }).trim();
+        const gitDir = (0, child_process_1.execSync)('git rev-parse --absolute-git-dir', {
+            cwd: resolved,
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe'],
+        }).trim();
+        const rel = path.relative(top, resolved);
+        const pathArgs = rel && rel !== '.' && !rel.startsWith('..') ? ['--', rel.replace(/\\/g, '/')] : [];
+        return { gitDir, logCwd: top, pathArgs };
+    }
+    catch {
+        return null;
+    }
+}
 function loadGitCommits(appDir, limit = 30) {
-    const gitDir = path.join(appDir, '.git');
-    if (!fs.existsSync(gitDir))
+    const ctx = resolveGitRepo(appDir);
+    if (!ctx)
         return [];
     try {
-        const out = (0, child_process_1.execSync)(`git log -n ${limit} --pretty=format:%H%x1f%ai%x1f%an%x1f%s`, { cwd: appDir, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+        const pathSpec = ctx.pathArgs.length ? ` ${ctx.pathArgs.join(' ')}` : '';
+        const out = (0, child_process_1.execSync)(`git log -n ${limit} --pretty=format:%H%x1f%ai%x1f%an%x1f%s${pathSpec}`, {
+            cwd: ctx.logCwd,
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe'],
+        });
         return out
             .trim()
             .split('\n')

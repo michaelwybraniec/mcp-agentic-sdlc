@@ -5,7 +5,7 @@ import * as path from 'path';
 import { KanbanConfig } from './types.js';
 import { readKanbanConfig, resolveAppDirFromKanban } from './compiler.js';
 import { openKanbanInBrowser } from './launch.js';
-import { loadAgentCommits, loadGitCommits } from './gitCommits.js';
+import { loadAgentCommits, loadGitCommits, resolveGitRepo } from './gitCommits.js';
 import { loadActivityLog } from './activity.js';
 import { loadTimeTracking } from './timeTracking.js';
 import { watchGitHead } from './watchGit.js';
@@ -185,7 +185,7 @@ export function startKanbanServer(
     if (!gitWatchStarted) {
       const config = readKanbanConfig(kanbanDir);
       const appDir = resolveAppDirFromKanban(kanbanDir, config);
-      if (appDir && fs.existsSync(path.join(appDir, '.git'))) {
+      if (appDir && resolveGitRepo(appDir)) {
         watchGitHead(appDir, () => broadcastSse({ type: 'commits_updated' }));
         gitWatchStarted = true;
       }
