@@ -430,15 +430,14 @@ See `agentic-sdlc/kanban/KANBAN.md` for copy-paste instructions agents can quote
 
 ### AWP command bar (Kanban UI)
 
-The board header includes buttons for standard AWP chat commands:
+The board header includes buttons for the five AWP procedures (`AWP.md`):
 
 | Button | Copies to clipboard |
 |--------|---------------------|
-| Start | `awp check` — find current actionable step |
+| Check | `awp check` — review state, restore context |
 | Update | `awp update` |
 | Commit | `awp commit` |
 | Next | `awp next` |
-| Check | `awp check` |
 | Handoff | `awp handoff` |
 
 Hover a button for its description, click to copy, then paste into the agent chat. The board is read-only; commands run in the IDE agent, not in the browser.
@@ -451,7 +450,7 @@ The **Agent commits** section lists recent git commits from the project root tha
 
 - Live API: `GET /api/commits.json` (filtered to AWP-format commits)
 - All commits: `GET /api/commits.json?all=1`
-- Refreshes automatically when git HEAD changes (server watches `.git`) and every 5s via polling; **Refresh** forces an immediate reload
+- Refreshes automatically when git HEAD changes (server watches `.git`) and every 3s via polling
 
 Requires a git repository at `appDir` (from `.kanban-config.json`).
 

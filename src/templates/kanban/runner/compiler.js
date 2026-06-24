@@ -244,11 +244,15 @@ function compileBacklog(agenticSdlcDir, config, options) {
         _warnings: warnings,
     };
     const prev = options?.prevSnapshot ?? loadPreviousSnapshot(kanbanDir);
-    const changedTaskIds = options?.changedFiles
-        ? options.changedFiles.map((f) => (0, parser_js_1.taskIdFromFilename)(path.basename(f)))
+    const changedTaskIds = options?.changedFiles?.length
+        ? (0, activity_js_1.taskIdsFromChangedFiles)(options.changedFiles)
         : detectChangedTaskIds(prev, snapshot);
-    if (changedTaskIds.length > 0 || !prev) {
+    const contractChanged = options?.changedFiles?.some((f) => path.basename(f).toLowerCase() === 'base.md');
+    if (changedTaskIds.length > 0 || !prev || contractChanged) {
         const { events, messages } = (0, activity_js_1.diffTasks)(prev, snapshot, changedTaskIds);
+        if (contractChanged && prev) {
+            events.unshift((0, activity_js_1.contractChangeEvent)());
+        }
         for (const id of Object.keys(tasks)) {
             const t = tasks[id];
             const diffMsg = messages.get(id);

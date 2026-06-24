@@ -33,6 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.isTaskMarkdownFile = isTaskMarkdownFile;
 exports.taskIdFromFilename = taskIdFromFilename;
 exports.parseTaskStatus = parseTaskStatus;
 exports.parseTaskMd = parseTaskMd;
@@ -56,10 +57,13 @@ function parseListSection(text) {
         .map((l) => l.replace(/^-\s*(\[[ x~]\]\s*)?/, '').trim())
         .filter(Boolean);
 }
+function isTaskMarkdownFile(filename) {
+    return /^task-.+\.md$/i.test(path.basename(filename));
+}
 function taskIdFromFilename(filename) {
     const base = path.basename(filename, '.md');
-    const m = base.match(/^task-(.+)$/);
-    return m ? m[1] : base;
+    const m = base.match(/^task-(.+)$/i);
+    return m ? m[1] : '';
 }
 function parseTaskStatus(statusRaw) {
     const s = statusRaw.toLowerCase();

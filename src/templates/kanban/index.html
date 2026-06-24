@@ -124,6 +124,8 @@
       overflow-y: auto;
     }
     .commits-panel h4 { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .commits-live { font-size: 11px; font-weight: 400; text-transform: none; color: #999; }
+    .commits-live.on { color: #2563eb; }
     .commits-panel ul { list-style: none; }
     .commits-panel li {
       font-size: 12px;
@@ -148,26 +150,29 @@
       font-size: 13px;
       text-decoration: underline;
     }
-    .board-hint {
-      margin: 0 24px 12px;
-      padding: 10px 12px;
-      font-size: 12px;
-      color: #555;
-      background: #f8faff;
-      border: 1px solid #dbeafe;
-      border-radius: 6px;
-      line-height: 1.45;
-    }
-    .board-hint strong { color: #1e40af; font-weight: 600; }
-      grid-template-columns: repeat(4, 1fr);
+    .board {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
       gap: 12px;
       padding: 16px 24px;
       min-height: 320px;
+      width: 100%;
+      overflow-x: auto;
     }
     @media (max-width: 900px) {
-      .board { grid-template-columns: repeat(2, 1fr); }
+      .board { flex-wrap: nowrap; }
+      .column { min-width: 220px; }
     }
-    .column { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 4px; padding: 8px; min-height: 200px; }
+    .column {
+      flex: 1 1 0;
+      min-width: 0;
+      background: #fafafa;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      padding: 8px;
+      min-height: 200px;
+    }
     .column h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; color: #666; padding-bottom: 8px; border-bottom: 1px solid #e5e5e5; margin-bottom: 8px; }
     .card {
       background: #fff;
@@ -195,11 +200,51 @@
       padding: 12px;
       border: 1px solid #e5e5e5;
       border-radius: 4px;
-      max-height: 120px;
+      max-height: 200px;
       overflow-y: auto;
     }
     .activity-feed h4 { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 8px; }
-    .activity-feed li { font-size: 12px; color: #666; list-style: none; padding: 2px 0; font-family: ui-monospace, monospace; }
+    .activity-feed ul { list-style: none; }
+    .activity-item {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 5px 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .act-time {
+      flex-shrink: 0;
+      width: 42px;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      color: #999;
+    }
+    .act-badge {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .act-task {
+      flex-shrink: 0;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      color: #666;
+    }
+    .act-msg { color: #333; flex: 1; min-width: 0; }
+    .act-added .act-badge { background: #ecfdf5; color: #047857; }
+    .act-removed .act-badge { background: #fef2f2; color: #b91c1c; }
+    .act-moved .act-badge { background: #eff6ff; color: #1d4ed8; }
+    .act-status .act-badge { background: #fffbeb; color: #b45309; }
+    .act-updated .act-badge { background: #f5f5f5; color: #525252; }
+    .act-sync .act-badge { background: #f5f3ff; color: #6d28d9; }
+    .act-contract .act-badge { background: #fdf4ff; color: #a21caf; }
     .disclaimer {
       position: fixed;
       bottom: 0;
@@ -289,41 +334,36 @@
   <div class="awp-toolbar" id="awp-toolbar">
     <span class="awp-toolbar-label">AWP commands</span>
     <button type="button" class="awp-btn primary" data-awp="awp check"
-      data-tip="Start session: review AWP.md, find the first actionable step, restore context, and begin work."
-      title="Start — awp check">Start</button>
+      data-tip="Review current project state, restore context, and identify the current actionable step (AWP.md § check)."
+      title="Check — awp check">Check</button>
     <button type="button" class="awp-btn" data-awp="awp update"
-      data-tip="Review README.md and AWP.md, sync docs with code, check blockers, and update unplanned tasks if needed."
+      data-tip="Review and update documentation; mark steps complete; sync code and docs (AWP.md § update)."
       title="Update — awp update">Update</button>
     <button type="button" class="awp-btn" data-awp="awp commit"
-      data-tip="Commit pending changes using commitStandard: type(scope step): subject — reference the current step number."
+      data-tip="Commit with commitStandard: type(scope step): subject — reference the current step (AWP.md § commit)."
       title="Commit — awp commit">Commit</button>
     <button type="button" class="awp-btn" data-awp="awp next"
-      data-tip="Advance to the next actionable step. Mandatory order: update → commit → next. Mark the current step done before starting."
+      data-tip="Identify the next actionable step, check blockers, begin work (AWP.md § next). Order: update → commit → next."
       title="Next — awp next">Next</button>
-    <button type="button" class="awp-btn" data-awp="awp check"
-      data-tip="Find where you left off: open AWP.md, locate the first unchecked step, and restore full task context."
-      title="Check — awp check">Check</button>
     <button type="button" class="awp-btn" data-awp="awp handoff"
-      data-tip="Transfer work between human and agent: package context, deliverables, expectations, and escalation rules."
+      data-tip="Package context and transfer responsibility between human and agent (AWP.md § handoff)."
       title="Handoff — awp handoff">Handoff</button>
     <span style="font-size:11px;color:#999;margin-left:8px">Hover for description · click to copy — paste into agent chat</span>
   </div>
-
-  <div class="commits-panel" id="commits-panel">
-    <h4>
-      <span>Agent commits</span>
-      <button type="button" class="link-btn" id="refresh-commits">Refresh</button>
-    </h4>
-    <ul id="commits-list"><li class="empty">Loading…</li></ul>
-  </div>
-
-  <p class="board-hint" id="board-hint"><strong>Live board</strong> updates when agents edit task <code>.md</code> files: set <code># Status</code>, append <code>## Activity</code>, move to <code>tasks/completed/</code>. Git commits and app code alone do not move cards.</p>
 
   <div class="board" id="board"></div>
 
   <div class="activity-feed">
     <h4>Activity</h4>
     <ul id="activity-list"></ul>
+  </div>
+
+  <div class="commits-panel" id="commits-panel">
+    <h4>
+      <span>Agent commits</span>
+      <span class="commits-live" id="commits-live">○ watching git</span>
+    </h4>
+    <ul id="commits-list"><li class="empty">Loading…</li></ul>
   </div>
 
   <footer class="disclaimer hidden" id="disclaimer"></footer>
@@ -355,7 +395,6 @@
     let lastSync = null;
     let syncing = false;
     let pulseIds = new Set();
-    let activityLog = [];
     let commitsData = [];
 
     function showToast(msg) {
@@ -398,6 +437,18 @@
       ).join('');
     }
 
+    function setCommitsLive(ok) {
+      const el = document.getElementById('commits-live');
+      if (!el) return;
+      if (ok) {
+        el.classList.add('on');
+        el.textContent = '● live';
+      } else {
+        el.classList.remove('on');
+        el.textContent = '○ offline';
+      }
+    }
+
     async function fetchCommits() {
       try {
         const res = await fetch('/api/commits.json');
@@ -405,7 +456,9 @@
         const json = await res.json();
         commitsData = json.commits || [];
         renderCommits();
+        setCommitsLive(true);
       } catch {
+        setCommitsLive(false);
         document.getElementById('commits-list').innerHTML =
           '<li class="empty">Git history unavailable (not a git repo or git not installed)</li>';
       }
@@ -513,18 +566,45 @@
       }
     }
 
+    const ACT_LABELS = {
+      added: 'Added',
+      removed: 'Removed',
+      moved: 'Moved',
+      status: 'Status',
+      updated: 'Updated',
+      sync: 'Sync',
+      contract: 'Agreement',
+    };
+
+    function activityKind(ev) {
+      return ev.kind || ev.type || 'updated';
+    }
+
+    function renderActivityRow(ev) {
+      const kind = activityKind(ev);
+      const label = ACT_LABELS[kind] || 'Updated';
+      const time = formatTime(ev.at);
+      const task = ev.taskId
+        ? `<span class="act-task">${esc(ev.taskId)}</span>`
+        : '';
+      const msg = ev.message || ev.title || '';
+      const safeKind = ACT_LABELS[kind] ? kind : 'updated';
+      return `<li class="activity-item act-${safeKind}">
+        <span class="act-time">${esc(time)}</span>
+        <span class="act-badge">${esc(label)}</span>
+        ${task}
+        <span class="act-msg">${esc(msg)}</span>
+      </li>`;
+    }
+
     function renderActivity() {
       const ul = document.getElementById('activity-list');
-      const events = [...activityLog];
-      if (data?.recentEvents) {
-        for (const e of data.recentEvents) {
-          if (e.message && !events.find((x) => x === e.message)) {
-            events.unshift(formatTime(e.at) + '  ' + (e.taskId ? e.taskId + '  ' : '') + e.message);
-          }
-        }
+      const events = (data?.recentEvents || []).filter((e) => e.message || e.title);
+      if (!events.length) {
+        ul.innerHTML = '<li class="empty">No activity yet — edit task .md files to see updates</li>';
+        return;
       }
-      ul.innerHTML = events.slice(0, 20).map((l) => '<li>' + esc(l) + '</li>').join('') ||
-        '<li class="empty">No activity yet</li>';
+      ul.innerHTML = events.slice(0, 25).map(renderActivityRow).join('');
     }
 
     function openDrawer(id) {
@@ -607,8 +687,6 @@
                 pulseIds.add(id);
                 setTimeout(() => { pulseIds.delete(id); renderBoard(); }, 3000);
               });
-              activityLog.unshift(formatTime(new Date().toISOString()) + '  ' + msg.taskIds.join(', ') + ' updated');
-              activityLog = activityLog.slice(0, 30);
             }
             fetchData().catch(console.error);
           } else if (msg.type === 'commits_updated') {
@@ -631,7 +709,6 @@
       if (e.key === 'Escape') { closeDrawer(); closeModal(); }
     });
 
-    document.getElementById('refresh-commits').onclick = () => fetchCommits();
     setupAwpToolbar();
 
     fetchData().then(() => {
@@ -639,8 +716,10 @@
       fetchCommits();
       setInterval(() => {
         fetchData().catch(() => setLive(false));
-        fetchCommits().catch(() => {});
       }, 5000);
+      setInterval(() => {
+        fetchCommits().catch(() => setCommitsLive(false));
+      }, 3000);
     }).catch((e) => {
       console.error(e);
       setLive(false);

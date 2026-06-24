@@ -3,11 +3,12 @@ import * as path from 'path';
 import { parseBaseMd } from './parseBaseMd.js';
 import {
   appendGlobalEvents,
+  contractChangeEvent,
   diffTasks,
-  loadActivityLog,
   mergeTaskActivity,
+  taskIdsFromChangedFiles,
 } from './activity.js';
-import { parseTaskMd, peek, taskIdFromFilename } from './parser.js';
+import { parseTaskMd, peek } from './parser.js';
 import { BacklogSnapshot, KanbanConfig, TaskCard, TaskColumn } from './types.js';
 
 export function readKanbanConfig(kanbanDir: string): KanbanConfig | null {
@@ -236,12 +237,19 @@ export function compileBacklog(
   };
 
   const prev = options?.prevSnapshot ?? loadPreviousSnapshot(kanbanDir);
-  const changedTaskIds = options?.changedFiles
-    ? options.changedFiles.map((f) => taskIdFromFilename(path.basename(f)))
+  const changedTaskIds = options?.changedFiles?.length
+    ? taskIdsFromChangedFiles(options.changedFiles)
     : detectChangedTaskIds(prev, snapshot);
 
-  if (changedTaskIds.length > 0 || !prev) {
+  const contractChanged = options?.changedFiles?.some(
+    (f) => path.basename(f).toLowerCase() === 'base.md'
+  );
+
+  if (changedTaskIds.length > 0 || !prev || contractChanged) {
     const { events, messages } = diffTasks(prev, snapshot, changedTaskIds);
+    if (contractChanged && prev) {
+      events.unshift(contractChangeEvent());
+    }
     for (const id of Object.keys(tasks)) {
       const t = tasks[id];
       const diffMsg = messages.get(id);

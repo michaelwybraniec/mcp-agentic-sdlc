@@ -25,13 +25,11 @@ npm run open    # sync + open preview only (use when board is already running)
 
 ### AWP command bar
 
-The board header includes buttons for common AWP chat commands: **Start**, **Update**, **Commit**, **Next**, **Check**, **Handoff**. Click a button to copy the command (e.g. `awp next`) — paste it into your agent chat.
-
-**Start** copies `awp check` (find the current actionable step per AWP.md).
+The board header includes buttons for the five AWP procedures from `AWP.md`: **Check**, **Update**, **Commit**, **Next**, **Handoff**. Click a button to copy the command (e.g. `awp next`) — paste it into your agent chat.
 
 ### Agent commits panel
 
-Below the command bar, **Agent commits** lists recent git commits matching the AWP commit standard (`type(scope step): subject`). Updates live when you commit (git watcher + 5s poll). Requires a git repo at the project root.
+Below the activity feed, **Agent commits** lists recent git commits matching the AWP commit standard (`type(scope step): subject`). Updates live automatically (git watcher + 3s poll). Requires a git repo at the project root.
 
 To skip auto-open: `npm run watch -- --no-open` or set `AWP_KANBAN_NO_OPEN=1`
 

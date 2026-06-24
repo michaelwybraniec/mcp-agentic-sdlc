@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { ActivityEntry, BacklogSnapshot, TaskCard } from './types.js';
+import { ActivityEntry, ActivityKind, BacklogSnapshot, TaskCard } from './types.js';
+import { isTaskMarkdownFile, taskIdFromFilename } from './parser.js';
 
 const MAX_EVENTS = 50;
 const MAX_TASK_ACTIVITY = 20;
@@ -21,14 +22,14 @@ export function saveActivityLog(kanbanDir: string, events: ActivityEntry[]): voi
   fs.writeFileSync(path.join(kanbanDir, 'activity.json'), JSON.stringify({ events: trimmed }, null, 2));
 }
 
-function taskSnapshotKey(t: TaskCard): string {
-  return JSON.stringify({
-    title: t.title,
-    status: t.status,
-    column: t.column,
-    priority: t.priority,
-    owner: t.owner,
-  });
+export function taskIdsFromChangedFiles(changedFiles: string[]): string[] {
+  const ids = new Set<string>();
+  for (const file of changedFiles) {
+    if (!isTaskMarkdownFile(file)) continue;
+    const id = taskIdFromFilename(file);
+    if (id) ids.add(id);
+  }
+  return [...ids];
 }
 
 export function diffTasks(
@@ -40,37 +41,75 @@ export function diffTasks(
   const events: ActivityEntry[] = [];
   const messages = new Map<string, string>();
 
-  for (const taskId of changedTaskIds) {
-    const prevTask = prev?.tasks[taskId];
+  if (!prev) {
+    const count = Object.keys(next.tasks).length;
+    events.push({
+      at: now,
+      kind: 'sync',
+      message: count ? `Backlog loaded · ${count} task${count === 1 ? '' : 's'}` : 'Backlog loaded',
+    });
+    return { events, messages };
+  }
+
+  const taskIds = changedTaskIds.filter((id) => id && (prev.tasks[id] || next.tasks[id]));
+
+  for (const taskId of taskIds) {
+    const prevTask = prev.tasks[taskId];
     const nextTask = next.tasks[taskId];
 
     if (!nextTask) {
-      const msg = `Task ${taskId} removed from board`;
-      events.push({ at: now, message: msg });
+      const msg = `Removed from board · ${prevTask?.title || taskId}`;
+      events.push({
+        at: now,
+        kind: 'removed',
+        taskId,
+        title: prevTask?.title,
+        message: msg,
+      });
       messages.set(taskId, msg);
       continue;
     }
 
     if (!prevTask) {
-      const msg = `Task ${taskId} added: ${nextTask.title}`;
-      events.push({ at: now, message: msg });
+      const col = formatColumn(nextTask.column);
+      const msg = `Added to ${col} · ${nextTask.title}`;
+      events.push({
+        at: now,
+        kind: 'added',
+        taskId,
+        title: nextTask.title,
+        message: msg,
+      });
       messages.set(taskId, msg);
       continue;
     }
 
     const parts: string[] = [];
+    let kind: ActivityKind = 'updated';
+
     if (prevTask.column !== nextTask.column) {
       parts.push(`Moved to ${formatColumn(nextTask.column)}`);
+      kind = 'moved';
     }
     if (prevTask.status !== nextTask.status) {
       parts.push(`Status → ${formatStatus(nextTask.status)}`);
+      if (kind !== 'moved') kind = 'status';
     }
     if (prevTask.title !== nextTask.title) {
       parts.push('Title updated');
     }
 
-    const msg = parts.length ? parts.join(', ') : `Task ${taskId} updated`;
-    events.push({ at: now, message: `${taskId}: ${msg}` });
+    const msg = parts.length
+      ? `${parts.join(' · ')} — ${nextTask.title}`
+      : `Updated — ${nextTask.title}`;
+
+    events.push({
+      at: now,
+      kind,
+      taskId,
+      title: nextTask.title,
+      message: msg,
+    });
     messages.set(taskId, msg);
   }
 
@@ -104,14 +143,23 @@ export function mergeTaskActivity(
   const fromMd: ActivityEntry[] = mdLines.slice(-5).map((line) => ({
     at: '',
     message: line,
+    kind: 'updated',
   }));
 
   const fromDiff: ActivityEntry[] = diffMessage
-    ? [{ at: new Date().toISOString(), message: diffMessage }]
+    ? [{ at: new Date().toISOString(), message: diffMessage, kind: 'updated', taskId: task.id, title: task.title }]
     : [];
 
   const combined = [...fromDiff, ...fromMd];
   return combined.slice(0, MAX_TASK_ACTIVITY);
+}
+
+export function contractChangeEvent(): ActivityEntry {
+  return {
+    at: new Date().toISOString(),
+    kind: 'contract',
+    message: 'Foundation agreement updated (base.md)',
+  };
 }
 
 export function appendGlobalEvents(
@@ -126,23 +174,20 @@ export function appendGlobalEvents(
   saveActivityLog(kanbanDir, merged);
 
   const recentEvents = newEvents.map((e, i) => {
-    const file = changedFiles[i] || changedFiles[0] || '';
-    const taskId = extractTaskIdFromPath(file) || '';
+    const file = changedFiles[i] || changedFiles.find((f) => isTaskMarkdownFile(f)) || '';
+    const taskId = e.taskId || (file ? taskIdFromFilename(file) : '');
+    const kind = e.kind || 'updated';
     return {
       at: e.at || new Date().toISOString(),
       taskId,
       path: file,
-      type: 'change',
+      type: kind,
+      kind,
+      title: e.title,
       message: e.message,
     };
   });
 
   next.recentEvents = [...recentEvents, ...(prev?.recentEvents || [])].slice(0, MAX_EVENTS);
   return next;
-}
-
-function extractTaskIdFromPath(filePath: string): string {
-  const base = path.basename(filePath, '.md');
-  const m = base.match(/^task-(.+)$/);
-  return m ? m[1] : '';
 }

@@ -1,9 +1,21 @@
 export type TaskColumn = 'unplanned' | 'planned' | 'inProgress' | 'completed';
 export type TaskStatus = 'pending' | 'in_progress' | 'completed';
 
+export type ActivityKind =
+  | 'added'
+  | 'removed'
+  | 'moved'
+  | 'status'
+  | 'updated'
+  | 'sync'
+  | 'contract';
+
 export interface ActivityEntry {
   at: string;
   message: string;
+  kind?: ActivityKind;
+  taskId?: string;
+  title?: string;
 }
 
 export interface TaskCard {
@@ -67,7 +79,9 @@ export interface BacklogSnapshot {
     at: string;
     taskId: string;
     path: string;
-    type: string;
+    type: ActivityKind | string;
+    kind?: ActivityKind;
+    title?: string;
     message?: string;
   }>;
   _warnings: string[];

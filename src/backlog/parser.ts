@@ -22,10 +22,14 @@ function parseListSection(text: string): string[] {
     .filter(Boolean);
 }
 
+export function isTaskMarkdownFile(filename: string): boolean {
+  return /^task-.+\.md$/i.test(path.basename(filename));
+}
+
 export function taskIdFromFilename(filename: string): string {
   const base = path.basename(filename, '.md');
-  const m = base.match(/^task-(.+)$/);
-  return m ? m[1] : base;
+  const m = base.match(/^task-(.+)$/i);
+  return m ? m[1] : '';
 }
 
 export function parseTaskStatus(statusRaw: string): TaskStatus {
