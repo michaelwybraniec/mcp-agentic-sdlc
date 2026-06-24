@@ -25,7 +25,27 @@ npm run open    # sync + open preview only (use when board is already running)
 
 ### AWP command bar
 
-The board header includes buttons for the five AWP procedures from `AWP.md`: **Check**, **Update**, **Commit**, **Next**, **Handoff**. Click a button to copy the command (e.g. `awp next`) — paste it into your agent chat.
+The board header includes buttons for the seven AWP procedures from `AWP.md`: **Check**, **Start**, **Update**, **Commit**, **Next**, **Auto**, **Handoff**. Click a button to copy the command — paste it into your agent chat.
+
+### After init — choose how to begin
+
+The agent should **ask you** which command to run (not assume `awp next`):
+
+| Command | When to use |
+|---------|-------------|
+| **`awp start`** | **Recommended after init** — readiness checks, then first task on Kanban |
+| `awp next` | One task at a time (ongoing work) |
+| `awp auto` | All remaining tasks in sequence |
+
+| Button | Command | Meaning |
+|--------|---------|---------|
+| Check | `awp check` | Restore context; find current step |
+| **Start** | **`awp start`** | **First task** — checks + `backlog_sync` startTaskId |
+| Update | `awp update` | Sync docs and task markdown |
+| Commit | `awp commit` | Commit with commitStandard |
+| Next | `awp next` | One task: update → commit → next |
+| **Auto** | **`awp auto`** | **All remaining tasks** — loop awp next until backlog done or blocked |
+| Handoff | `awp handoff` | Transfer context to human |
 
 ### Agent commits panel
 

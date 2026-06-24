@@ -75,7 +75,7 @@ export async function handleBacklogSyncTool(args: Record<string, unknown>) {
       content: [
         {
           type: 'text',
-          text: `Synced kanban/backlog.json\n\nTasks: ${Object.keys(snapshot.tasks).length}\nIn Progress: ${snapshot.boardHealth.inProgressIds.join(', ') || 'none'}\nSource: ${snapshot.meta.sourcePath}\nApp dir: ${snapshot.config.appDir}${lifeBlock}${warnBlock}\n\nOn awp next: call backlog_sync with startTaskId (and completeTaskId for the previous task).\nRun: cd agentic-sdlc/kanban && npm run watch\nURL: http://localhost:${port}`,
+          text: `Synced kanban/backlog.json\n\nTasks: ${Object.keys(snapshot.tasks).length}\nIn Progress: ${snapshot.boardHealth.inProgressIds.join(', ') || 'none'}\nSource: ${snapshot.meta.sourcePath}\nApp dir: ${snapshot.config.appDir}${lifeBlock}${warnBlock}\n\nawp start / awp next / awp auto: backlog_sync with startTaskId (and completeTaskId when advancing).\nRun: cd agentic-sdlc/kanban && npm run watch\nURL: http://localhost:${port}`,
         },
       ],
     };

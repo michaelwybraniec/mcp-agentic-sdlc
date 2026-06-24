@@ -244,9 +244,12 @@ function compileBacklog(agenticSdlcDir, config, options) {
     const appDir = config.appDir ? path.resolve(config.appDir) : '';
     if (appDir) {
         const latest = (0, gitCommits_js_1.loadAgentCommits)(appDir, 1)[0];
-        const inferredId = latest ? (0, gitCommits_js_1.taskIdFromCommitSubject)(latest.subject) : '';
+        let inferredId = latest ? (0, gitCommits_js_1.taskIdFromCommitSubject)(latest.subject) : '';
+        if (!inferredId || !snapshot.tasks[inferredId]) {
+            inferredId = (0, taskStatus_js_1.inferActiveTaskId)(snapshot) || '';
+        }
         if (inferredId && (0, taskStatus_js_1.applyInProgressInference)(snapshot, inferredId)) {
-            snapshot._warnings.push(`Task ${inferredId} shown In Progress from latest git commit — set # Status: [~] In Progress in task .md to persist`);
+            snapshot._warnings.push(`Task ${inferredId} shown In Progress (inferred) — call backlog_sync with startTaskId: "${inferredId}" to persist`);
             snapshot.boardHealth = (0, taskStatus_js_1.validateTaskBoard)(snapshot);
         }
     }
@@ -300,7 +303,8 @@ function detectChangedTaskIds(prev, next) {
         if (a.title !== b.title ||
             a.status !== b.status ||
             a.column !== b.column ||
-            a.lastUpdated !== b.lastUpdated) {
+            a.lastUpdated !== b.lastUpdated ||
+            a.sourcePath !== b.sourcePath) {
             changed.push(id);
         }
     }

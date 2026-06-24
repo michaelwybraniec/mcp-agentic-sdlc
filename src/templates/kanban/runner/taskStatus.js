@@ -4,6 +4,8 @@ exports.TASK_STATUS = void 0;
 exports.resolveTaskColumn = resolveTaskColumn;
 exports.validateTaskBoard = validateTaskBoard;
 exports.formatStatusLine = formatStatusLine;
+exports.sortTaskIds = sortTaskIds;
+exports.inferActiveTaskId = inferActiveTaskId;
 exports.applyInProgressInference = applyInProgressInference;
 /** Canonical status lines agents should write in task .md files. */
 exports.TASK_STATUS = {
@@ -29,7 +31,7 @@ function validateTaskBoard(snapshot) {
     const tasks = Object.values(snapshot.tasks);
     const inProgress = tasks.filter((t) => t.column === 'inProgress');
     const inProgressIds = inProgress.map((t) => t.id);
-    const pendingPlanned = snapshot.columns.planned.map((t) => t.id);
+    const pendingPlanned = sortTaskIds(snapshot.columns.planned.map((t) => t.id));
     const completedIds = [
         ...snapshot.columns.completed.map((t) => t.id),
         ...tasks.filter((t) => t.status === 'completed' && t.column === 'planned').map((t) => t.id),
@@ -73,7 +75,42 @@ function folderFromSourcePath(sourcePath) {
 function formatStatusLine(status) {
     return exports.TASK_STATUS[status];
 }
-/** Promote a planned task to In Progress in the snapshot when inferred from git (display only). */
+/** Sort task ids numerically (1.0 < 2.0 < 10.0). */
+function sortTaskIds(ids) {
+    return [...ids].sort((a, b) => {
+        const pa = a.split('.').map((n) => parseInt(n, 10) || 0);
+        const pb = b.split('.').map((n) => parseInt(n, 10) || 0);
+        for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+            const d = (pa[i] || 0) - (pb[i] || 0);
+            if (d !== 0)
+                return d;
+        }
+        return a.localeCompare(b);
+    });
+}
+/** Guess active task when markdown was not updated (display-only inference). */
+function inferActiveTaskId(snapshot) {
+    if (snapshot.columns.inProgress.some((t) => !t.inferredInProgress))
+        return undefined;
+    if (snapshot.columns.inProgress.length > 0)
+        return undefined;
+    const pending = sortTaskIds(snapshot.columns.planned.map((t) => t.id));
+    if (!pending.length)
+        return undefined;
+    const hasCompleted = snapshot.columns.completed.length > 0;
+    if (hasCompleted) {
+        return pending[0];
+    }
+    const byMtime = [...snapshot.columns.planned].sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated));
+    if (byMtime.length === 1)
+        return byMtime[0].id;
+    const newest = new Date(byMtime[0].lastUpdated).getTime();
+    const second = new Date(byMtime[1].lastUpdated).getTime();
+    if (newest - second > 120000)
+        return byMtime[0].id;
+    return undefined;
+}
+/** Promote a planned task to In Progress in the snapshot (display only; does not edit .md). */
 function applyInProgressInference(snapshot, inferredTaskId) {
     if (!inferredTaskId || snapshot.columns.inProgress.length > 0)
         return false;

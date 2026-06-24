@@ -173,8 +173,8 @@ export function appendGlobalEvents(
   const merged = [...newEvents, ...global].slice(0, MAX_EVENTS);
   saveActivityLog(kanbanDir, merged);
 
-  const recentEvents = newEvents.map((e, i) => {
-    const file = changedFiles[i] || changedFiles.find((f) => isTaskMarkdownFile(f)) || '';
+  const recentEvents = newEvents.map((e) => {
+    const file = changedFiles.find((f) => isTaskMarkdownFile(f)) || '';
     const taskId = e.taskId || (file ? taskIdFromFilename(file) : '');
     const kind = e.kind || 'updated';
     return {

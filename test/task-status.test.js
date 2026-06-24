@@ -105,5 +105,30 @@ if (
 )
   passed++;
 
-console.log(`\n${passed}/5 taskStatus tests passed`);
-process.exit(passed === 5 ? 0 : 1);
+if (
+  test('inferActiveTaskId picks next pending after completed work', () => {
+    const { inferActiveTaskId, applyInProgressInference } = require('../dist/backlog/taskStatus');
+    const t1 = task('1.0', 'completed', 'completed', 'backlog/poc/tasks/completed/task-1.0.md');
+    const t2 = task('2.0', 'planned', 'pending');
+    const t3 = task('3.0', 'planned', 'pending');
+    const snap = {
+      meta: {},
+      config: {},
+      summary: {},
+      contract: {},
+      tasks: { '1.0': t1, '2.0': t2, '3.0': t3 },
+      columns: { unplanned: [], planned: [t2, t3], inProgress: [], completed: [t1] },
+      recentEvents: [],
+      boardHealth: { inProgressIds: [], pendingPlannedIds: ['2.0', '3.0'], completedIds: ['1.0'], warnings: [] },
+      _warnings: [],
+    };
+    assert(inferActiveTaskId(snap) === '2.0');
+    assert(applyInProgressInference(snap, '2.0'));
+    assert(snap.columns.inProgress.length === 1);
+    assert(snap.columns.inProgress[0].id === '2.0');
+  })
+)
+  passed++;
+
+console.log(`\n${passed}/6 taskStatus tests passed`);
+process.exit(passed === 6 ? 0 : 1);

@@ -215,7 +215,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           6. Creates tasks/ directory (planned/ with initial tasks; unplanned/ and completed/ empty)
           7. Scaffolds kanban/ and starts the live board (browser opens at http://localhost:4173)
           
-          After init: tell the user Kanban is already running — NOT optional. Next work begins with awp next / task-1.0.
+          After init: tell the user Kanban is already running — NOT optional. Ask how they want to begin: awp start (first task, recommended), awp next (one task), or awp auto (all tasks). Do not assume.
           During development, AI agents add subtasks to planned/ and unplanned tasks to unplanned/
           per the backlog recipe (get_*_backlog_recipe) section 5 and docs/workflow.md section 9.
           IMPORTANT: Specify the appDir parameter to indicate where the agentic-sdlc folder is located.`,
@@ -517,7 +517,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "backlog_sync",
         description: `
           Recompile kanban/backlog.json from markdown and optionally update task status for the live board.
-          REQUIRED on awp next: use startTaskId to mark the active task In Progress (and completeTaskId for the previous task).
+          REQUIRED on awp start / awp next / each awp auto iteration: use startTaskId to mark the active task In Progress (and completeTaskId when advancing).
+          awp start: readiness checks then startTaskId for first planned task. awp auto: loop update → implement → commit → next.
           Example: { "appDir": ".", "completeTaskId": "1.0", "startTaskId": "2.0", "activity": "Phase 2 started" }
           Run cd agentic-sdlc/kanban && npm run watch for live browser updates at http://localhost:4173`,
         inputSchema: {

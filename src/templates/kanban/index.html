@@ -25,20 +25,43 @@
       gap: 12px;
       align-items: center;
       justify-content: space-between;
+      position: relative;
     }
     .project-bar .meta { font-size: 14px; }
     .project-bar .summary { font-size: 13px; color: #666; width: 100%; }
-    .status-warnings {
-      margin: 0 24px 12px;
+    .status-chip {
+      display: none;
+      margin-left: 8px;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      color: #92400e;
+      cursor: pointer;
+      vertical-align: middle;
+    }
+    .status-chip.visible { display: inline-block; }
+    .status-popover {
+      display: none;
+      position: absolute;
+      top: calc(100% - 1px);
+      left: 24px;
+      right: 24px;
+      z-index: 60;
       padding: 10px 12px;
       font-size: 12px;
       color: #92400e;
       background: #fffbeb;
       border: 1px solid #fcd34d;
-      border-radius: 6px;
+      border-radius: 0 0 6px 6px;
       line-height: 1.45;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      max-height: 120px;
+      overflow-y: auto;
     }
-    .status-warnings strong { color: #b45309; }
+    .status-popover.open { display: block; }
+    .status-popover strong { color: #b45309; }
     .awp-toolbar {
       padding: 10px 24px;
       border-bottom: 1px solid #e5e5e5;
@@ -61,6 +84,10 @@
     .awp-btn:hover { border-color: #2563eb; color: #2563eb; background: #f8faff; }
     .awp-btn.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
     .awp-btn.primary:hover { background: #1d4ed8; color: #fff; }
+    .awp-btn.auto { background: #059669; color: #fff; border-color: #059669; }
+    .awp-btn.auto:hover { background: #047857; color: #fff; }
+    .awp-btn.start { background: #d97706; color: #fff; border-color: #d97706; }
+    .awp-btn.start:hover { background: #b45309; color: #fff; }
     .awp-btn[data-tip] { position: relative; }
     .awp-btn[data-tip]::after {
       content: attr(data-tip);
@@ -349,18 +376,21 @@
     <div>
       <span class="meta" id="project-name">—</span>
       <span class="live" id="live-status"><span class="dot">○</span> Connecting…</span>
+      <button type="button" class="status-chip" id="status-chip" aria-expanded="false">Board status</button>
     </div>
     <button type="button" class="link-btn" id="view-agreement">View agreement</button>
     <p class="summary" id="summary-line"></p>
+    <div class="status-popover" id="status-popover" role="status"></div>
   </div>
-
-  <div class="status-warnings hidden" id="status-warnings" role="status"></div>
 
   <div class="awp-toolbar" id="awp-toolbar">
     <span class="awp-toolbar-label">AWP commands</span>
     <button type="button" class="awp-btn primary" data-awp="awp check"
       data-tip="Review current project state, restore context, and identify the current actionable step (AWP.md § check)."
       title="Check — awp check">Check</button>
+    <button type="button" class="awp-btn start" data-awp="awp start"
+      data-tip="After init: readiness checks, then first task In Progress on Kanban (backlog_sync startTaskId). Human picks start vs next vs auto (AWP.md § start)."
+      title="Start — awp start">Start</button>
     <button type="button" class="awp-btn" data-awp="awp update"
       data-tip="Review and update documentation; mark steps complete; sync code and docs (AWP.md § update)."
       title="Update — awp update">Update</button>
@@ -368,8 +398,11 @@
       data-tip="Commit with commitStandard: type(scope step): subject — reference the current step (AWP.md § commit)."
       title="Commit — awp commit">Commit</button>
     <button type="button" class="awp-btn" data-awp="awp next"
-      data-tip="Identify the next actionable step, check blockers, begin work (AWP.md § next). Order: update → commit → next."
+      data-tip="One task: update → commit → next. Sync Kanban via backlog_sync startTaskId / completeTaskId (AWP.md § next)."
       title="Next — awp next">Next</button>
+    <button type="button" class="awp-btn auto" data-awp="awp auto"
+      data-tip="All remaining tasks: repeat awp next for each planned task until done or blocked. Start with awp check; stop on approval gates (AWP.md § auto)."
+      title="Auto — awp auto">Auto</button>
     <button type="button" class="awp-btn" data-awp="awp handoff"
       data-tip="Package context and transfer responsibility between human and agent (AWP.md § handoff)."
       title="Handoff — awp handoff">Handoff</button>
@@ -587,19 +620,23 @@
       if (s.technologies?.length) parts.push('Tech: ' + s.technologies.join(', '));
       document.getElementById('summary-line').textContent = parts.join('   ');
 
-      const warnEl = document.getElementById('status-warnings');
+      const chip = document.getElementById('status-chip');
+      const popover = document.getElementById('status-popover');
       const boardWarnings = [
         ...(data._warnings || []),
         ...(data.boardHealth?.warnings || []),
       ].filter((w, i, a) => a.indexOf(w) === i);
       if (boardWarnings.length) {
-        warnEl.classList.remove('hidden');
-        warnEl.innerHTML =
+        chip.classList.add('visible');
+        chip.textContent = 'Board status (' + boardWarnings.length + ')';
+        popover.innerHTML =
           '<strong>Board status</strong><br>' +
           boardWarnings.map((w) => esc(w)).join('<br>');
       } else {
-        warnEl.classList.add('hidden');
-        warnEl.innerHTML = '';
+        chip.classList.remove('visible');
+        chip.setAttribute('aria-expanded', 'false');
+        popover.classList.remove('open');
+        popover.innerHTML = '';
       }
 
       const disc = data.config?.disclaimer;
@@ -634,6 +671,67 @@
       }
     }
 
+    function formatActivityTime(iso) {
+      if (!iso) return '';
+      try {
+        const d = new Date(iso);
+        const now = new Date();
+        if (d.toDateString() === now.toDateString()) {
+          return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        return d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      } catch { return ''; }
+    }
+
+    function resolveEventTaskId(ev) {
+      if (ev.taskId) return ev.taskId;
+      const msg = ev.message || '';
+      const idMatch = msg.match(/\b(\d+\.\d+)\b/);
+      if (idMatch && data?.tasks?.[idMatch[1]]) return idMatch[1];
+      if (data?.tasks) {
+        for (const t of Object.values(data.tasks)) {
+          if (t.title && msg.includes(t.title)) return t.id;
+        }
+      }
+      return '';
+    }
+
+    function buildActivityStream() {
+      const stream = [];
+      const seen = new Set();
+      const add = (ev) => {
+        const key = [ev.at, ev.kind || ev.type, ev.taskId, ev.message].join('|');
+        if (seen.has(key)) return;
+        seen.add(key);
+        stream.push(ev);
+      };
+      for (const ev of activityEventsList()) add(ev);
+      if (data?.tasks) {
+        for (const task of Object.values(data.tasks)) {
+          for (const line of task.activity || []) {
+            const msg = (line && line.message) || '';
+            if (!msg || /task created/i.test(msg)) continue;
+            add({
+              at: line.at || task.lastUpdated,
+              kind: 'updated',
+              taskId: task.id,
+              title: task.title,
+              message: msg.replace(/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}\s*[—–-]\s*/i, ''),
+            });
+          }
+        }
+      }
+      stream.sort((a, b) => (b.at || '').localeCompare(a.at || ''));
+      let contracts = 0;
+      return stream.filter((ev) => {
+        if (activityKind(ev) === 'contract') {
+          contracts += 1;
+          return contracts <= 2;
+        }
+        return true;
+      });
+    }
+
     function activityKind(ev) {
       return ev.kind || ev.type || 'updated';
     }
@@ -641,8 +739,8 @@
     function renderActivityRow(ev) {
       const kind = activityKind(ev);
       const label = ACT_LABELS[kind] || 'Updated';
-      const time = formatTime(ev.at);
-      const taskId = ev.taskId || '';
+      const time = formatActivityTime(ev.at);
+      const taskId = resolveEventTaskId(ev);
       const hasTask = taskId && data?.tasks?.[taskId];
       const taskBadge = taskId
         ? (hasTask
@@ -666,7 +764,7 @@
 
     function renderActivity() {
       const ul = document.getElementById('activity-list');
-      const events = activityEventsList().filter((e) => e.message || e.title);
+      const events = buildActivityStream().filter((e) => e.message || e.title);
       const countEl = document.getElementById('activity-count');
       const shown = events.slice(0, 50);
       if (countEl) {
@@ -848,12 +946,29 @@
     }
 
     document.getElementById('view-agreement').onclick = openModal;
+    document.getElementById('status-chip').onclick = (e) => {
+      e.stopPropagation();
+      const pop = document.getElementById('status-popover');
+      const chip = document.getElementById('status-chip');
+      const open = !pop.classList.contains('open');
+      pop.classList.toggle('open', open);
+      chip.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    document.getElementById('status-popover').onclick = (e) => e.stopPropagation();
+    document.addEventListener('click', () => {
+      document.getElementById('status-popover').classList.remove('open');
+      document.getElementById('status-chip').setAttribute('aria-expanded', 'false');
+    });
     document.getElementById('modal-close').onclick = closeModal;
     document.getElementById('modal-backdrop').onclick = (e) => {
       if (e.target.id === 'modal-backdrop') closeModal();
     };
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeModal();
+      if (e.key === 'Escape') {
+        closeModal();
+        document.getElementById('status-popover').classList.remove('open');
+        document.getElementById('status-chip').setAttribute('aria-expanded', 'false');
+      }
     });
 
     setupAwpToolbar();

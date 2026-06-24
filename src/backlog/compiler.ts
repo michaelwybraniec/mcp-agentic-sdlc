@@ -9,7 +9,7 @@ import {
   taskIdsFromChangedFiles,
 } from './activity.js';
 import { parseTaskMd, peek } from './parser.js';
-import { resolveTaskColumn, validateTaskBoard, applyInProgressInference } from './taskStatus.js';
+import { resolveTaskColumn, validateTaskBoard, applyInProgressInference, inferActiveTaskId } from './taskStatus.js';
 import { loadAgentCommits, taskIdFromCommitSubject } from './gitCommits.js';
 import { BacklogSnapshot, KanbanConfig, TaskCard, TaskColumn } from './types.js';
 
@@ -246,10 +246,13 @@ export function compileBacklog(
   const appDir = config.appDir ? path.resolve(config.appDir) : '';
   if (appDir) {
     const latest = loadAgentCommits(appDir, 1)[0];
-    const inferredId = latest ? taskIdFromCommitSubject(latest.subject) : '';
+    let inferredId = latest ? taskIdFromCommitSubject(latest.subject) : '';
+    if (!inferredId || !snapshot.tasks[inferredId]) {
+      inferredId = inferActiveTaskId(snapshot) || '';
+    }
     if (inferredId && applyInProgressInference(snapshot, inferredId)) {
       snapshot._warnings.push(
-        `Task ${inferredId} shown In Progress from latest git commit — set # Status: [~] In Progress in task .md to persist`
+        `Task ${inferredId} shown In Progress (inferred) — call backlog_sync with startTaskId: "${inferredId}" to persist`
       );
       snapshot.boardHealth = validateTaskBoard(snapshot);
     }
@@ -316,7 +319,8 @@ function detectChangedTaskIds(prev: BacklogSnapshot | null, next: BacklogSnapsho
       a.title !== b.title ||
       a.status !== b.status ||
       a.column !== b.column ||
-      a.lastUpdated !== b.lastUpdated
+      a.lastUpdated !== b.lastUpdated ||
+      a.sourcePath !== b.sourcePath
     ) {
       changed.push(id);
     }

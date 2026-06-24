@@ -171,10 +171,19 @@ steps:
    - Restore context if needed
    - Identify current actionable items
 
-5. **handoff**
+5. **start**
+   - After init: readiness checks, then kick off the **first** planned task
+   - Sync Kanban (`backlog_sync` `startTaskId`); human chooses start vs next vs auto
+
+6. **handoff**
    - Package current context
    - Clear transfer of responsibility
    - Set expectations and timeouts
+
+7. **auto**
+   - Run every remaining backlog task in order
+   - Repeat the full **update → implement → commit → next** cycle per task
+   - Stop on human approval gates or blockers; hand off when done or blocked
 
 ## commitStandard
 @src/templates/commitStandard.md

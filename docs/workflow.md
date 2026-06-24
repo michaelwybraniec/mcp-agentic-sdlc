@@ -286,6 +286,18 @@ agentic-sdlc/
 └── commitStandard.md
 ```
 
+### After init — how to begin
+
+Init scaffolds the backlog and starts Kanban. The agent must **ask you** which command to run:
+
+| Command | Use when |
+|---------|----------|
+| **`awp start`** | **First task** after init (readiness checks + mark task 1 In Progress) — **recommended** |
+| `awp next` | One task at a time |
+| `awp auto` | Run the full backlog in a loop |
+
+**`awp start` readiness** (before coding): Kanban visible, AWP.md + first task read, `awp check`, then `backlog_sync` with `startTaskId` (e.g. `"1.0"`).
+
 ### Task File Naming
 
 Task files use a flat layout within each status folder (no nested subdirectories for hierarchy):
@@ -431,19 +443,27 @@ See `agentic-sdlc/kanban/KANBAN.md` for copy-paste instructions agents can quote
 
 ### AWP command bar (Kanban UI)
 
-The board header includes buttons for the five AWP procedures (`AWP.md`):
+The board header includes buttons for the seven AWP procedures (`AWP.md`):
 
 | Button | Copies to clipboard |
 |--------|---------------------|
 | Check | `awp check` — review state, restore context |
+| **Start** | **`awp start`** — first task after init (readiness + Kanban sync) |
 | Update | `awp update` |
 | Commit | `awp commit` |
-| Next | `awp next` |
+| Next | `awp next` — one task (update → commit → next) |
+| **Auto** | **`awp auto`** — all remaining tasks in a loop of awp next |
 | Handoff | `awp handoff` |
 
 Hover a button for its description, click to copy, then paste into the agent chat. The board is read-only; commands run in the IDE agent, not in the browser.
 
-For `awp next`, the agent must follow the mandatory sequence: **update → commit → next** (see AWP.md).
+**After init** — agent asks you to pick **`awp start`** (recommended), **`awp next`**, or **`awp auto`**.
+
+**`awp start`** — readiness checks (Kanban, AWP.md, first task, `awp check`), then `backlog_sync` `startTaskId` for task 1. Use **`awp next`** for subsequent tasks.
+
+**`awp next`** — mandatory sequence per task: **update → commit → next** (see AWP.md).
+
+**`awp auto`** — run **awp start** readiness if nothing started yet, then loop **awp next** for all remaining tasks. Stop and **awp handoff** on approval gates or blockers. See AWP.md § auto.
 
 ### Agent commits panel
 
