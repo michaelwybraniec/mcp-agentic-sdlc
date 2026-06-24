@@ -215,7 +215,7 @@ function testToolRegistration() {
     const indexContent = fs.readFileSync(indexPath, 'utf8');
     
     // Verify tools are registered
-    const requiredTools = ['base', 'init', 'recommend'];
+    const requiredTools = ['base', 'init', 'recommend', 'backlog_sync'];
     
     requiredTools.forEach(tool => {
       assert(

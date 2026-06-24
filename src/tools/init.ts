@@ -1,6 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { extractTemplateFromRecipe, populateTemplate, createProjectBacklog, createInitialTasks, parseBaseMd } from '../utils/helpers.js';
+import { extractTemplateFromRecipe, populateTemplate, createProjectBacklog, createInitialTasks, parseBaseMd, createUserMd, resolveUserSourceContent } from '../utils/helpers.js';
+import { scaffoldKanban } from '../backlog/scaffold.js';
+import { ensureRunAppScript } from '../backlog/appRun.js';
+import { startKanbanWatchInBackground } from '../backlog/launch.js';
+import { readPortFromConfig } from '../backlog/server.js';
 
 export async function handleInitTool(args: any) {
   // Use the appDir parameter if provided, otherwise use current working directory
@@ -63,6 +67,22 @@ export async function handleInitTool(args: any) {
       ],
       isError: true,
     };
+  }
+
+  // Backfill user.md from repo brief if base ran without user source params
+  const userMdPathEarly = path.join(typeDir, 'user.md');
+  if (!fs.existsSync(userMdPathEarly)) {
+    const userResolved = resolveUserSourceContent({ appDir });
+    if (userResolved.content) {
+      fs.writeFileSync(
+        userMdPathEarly,
+        createUserMd({
+          content: userResolved.content,
+          sourceFile: userResolved.sourceFile,
+        }),
+        'utf8'
+      );
+    }
   }
 
   // Parse base.md using the helper function
@@ -603,7 +623,18 @@ ${proDataModels || 'To be defined'}
       ? (parsedData.pocSuccessCriteria || [])
       : [];
     
-    createInitialTasks(plannedDir, featuresForTasks, phases, techForTasks, successForTasks, projectType);
+    const userMdPath = path.join(typeDir, 'user.md');
+    const userMdContent = fs.existsSync(userMdPath) ? fs.readFileSync(userMdPath, 'utf8') : '';
+
+    const taskPlan = createInitialTasks(
+      plannedDir,
+      featuresForTasks,
+      phases,
+      techForTasks,
+      successForTasks,
+      projectType,
+      { userMdContent, goals: featuresForTasks }
+    );
 
     // Create AWP.md with populated content and backlog reference using recipe
     const joinArr = (arr: Array<string>) => arr.map((e: string, index: number) => `${index + 1}. ${e}`).join('\n');
@@ -624,11 +655,34 @@ ${proDataModels || 'To be defined'}
     });
     fs.writeFileSync(awpPath, awpContent);
 
+    const kanbanDir = scaffoldKanban(targetDir, backlogName, projectType, { appDir });
+    ensureRunAppScript(appDir);
+    const kanbanPort = readPortFromConfig(kanbanDir);
+    const kanbanStarted = startKanbanWatchInBackground(kanbanDir);
+    const userMdLine = fs.existsSync(userMdPath) ? '\n  - user.md (raw user input, from base tool)' : '';
+    const taskPlanNote = taskPlan.usedUserMd
+      ? `\nTask planning: ${taskPlan.parentCount} phase tasks${taskPlan.subtaskCount ? ` + ${taskPlan.subtaskCount} subtasks from user.md` : ' enriched from user.md'}${taskPlan.comprehensiveUserMd ? ' — run **awp refine** before awp start if you need finer slices' : ''}`
+      : '';
+    const kanbanNote = kanbanStarted
+      ? `Kanban board: STARTED — opens in Cursor Simple Browser when available, else system browser at http://localhost:${kanbanPort}\nDo NOT tell the user Kanban is optional. If the board is not visible, run: cd agentic-sdlc/kanban && npm run watch`
+      : `Kanban board: run \`cd agentic-sdlc/kanban && npm run watch\` — opens in Cursor preview when available, else browser at http://localhost:${kanbanPort}`;
+
+    const agentNext = `Ready to begin? Ask the human which command to run:
+• awp refine — slice/review tasks using user.md + base.md (recommended when user.md is comprehensive; human approves before coding)
+• awp start — first task (readiness + Kanban sync; run after refine when user brief is large)
+• awp next — one task at a time
+• awp auto — strict loop: one task + one commit + Kanban complete per iteration (NEVER batch 1.0-9.0)
+
+Do not assume — wait for their choice.${taskPlan.comprehensiveUserMd ? '\n\n**user.md is comprehensive** — strongly recommend awp refine before awp start.' : ''}
+
+Kanban: http://localhost:${kanbanPort}
+Per task: backlog_sync start → work → commit feat(scope X.Y): … → backlog_sync complete + start next`;
+
     return {
       content: [
         {
           type: "text",
-          text: `Successfully created agentic-sdlc folder with complete project structure in ${targetDir}\n\nCreated:\n- README.md\n- commitStandard.md\n- ASDLC.md\n- AWP.md\n- backlog-${backlogName}/${projectType}/\n  - base.md (reference document with all agreed information from base tool)\n  - requirements.md (populated with collected information)\n  - backlog.md (populated with phases and features)\n  - tech-specs.md (populated with technologies and architecture)\n  - tasks/\n    - planned/ (with initial task files)\n    - unplanned/ (empty)\n    - completed/ (empty)\n\nProject Details:\n- Backlog Name: ${backlogName}\n- Project Type: ${projectType.toUpperCase()}\n- Features/Objectives: ${featuresForTasks.join(', ')}\n- Phases: ${phases.join(', ')}\n- Technologies: ${techForTasks.join(', ')}\n\nThe project structure has been created using the ${projectType}-backlog-recipe.md, ${projectType}-requirements-recipe.md, ${projectType}-tech-specs-recipe.md, and awp-recipe.md methodologies.\n\nThe base.md file contains a complete record of all information agreed upon during project setup.\n\nYou can now work on multiple backlogs by creating additional backlog-<name>/ directories.`,
+          text: `Successfully created agentic-sdlc folder with complete project structure in ${targetDir}\n\nCreated:\n- README.md\n- commitStandard.md\n- ASDLC.md\n- AWP.md\n- kanban/\n  - index.html (live Kanban board)\n  - backlog.json (compiled from markdown)\n  - .kanban-config.json\n  - package.json (in-repo Kanban runner)\n  - runner/ (sync, watch, serve — zero dependencies)\n  - KANBAN.md (start instructions)\n- backlog-${backlogName}/${projectType}/\n  - base.md (reference document with all agreed information from base tool)${userMdLine}\n  - requirements.md (populated with collected information)\n  - backlog.md (populated with phases and features)\n  - tech-specs.md (populated with technologies and architecture)\n  - tasks/\n    - planned/ (with initial task files)\n    - unplanned/ (empty)\n    - completed/ (empty)${taskPlanNote}\n\nProject Details:\n- Backlog Name: ${backlogName}\n- Project Type: ${projectType.toUpperCase()}\n- Features/Objectives: ${featuresForTasks.join(', ')}\n- Phases: ${phases.join(', ')}\n- Technologies: ${techForTasks.join(', ')}\n\nThe project structure has been created using the ${projectType}-backlog-recipe.md, ${projectType}-requirements-recipe.md, ${projectType}-tech-specs-recipe.md, and awp-recipe.md methodologies.\n\nThe base.md file contains a complete record of all information agreed upon during project setup.\n\n${kanbanNote}\n\n${agentNext}\n\nYou can now work on multiple backlogs by creating additional backlog-<name>/ directories.`,
         },
       ],
     };

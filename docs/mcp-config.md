@@ -433,29 +433,77 @@ tail -f ~/Library/Application\ Support/Claude/logs/claude_desktop.log
    - Review and confirm or modify recommendations
    ```
 
-3. **Initialize project structure:**
+3. **Create foundation agreement:**
    ```
-   Use the 'init' tool with all confirmed project details
+   Call the 'base' tool again with all confirmed project details
+   This creates base.md (AWP Project Foundation Agreement) at:
+   agentic-sdlc/backlog-<name>/<type>/base.md
+   ```
+
+4. **Initialize project structure:**
+   ```
+   Use the 'init' tool with backlog name and project type
+   Requires existing base.md (created in step 3)
    This creates the complete project structure with:
-   - base.md (AWP Project Foundation Agreement)
    - requirements.md (populated)
    - backlog.md (populated)
    - tech-specs.md (populated)
    - tasks/ directory structure
+   - README.md, commitStandard.md, ASDLC.md, AWP.md (at agentic-sdlc/ root)
    ```
 
-4. **Access recipe resources:**
+5. **Access recipe resources:**
    ```
    Use recipe tools like:
    - 'get_pro_backlog_recipe', 'get_pro_requirements_recipe', 'get_pro_tech_specs_recipe'
    - 'get_mvp_backlog_recipe', 'get_mvp_requirements_recipe', 'get_mvp_tech_specs_recipe'
    - 'get_poc_backlog_recipe', 'get_poc_requirements_recipe', 'get_poc_tech_specs_recipe'
+   - 'get_awp_recipe'
    
    Or access resources via URIs:
    - recipe://pro-backlog-recipe, recipe://pro-requirements-recipe, recipe://pro-tech-specs-recipe
    - recipe://mvp-backlog-recipe, recipe://mvp-requirements-recipe, recipe://mvp-tech-specs-recipe
    - recipe://poc-backlog-recipe, recipe://poc-requirements-recipe, recipe://poc-tech-specs-recipe
+   - recipe://awp-recipe
    ```
+
+### Live Kanban board
+
+After `init`, the user's project contains `agentic-sdlc/kanban/` with a compiled `backlog.json` and HTML viewer.
+
+**Start the live board** — `init` starts it automatically. Opens in **Cursor/VS Code Simple Browser** when available, otherwise the system browser at **http://localhost:4173**.
+
+```bash
+cd agentic-sdlc/kanban && npm run watch
+```
+
+Task markdown edits refresh the board via file watcher + SSE. No project-root `package.json` is required.
+
+The MCP package's `npm run backlog:watch` scripts are for **MCP developers only** when working on this repository.
+
+**MCP tool — `backlog_sync`:**
+
+```json
+{
+  "appDir": "/Users/your-username/Documents/GitHub/my-project"
+}
+```
+
+Recompiles `agentic-sdlc/kanban/backlog.json`. Pass `backlogName` and `projectType` only if `kanban/` does not exist yet.
+
+**MCP resource — `backlog://<name>/snapshot`:**
+
+Returns the compiled JSON snapshot (same as `kanban/backlog.json`). Listed when `kanban/.kanban-config.json` exists.
+
+**`appDir` and MCP cwd:** The config file stores an absolute `appDir` pointing at your project root. If the MCP server cwd is not your project, set in MCP env:
+
+```json
+"env": {
+  "AGENTIC_SDLC_APP_DIR": "/Users/your-username/Documents/GitHub/my-project"
+}
+```
+
+This ensures `backlog://…/snapshot` resolves correctly in Cursor.
 
 ### Advanced Usage
 
@@ -485,6 +533,7 @@ tail -f ~/Library/Application\ Support/Claude/logs/claude_desktop.log
    - recipe://pro-tech-specs-recipe
    - recipe://mvp-tech-specs-recipe
    - recipe://poc-tech-specs-recipe
+   - recipe://awp-recipe
    ```
 
 ---

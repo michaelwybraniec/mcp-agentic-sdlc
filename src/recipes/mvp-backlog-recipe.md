@@ -105,11 +105,17 @@ Designed to be both **human- and AI-friendly**.
 
 2.5 Include testing, security, risks, acceptance criteria, definition of done, measurable outcomes, and strengths at every level.
 
-2.6 **Scope Creep Management**: When unplanned tasks arise, create them with U- prefix
+2.6 **Scope Creep Management**: When unplanned tasks arise, create them with U- prefix in `tasks/unplanned/` (see `pro-backlog-recipe.md` section 5 for full process)
 
 2.7 **AI Boundary Setting**: AI should not create tasks beyond MVP scope without explicit U- prefix
 
-2.8 **Task Slicing & Breakdown** (see pro-backlog-recipe.md section 6 for detailed guidelines):
+2.8 **Missing work during development** — use this decision guide:
+   - **Subtask** (stay in `planned/`): A step required to complete an existing planned task → add as child ID (e.g., `1.2.1`) under that task
+   - **Unplanned task** (`U-` prefix in `unplanned/`): New work not in the original backlog/requirements (discovered gaps, bugs, scope expansion)
+   - **Risk** (AWP.md Risks section, `R.1` format): A concern to track but not yet actionable work
+   - When unsure, ask the human before creating U- tasks
+
+2.9 **Task Slicing & Breakdown** (see pro-backlog-recipe.md section 6 for detailed guidelines):
    - AI MUST break down large tasks into smaller subtasks
    - Break down when: task > 200 words, > 8 hours, multiple components, unclear criteria
    - Create Level 2 tasks (1.1, 1.2) for major components
@@ -125,7 +131,7 @@ Each MVP task should be created as a separate Markdown file with the following s
 ```markdown
 # Task ID: [hierarchical-id]
 # Title: [short-description]
-# Status: [ ] Pending / [x] Completed
+# Status: [ ] Pending / [~] In Progress / [x] Completed
 # Priority: [critical|high|medium|low]
 # Owner: [responsible-team-or-role]
 # Estimated Effort: [hours-or-story-points]
@@ -184,6 +190,10 @@ Each MVP task should be created as a separate Markdown file with the following s
 ## Sub-tasks (Children)
 - [ ] [Sub-task 1 description]
 - [ ] [Sub-task 2 description]
+
+## Activity
+[Optional audit log for Kanban board — append timestamped lines when status or scope changes]
+- YYYY-MM-DD HH:MM — [change description] (AI/Human)
 
 ## Completed
 [ ] Pending / [x] Completed

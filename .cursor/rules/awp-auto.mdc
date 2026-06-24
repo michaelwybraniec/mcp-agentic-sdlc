@@ -1,0 +1,48 @@
+---
+description: When the user says awp auto, awp auto strict, or runs the Kanban Auto command — enforce the per-task loop (not batch delivery).
+alwaysApply: false
+---
+
+# awp auto (strict loop)
+
+`awp auto` and `awp auto strict` are the same. Read `AWP.md` and `agentic-sdlc/AWP.md` procedure **auto** (§7) first.
+
+## What it is
+
+- Run **all remaining** tasks in `agentic-sdlc/backlog-*/tasks/planned/` in numeric order
+- **Do not** wait for the human between tasks (unlike `awp next`) unless blocked
+- **Do** run a full internal cycle per task before touching the next task
+
+## Per-task loop (mandatory)
+
+For each task id (e.g. 1.0, then 2.0, …):
+
+1. **update** — `backlog_sync` `{ "startTaskId": "<id>" }`; read that task's `.md`
+2. **implement** — only that task's acceptance criteria
+3. **test** — `awp test`; on success **must commit** `test(scope taskId): …`
+4. **commit** — at least one `feat`/`fix` commit for the task if not already committed: `type(scope taskId): subject` (single id, never `1.0-9.0`)
+5. **next** — `backlog_sync` `{ "completeTaskId": "<id>", "startTaskId": "<next>" }`
+6. **report** — task id, commit hash(es), files, Kanban column moves; then continue
+
+If tests fail: **`awp fix`** → verify → **must commit** `fix(scope taskId): …` before continuing the loop.
+
+## Forbidden
+
+- One commit covering multiple tasks or the whole POC
+- Implementing task 2+ before task 1 is committed and on Kanban as Completed
+- `feat(scope 1.0-9.0): deliver … via awp auto`
+- Bulk `backlog_sync` complete at the end without per-task commits
+
+## vs other commands
+
+| Command | Behaviour |
+|---------|-----------|
+| `awp start` | First task only + readiness checks |
+| `awp next` | One task, then stop for human |
+| `awp auto` | All tasks, strict loop above |
+
+Optional scope: `awp auto 2.0-5.0`
+
+## Stop and hand off
+
+Human approval gates, unfixable blockers, repeated test/lint failures, unclear architecture — use `awp handoff`.

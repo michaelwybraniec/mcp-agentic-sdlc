@@ -70,9 +70,15 @@ Designed to be both **human- and AI-friendly**.
 
 2.5 Include testing, security, risks, acceptance criteria, definition of done, measurable outcomes, and strengths at every level.
 
-2.6 **Scope Creep Management**: When unplanned tasks arise, create them with U- prefix
+2.6 **Scope Creep Management**: When unplanned tasks arise, create them with U- prefix in `tasks/unplanned/` (see section 5 below)
 
 2.7 **AI Boundary Setting**: AI should not create tasks beyond original scope without explicit U- prefix
+
+2.8 **Missing work during development** — use this decision guide:
+   - **Subtask** (stay in `planned/`): A step required to complete an existing planned task → add as child ID (e.g., `1.2.1`) under that task
+   - **Unplanned task** (`U-` prefix in `unplanned/`): New work not in the original backlog/requirements (discovered gaps, bugs, scope expansion)
+   - **Risk** (AWP.md Risks section, `R.1` format): A concern to track but not yet actionable work
+   - When unsure, ask the human before creating U- tasks
 
 ## 3. Task Schema Definition (Markdown Format)
 
@@ -81,7 +87,7 @@ Each task should be created as a separate Markdown file with the following struc
 ```markdown
 # Task ID: [hierarchical-id]
 # Title: [short-description]
-# Status: [ ] Pending / [x] Completed
+# Status: [ ] Pending / [~] In Progress / [x] Completed
 # Priority: [critical|high|medium|low]
 # Owner: [responsible-team-or-role]
 # Estimated Effort: [hours-or-story-points]
@@ -136,6 +142,10 @@ Each task should be created as a separate Markdown file with the following struc
 ## Sub-tasks (Children)
 - [ ] [Sub-task 1 description]
 - [ ] [Sub-task 2 description]
+
+## Activity
+[Optional audit log for Kanban board — append timestamped lines when status or scope changes]
+- YYYY-MM-DD HH:MM — [change description] (AI/Human)
 
 ## Completed
 [ ] Pending / [x] Completed
@@ -526,13 +536,16 @@ agentic-sdlc/
    - Create `tasks/` directory with subdirectories (`planned/`, `unplanned/`, `completed/`)
 
 8.5.2 **Create Individual Task Files**:
-   - Create individual `.md` files in `planned/` directory (flat structure, no subfolders)
+   - Create individual `.md` files in the appropriate subdirectory (flat structure, no subfolders within each):
+     - **Planned tasks** → `tasks/planned/` (e.g., `task-1.0.md`, `task-1.1.md`)
+     - **Unplanned tasks** → `tasks/unplanned/` (e.g., `task-U-1.md`, `task-U-1.1.md`)
+     - **Completed tasks** → `tasks/completed/` (move here when done)
    - Use filename format: `task-[ID].md` where:
      - **Level 1 (top-level parent)**: `task-1.0.md`, `task-2.0.md` (use `.0` suffix to ensure correct alphabetical sorting - parent comes before children)
      - **Level 2 (tasks)**: `task-1.1.md`, `task-1.2.md`, `task-2.1.md`
      - **Level 3 (subtasks)**: `task-1.2.1.md`, `task-1.2.2.md`, `task-2.1.1.md`
      - **Unplanned**: `task-U-1.md`, `task-U-1.1.md` (or `task-U-1.0.md` for top-level unplanned)
-   - **Important**: All task files are stored flat in `planned/` folder - no nested folders for hierarchy
+   - **Important**: Hierarchy is in the ID, not in nested folders — each subdirectory (`planned/`, `unplanned/`, `completed/`) is flat
    - **Sorting**: Files sort correctly alphabetically: `task-1.0.md` → `task-1.1.md` → `task-1.2.md` → `task-1.2.1.md` → `task-2.0.md`
 
 8.5.3 **Create Main Backlog Index**:

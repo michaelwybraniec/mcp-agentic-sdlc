@@ -105,11 +105,17 @@ Designed to be both **human- and AI-friendly**.
 
 2.5 Include testing, risks, acceptance criteria, definition of done, measurable outcomes, and strengths at every level.
 
-2.6 **Scope Creep Management**: When unplanned tasks arise, create them with U- prefix
+2.6 **Scope Creep Management**: When unplanned tasks arise, create them with U- prefix in `tasks/unplanned/` (see `pro-backlog-recipe.md` section 5 for full process)
 
 2.7 **AI Boundary Setting**: AI should not create tasks beyond POC scope without explicit U- prefix
 
-2.8 **Task Slicing & Breakdown** (see pro-backlog-recipe.md section 6 for detailed guidelines):
+2.8 **Missing work during development** — use this decision guide:
+   - **Subtask** (stay in `planned/`): A step required to complete an existing planned task → add as child ID (e.g., `1.2.1`) under that task
+   - **Unplanned task** (`U-` prefix in `unplanned/`): New work not in the original backlog/requirements (discovered gaps, bugs, scope expansion)
+   - **Risk** (AWP.md Risks section, `R.1` format): A concern to track but not yet actionable work
+   - When unsure, ask the human before creating U- tasks
+
+2.9 **Task Slicing & Breakdown** (see pro-backlog-recipe.md section 6 for detailed guidelines):
    - AI MUST break down large tasks into smaller subtasks
    - Break down when: task > 200 words, > 8 hours, multiple components, unclear criteria
    - Create Level 2 tasks (1.1, 1.2) for major components
@@ -118,6 +124,29 @@ Designed to be both **human- and AI-friendly**.
    - Parent tasks are only complete when ALL subtasks are complete
    - Tasks start as `[ ] Pending` - NEVER mark complete until all criteria met
 
+2.10 **Live Kanban board** — the board at `agentic-sdlc/kanban/` updates ONLY when task markdown changes:
+
+  2.10.1 On **awp update / awp next / awp commit**, edit the active task file under `tasks/planned/` or move it to `tasks/completed/`
+
+  2.10.2 On **awp start** (first task after init) or **awp next** call `backlog_sync` to move the Kanban board (preferred):
+      - Start: `{ "startTaskId": "1.0", "activity": "Phase 1 started" }`
+      - Advance: `{ "completeTaskId": "1.0", "startTaskId": "2.0" }`
+      Or edit task `.md` manually:
+      - **Finish previous:** `# Status: [x] Completed` → move to `tasks/completed/`
+      - **Start next:** `# Status: [~] In Progress` in `tasks/planned/`
+  2.10.3 Only **one** task In Progress at a time
+
+  2.10.3 Append to `## Activity` with timestamp (e.g. `- 2026-06-24 10:00 — Started scaffold`)
+
+  2.10.4 Code commits alone do NOT update the board — task `.md` is the source of truth for Kanban columns
+
+  2.10.5 On **awp auto**, loop **awp next** per task — **one task, one commit, one Kanban move** before starting the next:
+      - FOR each taskId: `backlog_sync` start → implement **only that task** → commit `type(scope taskId): subject` → `backlog_sync` complete + start next
+      - **FORBIDDEN**: one commit for multiple tasks (e.g. `feat(app 1.0-9.0): deliver POC`); implementing all phases then committing once
+      - If nothing started yet, run **awp start** readiness first. See AWP.md procedure **auto** (§7).
+
+  2.10.6 After **init**, ask the human: **awp refine** (when `user.md` is comprehensive), **awp start**, **awp next**, or **awp auto** — do not assume.
+
 ## 3. POC Task Schema Definition (Markdown Format)
 
 Each POC task should be created as a separate Markdown file with the following structure (based on pro-backlog-recipe.md with POC adaptations):
@@ -125,7 +154,7 @@ Each POC task should be created as a separate Markdown file with the following s
 ```markdown
 # Task ID: [hierarchical-id]
 # Title: [short-description]
-# Status: [ ] Pending / [x] Completed
+# Status: [ ] Pending / [~] In Progress / [x] Completed
 # Priority: [critical|high|medium|low]
 # Owner: [responsible-team-or-role]
 # Estimated Effort: [hours-or-story-points]
@@ -182,6 +211,10 @@ Each POC task should be created as a separate Markdown file with the following s
 ## Sub-tasks (Children)
 - [ ] [Sub-task 1 description]
 - [ ] [Sub-task 2 description]
+
+## Activity
+[Optional audit log for Kanban board — append timestamped lines when status or scope changes]
+- YYYY-MM-DD HH:MM — [change description] (AI/Human)
 
 ## Completed
 [ ] Pending / [x] Completed

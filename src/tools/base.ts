@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { createUserMd, resolveUserSourceContent } from '../utils/helpers.js';
 
 export function handleBaseTool(args: any): any {
   // MODE 1: No parameters - return questions
@@ -59,6 +60,12 @@ Choose the option that best describes your project:
 Once you tell me the project type, I'll ask only the critical questions needed to create your backlog, requirements, and tech specs.
 
 **Note:** If you don't know the answer to a question, you can say "I don't know" or "AI" - I'll generate recommendations based on your foundational answers and best practices. I'll present all recommendations for your review before proceeding with project creation.
+
+**Before creating base.md:** Preserve the user's initial brief — their first message and/or any repo file they referenced (e.g. \`idea1.md\`). When calling base with all parameters, pass:
+- \`userSource\` — verbatim user message or pasted brief
+- \`userSourceFile\` — path relative to appDir (e.g. \`idea1.md\`) if they pointed at a file
+
+If neither is passed, the tool **auto-detects** user brief files at the project root (e.g. \`idea1.md\`, \`brief.md\`) and saves them as \`user.md\` next to \`base.md\`.
 
 **If you choose MVP:**
 1. **Core Value Proposition** (for MVP requirements):
@@ -340,20 +347,46 @@ ${(proPhases || []).map((f: string, i: number) => `${i + 1}. ${f}`).join('\n') |
     const basePath = path.join(typeDir, 'base.md');
     fs.writeFileSync(basePath, baseContent, 'utf8');
 
+    const userResolved = resolveUserSourceContent({
+      userSource: args?.userSource as string | undefined,
+      userSourceFile: args?.userSourceFile as string | undefined,
+      appDir,
+    });
+
+    let userMdNote = '';
+    if (userResolved.content) {
+      const userPath = path.join(typeDir, 'user.md');
+      fs.writeFileSync(
+        userPath,
+        createUserMd({
+          content: userResolved.content,
+          sourceFile: userResolved.sourceFile,
+        }),
+        'utf8'
+      );
+      userMdNote = `\n- **user.md** (raw user input): ${userPath}`;
+    }
+
+    const warnings =
+      userResolved.warnings.length > 0
+        ? `\n\n⚠️ ${userResolved.warnings.join('\n⚠️ ')}`
+        : '';
+
     return {
       content: [
         {
           type: "text",
           text: `✅ **base.md created successfully!**
 
-**Location:** ${basePath}
+**Created:**
+- **base.md** (structured agreement): ${basePath}${userMdNote}
 
-This file contains all the agreed-upon project foundation information. Review it and then proceed with the 'init' tool to generate your complete project structure.
+Review both files and then proceed with the 'init' tool to generate your complete project structure.
 
 **Next Step:** Call the 'init' tool with:
 - backlogName: "${backlogName}"
 - projectType: "${projectType}"
-- appDir: "${appDir}" (optional, defaults to current directory)`,
+- appDir: "${appDir}" (optional, defaults to current directory)${warnings}`,
         },
       ],
     };

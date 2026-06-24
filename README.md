@@ -20,6 +20,16 @@ MCP Agentic SDLC consists of two main components:
 
 **New to MCP Agentic SDLC?** Start with [`workflow.md`](./docs/workflow.md) for a comprehensive explanation of the server architecture, workflow, and how all components work together.
 
+## Live Kanban quickstart
+
+After running the `init` tool in your project:
+
+```bash
+cd agentic-sdlc/kanban && npm run watch
+```
+
+Open **http://localhost:4173** for a live read-only board. After `init`, the board starts automatically in **Cursor Simple Browser** when available, otherwise in your system browser. Use the `backlog_sync` MCP tool to refresh JSON, or `backlog://<name>/snapshot` for agent-readable state. See [workflow.md — Section 11](./docs/workflow.md#11-live-kanban-board).
+
 ## Architecture
 
 ```mermaid
@@ -100,9 +110,13 @@ graph TB
    - AI generates recommendations for missing elements
    - Review and confirm or modify recommendations
 
-3. **Call the `init` tool** to create project structure:
-   - Creates `backlog-<name>/<type>/` directory
-   - Generates populated `requirements.md`, `backlog.md`, `tech-specs.md`, and `base.md`
+3. **Call the `base` tool again** with all confirmed parameters:
+   - Pass `userSource` (user's first message) and/or `userSourceFile` (e.g. `idea1.md`)
+   - Creates `user.md` (raw user input) and `base.md` (AWP Project Foundation Agreement) in `backlog-<name>/<type>/`
+
+4. **Call the `init` tool** to create project structure:
+   - Reads existing `base.md` (does not overwrite it)
+   - Generates populated `requirements.md`, `backlog.md`, `tech-specs.md`, and root `AWP.md`
    - Sets up task structure with initial tasks
 
 ### Project Structure
@@ -113,6 +127,7 @@ After initialization, your project will have:
 agentic-sdlc/
 ├── backlog-<name>/
 │   └── <type>/          # mvp, poc, or pro
+│       ├── user.md              # Raw user input (before base.md)
 │       ├── base.md              # AWP Project Foundation Agreement
 │       ├── requirements.md      # Project requirements
 │       ├── backlog.md           # Project backlog
@@ -147,8 +162,8 @@ agentic-sdlc/
   - Presents recommendations for user review before proceeding
 
 - **`init`** - Creates complete project structure
-  - Generates populated requirements, backlog, and tech specs
-  - Creates `base.md` with all agreed-upon information
+  - Reads `base.md` (created by `base` tool in MODE 2)
+  - Generates populated requirements, backlog, tech specs, and root `AWP.md`
   - Sets up task structure following recipe methodologies
 
 ### Project Types
@@ -185,6 +200,7 @@ Comprehensive recipes for each project type:
   - MVP recipes: `mvp-backlog-recipe.md`, `mvp-requirements-recipe.md`, `mvp-tech-specs-recipe.md`
   - POC recipes: `poc-backlog-recipe.md`, `poc-requirements-recipe.md`, `poc-tech-specs-recipe.md`
   - Pro recipes: `pro-backlog-recipe.md`, `pro-requirements-recipe.md`, `pro-tech-specs-recipe.md`
+  - AWP recipe: `awp-recipe.md`
 
 ## Workflow
 
@@ -203,17 +219,22 @@ If you said "I don't know" or "AI" for any questions:
 2. Review recommendations
 3. Accept, modify, or reject recommendations
 
-### Step 3: Project Creation (`init` tool)
+### Step 3: Create Foundation (`base` tool, MODE 2)
 
-1. AI calls `init` with all confirmed information
-2. Project structure created with populated files:
-   - `base.md` - AWP Project Foundation Agreement (reference document)
+1. AI calls `base` with all confirmed parameters
+2. Creates `base.md` - AWP Project Foundation Agreement (reference document)
+
+### Step 4: Project Creation (`init` tool)
+
+1. AI calls `init` with backlog name and project type
+2. `init` reads `base.md` (created earlier by `base` tool) and generates:
    - `requirements.md` - Complete requirements
    - `backlog.md` - Project backlog
    - `tech-specs.md` - Technical specifications
+   - `AWP.md` - Workflow protocol (at `agentic-sdlc/` root)
    - `tasks/` - Task structure
 
-### Step 4: Development
+### Step 5: Development
 
 Follow the recipes and AWP protocol for ongoing development.
 

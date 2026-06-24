@@ -1,0 +1,228 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.listTaskIds = listTaskIds;
+exports.resolveTaskId = resolveTaskId;
+exports.findTaskMarkdownFile = findTaskMarkdownFile;
+exports.appendActivityLine = appendActivityLine;
+exports.setTaskStatusInMarkdown = setTaskStatusInMarkdown;
+exports.updateTaskMarkdownFile = updateTaskMarkdownFile;
+exports.moveTaskMarkdownFile = moveTaskMarkdownFile;
+exports.applyTaskLifecycle = applyTaskLifecycle;
+exports.findInProgressTaskId = findInProgressTaskId;
+exports.firstPlannedTaskId = firstPlannedTaskId;
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
+const taskStatus_js_1 = require("./taskStatus.js");
+const parser_js_1 = require("./parser.js");
+const STATUS_LINE = {
+    pending: `# Status: ${taskStatus_js_1.TASK_STATUS.pending}`,
+    in_progress: `# Status: ${taskStatus_js_1.TASK_STATUS.inProgress}`,
+    completed: `# Status: ${taskStatus_js_1.TASK_STATUS.completed}`,
+};
+/** All task ids under tasks/{planned,completed,unplanned}/. */
+function listTaskIds(tasksDir) {
+    const ids = [];
+    for (const folder of ['planned', 'completed', 'unplanned']) {
+        const dir = path.join(tasksDir, folder);
+        if (!fs.existsSync(dir))
+            continue;
+        for (const file of fs.readdirSync(dir)) {
+            if (!file.endsWith('.md'))
+                continue;
+            const id = (0, parser_js_1.taskIdFromFilename)(file);
+            if (id)
+                ids.push(id);
+        }
+    }
+    return [...new Set(ids)];
+}
+/**
+ * Resolve shorthand ids (e.g. "1") to canonical backlog ids (e.g. "1.0").
+ * Returns undefined when no matching task file exists.
+ */
+function resolveTaskId(tasksDir, taskId) {
+    const trimmed = taskId.trim();
+    if (!trimmed)
+        return undefined;
+    const allIds = listTaskIds(tasksDir);
+    if (allIds.includes(trimmed))
+        return trimmed;
+    if (/^\d+$/.test(trimmed)) {
+        const phase = `${trimmed}.0`;
+        if (allIds.includes(phase))
+            return phase;
+        const prefixMatches = (0, taskStatus_js_1.sortTaskIds)(allIds.filter((id) => id === trimmed || id.startsWith(`${trimmed}.`)));
+        if (prefixMatches.length === 1)
+            return prefixMatches[0];
+        if (prefixMatches.length > 1) {
+            const preferred = prefixMatches.find((id) => id === `${trimmed}.0`);
+            return preferred || prefixMatches[0];
+        }
+    }
+    return undefined;
+}
+function findTaskMarkdownFile(tasksDir, taskId) {
+    const resolved = resolveTaskId(tasksDir, taskId);
+    if (!resolved)
+        return null;
+    for (const folder of ['planned', 'completed', 'unplanned']) {
+        const dir = path.join(tasksDir, folder);
+        if (!fs.existsSync(dir))
+            continue;
+        for (const file of fs.readdirSync(dir)) {
+            if (!file.endsWith('.md'))
+                continue;
+            if ((0, parser_js_1.taskIdFromFilename)(file) === resolved) {
+                return { absPath: path.join(dir, file), folder, taskId: resolved };
+            }
+        }
+    }
+    return null;
+}
+function appendActivityLine(content, line) {
+    const stamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
+    const entry = `- ${stamp} — ${line}`;
+    if (/## Activity\b/i.test(content)) {
+        return content.replace(/(## Activity\s*\n)/i, `$1${entry}\n`);
+    }
+    return content.trimEnd() + `\n\n## Activity\n${entry}\n`;
+}
+function setTaskStatusInMarkdown(content, status) {
+    const line = STATUS_LINE[status];
+    if (/^# Status:/im.test(content)) {
+        return content.replace(/^# Status:.*$/im, line);
+    }
+    if (/^# Title:/im.test(content)) {
+        return content.replace(/^(# Title:.*\n)/im, `$1${line}\n`);
+    }
+    return `${line}\n${content}`;
+}
+function updateTaskMarkdownFile(filePath, status, activityLine) {
+    let content = fs.readFileSync(filePath, 'utf8');
+    content = setTaskStatusInMarkdown(content, status);
+    if (activityLine) {
+        content = appendActivityLine(content, activityLine);
+    }
+    fs.writeFileSync(filePath, content);
+}
+function moveTaskMarkdownFile(filePath, tasksDir, targetFolder) {
+    const fileName = path.basename(filePath);
+    const destDir = path.join(tasksDir, targetFolder);
+    fs.mkdirSync(destDir, { recursive: true });
+    const dest = path.join(destDir, fileName);
+    if (path.resolve(filePath) !== path.resolve(dest)) {
+        fs.renameSync(filePath, dest);
+    }
+    return dest;
+}
+/** Update markdown so Kanban columns match AWP workflow (agents call via backlog_sync). */
+function applyTaskLifecycle(tasksDir, options) {
+    const results = [];
+    const activity = options.activity;
+    if (options.startTaskId) {
+        const found = findTaskMarkdownFile(tasksDir, options.startTaskId);
+        if (!found) {
+            throw new Error(`Task ${options.startTaskId} not found under tasks/ — use full id (e.g. "1.0" not "1") or check task-*.md filenames`);
+        }
+        const id = found.taskId;
+        const plannedDir = path.join(tasksDir, 'planned');
+        if (fs.existsSync(plannedDir)) {
+            for (const file of fs.readdirSync(plannedDir).filter((f) => f.endsWith('.md'))) {
+                const otherId = (0, parser_js_1.taskIdFromFilename)(file);
+                if (!otherId || otherId === id)
+                    continue;
+                const abs = path.join(plannedDir, file);
+                const raw = fs.readFileSync(abs, 'utf8');
+                if (/^# Status:.*\[~\]/im.test(raw) || /\bin progress\b/i.test(raw)) {
+                    updateTaskMarkdownFile(abs, 'pending', `Status reset — task ${id} started`);
+                    results.push({ taskId: otherId, action: 'demoted', path: abs });
+                }
+            }
+        }
+        let abs = found.absPath;
+        if (found.folder !== 'planned') {
+            abs = moveTaskMarkdownFile(abs, tasksDir, 'planned');
+        }
+        updateTaskMarkdownFile(abs, 'in_progress', activity || `Started task ${id}`);
+        results.push({ taskId: id, action: 'started', path: abs });
+    }
+    if (options.completeTaskId) {
+        const found = findTaskMarkdownFile(tasksDir, options.completeTaskId);
+        if (!found) {
+            throw new Error(`Task ${options.completeTaskId} not found under tasks/ — use full id (e.g. "1.0" not "1") or check task-*.md filenames`);
+        }
+        const id = found.taskId;
+        updateTaskMarkdownFile(found.absPath, 'completed', activity || `Completed task ${id}`);
+        const abs = moveTaskMarkdownFile(found.absPath, tasksDir, 'completed');
+        results.push({ taskId: id, action: 'completed', path: abs });
+    }
+    return results;
+}
+function readTaskStatusFromMarkdown(raw) {
+    if (/^# Status:.*\[~\]/im.test(raw) || /\bin progress\b/i.test(raw))
+        return 'in_progress';
+    if (/^# Status:.*\[x\]/im.test(raw) || /\bcompleted\b/i.test(raw))
+        return 'completed';
+    return 'pending';
+}
+/** Task id marked In Progress in planned/, if any. */
+function findInProgressTaskId(tasksDir) {
+    const plannedDir = path.join(tasksDir, 'planned');
+    if (!fs.existsSync(plannedDir))
+        return undefined;
+    for (const file of fs.readdirSync(plannedDir).filter((f) => f.endsWith('.md'))) {
+        const id = (0, parser_js_1.taskIdFromFilename)(file);
+        if (!id)
+            continue;
+        const raw = fs.readFileSync(path.join(plannedDir, file), 'utf8');
+        if (readTaskStatusFromMarkdown(raw) === 'in_progress')
+            return id;
+    }
+    return undefined;
+}
+/** Lowest planned task id (e.g. 1.0), by numeric sort. */
+function firstPlannedTaskId(tasksDir) {
+    const plannedDir = path.join(tasksDir, 'planned');
+    if (!fs.existsSync(plannedDir))
+        return undefined;
+    const ids = [];
+    for (const file of fs.readdirSync(plannedDir).filter((f) => f.endsWith('.md'))) {
+        const id = (0, parser_js_1.taskIdFromFilename)(file);
+        if (id)
+            ids.push(id);
+    }
+    return (0, taskStatus_js_1.sortTaskIds)(ids)[0];
+}

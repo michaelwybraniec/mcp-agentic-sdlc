@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>AWP tools: Kanban</title>
+  <style>
+    :root {
+      color-scheme: light only;
+      --bg-page: #ffffff;
+      --bg-surface: #ffffff;
+      --bg-muted: #fafafa;
+      --bg-subtle: #f8fafc;
+      --bg-code: #f5f5f4;
+      --border: #e5e5e5;
+      --border-strong: #d4d4d4;
+      --text: #111111;
+      --text-secondary: #525252;
+      --text-muted: #737373;
+      --text-faint: #999999;
+      --accent: #2563eb;
+      --overlay: rgba(15, 23, 42, 0.12);
+    }
+    html {
+      color-scheme: light only;
+      background: var(--bg-page);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-page);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 48px;
+    }
+    code, pre, kbd {
+      background: var(--bg-code);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+    code { padding: 1px 4px; font-size: 0.92em; }
+    pre { padding: 0; border: none; background: transparent; }
+    a { color: var(--accent); }
+    .site-header { padding: 20px 24px 12px; border-bottom: 1px solid #e5e5e5; }
+    .site-header h1 { font-size: 18px; font-weight: 600; }
+    .site-header p { font-size: 13px; color: #666; margin-top: 4px; }
+    .project-bar {
+      padding: 12px 24px;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+    .project-bar .meta { font-size: 14px; }
+    .project-bar .summary { font-size: 13px; color: #666; width: 100%; }
+    .status-chip {
+      display: none;
+      margin-left: 8px;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      color: #92400e;
+      cursor: pointer;
+      vertical-align: middle;
+    }
+    .status-chip.visible { display: inline-block; }
+    .status-popover {
+      display: none;
+      position: absolute;
+      top: calc(100% - 1px);
+      left: 24px;
+      right: 24px;
+      z-index: 60;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #92400e;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 0 0 6px 6px;
+      line-height: 1.45;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .status-popover.open { display: block; }
+    .status-popover strong { color: #b45309; }
+    .awp-toolbar {
+      padding: 10px 24px;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .awp-toolbar-label { font-size: 11px; text-transform: uppercase; color: #666; font-weight: 600; margin-right: 4px; }
+    .awp-btn {
+      font-size: 12px;
+      font-family: ui-monospace, monospace;
+      padding: 5px 10px;
+      border: 1px solid #d4d4d4;
+      border-radius: 4px;
+      background: #fff;
+      color: #111;
+      cursor: pointer;
+    }
+    .awp-btn:hover { border-color: #2563eb; color: #2563eb; background: #f8faff; }
+    .awp-btn[data-tip] { position: relative; }
+    .awp-btn[data-tip]::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%);
+      padding: 8px 10px;
+      background: #fff;
+      color: #333;
+      border: 1px solid #e5e5e5;
+      font-size: 11px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 400;
+      line-height: 1.4;
+      text-align: left;
+      white-space: normal;
+      width: max-content;
+      max-width: 260px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.15s, visibility 0.15s;
+      z-index: 50;
+    }
+    .awp-btn[data-tip]::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 2px);
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #e5e5e5;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.15s, visibility 0.15s;
+      z-index: 50;
+    }
+    .awp-btn[data-tip]:hover::after,
+    .awp-btn[data-tip]:hover::before,
+    .awp-btn[data-tip]:focus-visible::after,
+    .awp-btn[data-tip]:focus-visible::before {
+      opacity: 1;
+      visibility: visible;
+    }
+    .awp-toast {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: #fff;
+      color: #333;
+      border: 1px solid #e5e5e5;
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      z-index: 300;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .awp-toast.show { opacity: 1; }
+    .commits-panel {
+      margin: 0 24px 12px;
+      padding: 12px;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+    .commits-panel h4 { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .commits-live { font-size: 11px; font-weight: 400; text-transform: none; color: #999; }
+    .commits-live.on { color: #2563eb; }
+    .commits-panel ul { list-style: none; }
+    .commits-panel li {
+      font-size: 12px;
+      padding: 4px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-family: ui-monospace, monospace;
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+    }
+    .commits-panel li:last-child { border-bottom: none; }
+    .commit-hash { color: #2563eb; flex-shrink: 0; }
+    .commit-subject { color: #333; flex: 1; }
+    .commit-meta { color: #999; font-size: 11px; flex-shrink: 0; }
+    .live { font-size: 12px; color: #666; }
+    .live.on .dot { color: #2563eb; }
+    .link-btn {
+      background: none;
+      border: none;
+      color: #2563eb;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: underline;
+    }
+    .board {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 12px;
+      padding: 16px 24px;
+      min-height: 320px;
+      width: 100%;
+      overflow-x: auto;
+    }
+    @media (max-width: 900px) {
+      .board { flex-wrap: nowrap; }
+      .column { min-width: 220px; }
+    }
+    .column {
+      flex: 1 1 0;
+      min-width: 0;
+      background: #fafafa;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      padding: 8px;
+      min-height: 200px;
+    }
+    .column h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; color: #666; padding-bottom: 8px; border-bottom: 1px solid #e5e5e5; margin-bottom: 8px; }
+    .card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      padding: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    .card.in-progress { border-left: 4px solid #2563eb; background: #f8faff; }
+    .card.in-progress.inferred { border-left-style: dashed; }
+    .card.in-progress .card-title {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .task-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      margin-top: 1px;
+      border: 2px solid #dbeafe;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      flex-shrink: 0;
+    }
+    .card.in-progress.inferred .task-spinner {
+      border-color: #e2e8f0;
+      border-top-color: #64748b;
+      animation-duration: 1.1s;
+    }
+    .column-heading {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .column-heading .task-spinner {
+      width: 10px;
+      height: 10px;
+      border-width: 2px;
+      margin-top: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .card.completed {
+      border-left: 4px solid #059669;
+      background: #f0fdf4;
+    }
+    .card.completed .card-title {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .task-done-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      margin-top: 1px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: #059669;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .card.pulse { animation: pulse 0.8s ease-in-out 3; }
+    @keyframes pulse { 50% { border-color: #2563eb; } }
+    .card-id { font-family: ui-monospace, monospace; font-size: 11px; color: #999; display: flex; justify-content: space-between; }
+    .card-title { font-size: 13px; font-weight: 500; margin: 4px 0; line-height: 1.3; }
+    .card-log { font-size: 11px; color: #666; margin: 2px 0; }
+    .card-meta { font-size: 11px; color: #999; margin-top: 4px; }
+    .card-time {
+      font-size: 11px;
+      color: #475569;
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .time-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      font-size: 10px;
+      font-weight: 500;
+    }
+    .time-chip.agent { background: #eff6ff; color: #1d4ed8; }
+    .time-chip.human { background: #fef3c7; color: #b45309; }
+    .time-chip.total { background: #ecfdf5; color: #047857; }
+    .time-chip.live { box-shadow: 0 0 0 1px #2563eb; }
+    .modal.modal-dashboard { width: min(640px, 94vw); }
+    .modal.modal-report { width: min(680px, 94vw); }
+    .run-script-block {
+      background: var(--bg-code);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-x: auto;
+      margin: 0;
+    }
+    .progress-bar-wrap {
+      background: var(--border);
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      background: #059669;
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+      min-width: 0;
+    }
+    .board-progress {
+      margin: 0 24px 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-surface);
+    }
+    .board-progress-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .board-progress-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+    .board-progress-stats {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .board-progress-stats .pct {
+      color: #059669;
+      margin-left: 4px;
+    }
+    .board-progress-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .board-progress-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-muted);
+    }
+    .board-progress-chip.completed { border-color: #a7f3d0; background: #f0fdf4; color: #047857; }
+    .board-progress-chip.in-progress { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+    .board-progress-chip.planned { border-color: var(--border); background: var(--bg-muted); color: var(--text-secondary); }
+    .board-progress-chip.unplanned { border-color: #fde68a; background: #fffbeb; color: #b45309; }
+    .local-url-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+    .local-url-row code {
+      font-size: 11px;
+      word-break: break-all;
+    }
+    .time-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .time-summary-card {
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+    .time-summary-card.agent { border-color: #bfdbfe; background: #f8fafc; }
+    .time-summary-card.human { border-color: #fde68a; background: #fffbeb; }
+    .time-summary-card.combined { border-color: #a7f3d0; background: #f0fdf4; }
+    .time-summary-card h3 { font-size: 11px; text-transform: uppercase; color: #64748b; margin-bottom: 6px; font-weight: 600; }
+    .time-summary-card .time-value { font-size: 22px; font-weight: 600; color: var(--text); }
+    .time-task-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .time-task-table th, .time-task-table td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #eee; }
+    .time-task-table th { font-size: 10px; text-transform: uppercase; color: #666; font-weight: 600; }
+    .time-task-table tr.active td { background: #f8fafc; }
+    .priority { font-size: 10px; text-transform: uppercase; font-weight: 600; }
+    .priority.critical { color: #b91c1c; }
+    .priority.high { color: #b45309; }
+    .priority.medium { color: #666; }
+    .priority.low { color: #999; }
+    .activity-feed {
+      margin: 0 24px 16px;
+      padding: 12px;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .activity-feed h4 { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .activity-count { font-weight: 400; text-transform: none; color: #999; }
+    .activity-live { font-size: 11px; font-weight: 400; text-transform: none; color: #999; margin-left: 8px; }
+    .activity-live.on { color: #2563eb; }
+    .activity-item.act-flash { animation: actFlash 1.5s ease-out; }
+    @keyframes actFlash {
+      0% { background: #eff6ff; }
+      100% { background: transparent; }
+    }
+    .activity-feed ul { list-style: none; }
+    .activity-item {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 5px 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .act-time {
+      flex-shrink: 0;
+      width: 42px;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      color: #999;
+    }
+    .act-badge {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .act-task-badge {
+      flex-shrink: 0;
+      font-family: ui-monospace, monospace;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: #f0f4ff;
+      color: #1e40af;
+      border: 1px solid #dbeafe;
+      cursor: pointer;
+    }
+    .act-task-badge:hover { background: #dbeafe; }
+    .act-task-badge.muted {
+      background: #f5f5f5;
+      color: #737373;
+      border-color: #e5e5e5;
+      cursor: default;
+    }
+    .act-msg { color: #333; flex: 1; min-width: 0; }
+    .act-added .act-badge { background: #ecfdf5; color: #047857; }
+    .act-removed .act-badge { background: #fef2f2; color: #b91c1c; }
+    .act-moved .act-badge { background: #eff6ff; color: #1d4ed8; }
+    .act-status .act-badge { background: #fffbeb; color: #b45309; }
+    .act-updated .act-badge { background: #f5f5f5; color: #525252; }
+    .act-sync .act-badge { background: #f5f3ff; color: #6d28d9; }
+    .act-contract .act-badge { background: #fdf4ff; color: #a21caf; }
+    .disclaimer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fafafa;
+      border-top: 1px solid #e5e5e5;
+      padding: 10px 16px;
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .disclaimer.hidden { display: none; }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #666;
+      line-height: 1;
+      padding: 0 4px;
+    }
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      width: min(640px, 92vw);
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    .modal.modal-task { width: min(720px, 94vw); }
+    .modal-header { padding: 16px 16px 12px; border-bottom: 1px solid #e5e5e5; display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+    .modal-header h2 { font-size: 16px; line-height: 1.3; }
+    .modal-path { font-size: 11px; color: #999; margin-top: 4px; font-family: ui-monospace, monospace; }
+    .modal-meta { font-size: 12px; color: #666; margin-top: 6px; }
+    .modal-body { padding: 16px; overflow-y: auto; flex: 1; font-size: 13px; line-height: 1.5; }
+    .modal-body pre, .modal-pre {
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.5;
+      font-family: inherit;
+      margin: 0;
+      background: var(--bg-muted);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+    }
+    .modal-section { margin-bottom: 16px; }
+    .modal-section:last-child { margin-bottom: 0; }
+    .modal-section h4 { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 6px; font-weight: 600; }
+    .modal-section p { color: #333; white-space: pre-wrap; }
+    .modal-section ul { padding-left: 18px; color: #333; }
+    .modal-section li { margin-bottom: 4px; }
+    .modal-done-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 4px;
+      color: #047857;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .modal-done-banner .task-done-icon { width: 18px; height: 18px; font-size: 11px; margin-top: 0; }
+    .criteria-done li { list-style: none; margin-left: 0; padding-left: 0; color: #047857; }
+    .criteria-done li::before { content: '✓ '; font-weight: 600; }
+    .activity-done li { color: #333; }
+    .activity-done li.is-complete { color: #047857; font-weight: 500; }
+    .modal-footer { padding: 12px 16px; border-top: 1px solid #e5e5e5; font-size: 11px; color: #999; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .empty { font-size: 12px; color: #999; padding: 8px 0; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <h1>AWP tools: Kanban</h1>
+    <p>AWP - Agentic Workflow Protocol - A Human-Agent Context Engineering.</p>
+  </header>
+
+  <div class="project-bar">
+    <div>
+      <span class="meta" id="project-name">—</span>
+      <span class="live" id="live-status"><span class="dot">○</span> Connecting…</span>
+      <button type="button" class="status-chip" id="status-chip" aria-expanded="false">Board status</button>
+    </div>
+    <button type="button" class="link-btn" id="view-time-dashboard" title="Time spent per task — Agent, Human, combined">Time dashboard</button>
+    <button type="button" class="link-btn" id="view-agreement">View agreement</button>
+    <p class="summary" id="summary-line"></p>
+    <div class="status-popover" id="status-popover" role="status"></div>
+  </div>
+
+  <div class="awp-toolbar" id="awp-toolbar">
+    <span class="awp-toolbar-label">AWP commands</span>
+    <button type="button" class="awp-btn" data-awp="awp refine"
+      data-tip="After init: read user.md + base.md, slice next parent task into subtasks, present for human approval before awp start (AWP.md § refine)."
+      title="Refine — awp refine">Refine</button>
+    <button type="button" class="awp-btn" data-awp="awp check"
+      data-tip="Review current project state, restore context, and identify the current actionable step (AWP.md § check)."
+      title="Check — awp check">Check</button>
+    <button type="button" class="awp-btn" data-awp="awp start"
+      data-tip="After init: readiness checks, then first task In Progress on Kanban (backlog_sync startTaskId). Human picks start vs next vs auto (AWP.md § start)."
+      title="Start — awp start">Start</button>
+    <button type="button" class="awp-btn" data-awp="awp update"
+      data-tip="Review and update documentation; mark steps complete; sync code and docs (AWP.md § update)."
+      title="Update — awp update">Update</button>
+    <button type="button" class="awp-btn" data-awp="awp commit"
+      data-tip="Commit with commitStandard: type(scope step): subject — reference the current step (AWP.md § commit)."
+      title="Commit — awp commit">Commit</button>
+    <button type="button" class="awp-btn" data-awp="awp test"
+      data-tip="Run tests/lint on active task; on success MUST commit test(scope taskId): … (AWP.md §9)."
+      title="Test — awp test">Test</button>
+    <button type="button" class="awp-btn" data-awp="awp fix"
+      data-tip="Fix bug on active task or U-n; on verified fix MUST commit fix(scope taskId): … (AWP.md §10)."
+      title="Fix — awp fix">Fix</button>
+    <button type="button" class="awp-btn" data-awp="awp next"
+      data-tip="One task: update → commit → next. Sync Kanban via backlog_sync startTaskId / completeTaskId (AWP.md § next)."
+      title="Next — awp next">Next</button>
+    <button type="button" class="awp-btn" data-awp="awp auto strict"
+      data-tip="Strict loop: per task — start → implement → ONE commit → Kanban complete → checkpoint report → next task. Same as awp auto. No batching (AWP.md §7)."
+      title="Auto — awp auto strict">Auto</button>
+    <button type="button" class="awp-btn" data-awp="awp handoff"
+      data-tip="Package context and transfer responsibility between human and agent (AWP.md § handoff)."
+      title="Handoff — awp handoff">Handoff</button>
+    <span style="font-size:11px;color:var(--text-faint);margin-left:8px">Hover for description · click to copy — paste into agent chat</span>
+  </div>
+
+  <div class="board-progress" id="board-progress" aria-label="Board progress">
+    <div class="board-progress-head">
+      <span class="board-progress-title">Board progress</span>
+      <span class="board-progress-stats" id="board-progress-stats">—</span>
+    </div>
+    <div class="progress-bar-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="board-progress-bar">
+      <div class="progress-bar-fill" id="board-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="board-progress-meta" id="board-progress-meta"></div>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div class="activity-feed">
+    <h4>
+      <span>Activity <span class="activity-live" id="activity-live">○ watching</span></span>
+      <span class="activity-count" id="activity-count"></span>
+    </h4>
+    <ul id="activity-list"></ul>
+  </div>
+
+  <div class="commits-panel" id="commits-panel">
+    <h4>
+      <span>Agent commits</span>
+      <span class="commits-live" id="commits-live">○ watching git</span>
+    </h4>
+    <ul id="commits-list"><li class="empty">Loading…</li></ul>
+  </div>
+
+  <footer class="disclaimer hidden" id="disclaimer"></footer>
+  <div class="awp-toast" id="awp-toast">Copied</div>
+
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal" id="modal-dialog" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div>
+          <h2 id="modal-title">—</h2>
+          <div class="modal-path" id="modal-path"></div>
+          <div class="modal-meta hidden" id="modal-meta"></div>
+        </div>
+        <button type="button" class="modal-close" id="modal-close" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body"><div id="modal-content"></div></div>
+      <div class="modal-footer">
+        <span id="modal-updated"></span>
+        <span>
+          <button type="button" class="link-btn hidden" id="copy-run-cmd">Copy run commands</button>
+          <button type="button" class="link-btn hidden" id="copy-contract-path">Copy path</button>
+          <button type="button" class="link-btn hidden" id="copy-task-path">Copy path</button>
+          <button type="button" class="link-btn hidden" id="open-dashboard-from-report">Time dashboard</button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let data = null;
+    let lastSync = null;
+    let syncing = false;
+    let pulseIds = new Set();
+    let commitsData = [];
+    let activityEvents = [];
+    let lastActivityTop = '';
+    let timeTrackingData = null;
+    let knownCompletedIds = new Set();
+    let completionsInitialized = false;
+    let backlogCompleteShown = false;
+    let wasBacklogComplete = false;
+    let lastRunBlock = '';
+
+    function buildRunCommands() {
+      const run = data?.appRun;
+      const appDir = run?.appDir || data?.config?.appDir || '.';
+      if (!run?.hasPackageJson) {
+        return `cd ${appDir}\n# Add package.json with a "dev" script, then:\nnpm install && npm run dev`;
+      }
+      const script = `./${run.scriptRelPath || 'scripts/run-app.sh'}`;
+      const lines = [
+        `cd ${appDir}`,
+        script,
+        '# or:',
+        run.oneLiner || 'npm install && npm run dev',
+      ];
+      if (run.hintUrl) lines.push(`# App URL (typical): ${run.hintUrl}`);
+      return lines.join('\n');
+    }
+
+    function isBacklogComplete() {
+      const prog = getBoardProgress();
+      if (!prog.total) return false;
+      const planned = (data.columns?.planned || []).length;
+      const inProgress = (data.columns?.inProgress || []).length;
+      return prog.remaining === 0 && planned === 0 && inProgress === 0;
+    }
+
+    function handleCompletionDetection() {
+      const completed = (data?.columns?.completed || []).map((t) => t.id);
+      const params = new URLSearchParams(location.search);
+      const backlogComplete = isBacklogComplete();
+
+      if (!completionsInitialized) {
+        knownCompletedIds = new Set(completed);
+        completionsInitialized = true;
+        wasBacklogComplete = backlogComplete;
+        if (params.get('backlog') === 'complete' || params.get('completed') === 'all') {
+          if (backlogComplete) openBacklogCompleteModal();
+          return;
+        }
+        if (params.get('dashboard') === '1') {
+          fetchTimeTracking().then(() => openTimeDashboard()).catch(() => openTimeDashboard());
+        }
+        return;
+      }
+
+      if (backlogComplete && !wasBacklogComplete && !backlogCompleteShown) {
+        openBacklogCompleteModal();
+      }
+      wasBacklogComplete = backlogComplete;
+      knownCompletedIds = new Set(completed);
+    }
+
+    function formatDuration(ms) {
+      if (!ms || ms < 1000) return '<1m';
+      const totalMin = Math.floor(ms / 60000);
+      if (totalMin < 60) return totalMin + 'm';
+      const h = Math.floor(totalMin / 60);
+      const m = totalMin % 60;
+      return m ? h + 'h ' + m + 'm' : h + 'h';
+    }
+
+    function renderTaskTimeSpent(task) {
+      const t = task.timeSpent;
+      if (!t || (!t.combinedMs && !t.isActive)) return '';
+      const live = t.isActive ? ' live' : '';
+      const parts = [];
+      if (t.agentMs) parts.push(`<span class="time-chip agent${live}" title="Agent time">🤖 ${formatDuration(t.agentMs)}</span>`);
+      if (t.humanMs) parts.push(`<span class="time-chip human${live}" title="Human time">👤 ${formatDuration(t.humanMs)}</span>`);
+      parts.push(`<span class="time-chip total${live}" title="Total time">⏱ ${formatDuration(t.combinedMs)}</span>`);
+      return `<div class="card-time">${parts.join('')}</div>`;
+    }
+
+    let lastUrlOpen = { url: '', at: 0 };
+
+    /** Navigate same tab once — avoids Cursor Simple Browser spawning many previews on target=_blank. */
+    function openLocalUrl(url, e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      const now = Date.now();
+      if (lastUrlOpen.url === url && now - lastUrlOpen.at < 3000) return;
+      lastUrlOpen = { url, at: now };
+      window.location.assign(url);
+    }
+
+    function copyLocalUrl(url, label) {
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('Copied' + (label ? ': ' + label : ''));
+      }).catch(() => showToast(url));
+    }
+
+    function isCurrentBoardUrl(url) {
+      try {
+        const u = new URL(url, window.location.origin);
+        return u.origin === window.location.origin && u.pathname === '/';
+      } catch {
+        return false;
+      }
+    }
+
+    function localUrlRow(url, label) {
+      const safe = esc(url);
+      if (isCurrentBoardUrl(url)) {
+        return `<div class="local-url-row">
+          <code>${safe}</code>
+          <span style="font-size:11px;color:var(--text-muted)">(this page)</span>
+          <button type="button" class="link-btn local-url-copy" data-url="${safe}">Copy</button>
+        </div>`;
+      }
+      return `<div class="local-url-row">
+        <code>${safe}</code>
+        <button type="button" class="link-btn local-url-open" data-url="${safe}">Open here</button>
+        <button type="button" class="link-btn local-url-copy" data-url="${safe}">Copy</button>
+      </div>`;
+    }
+
+    function bindLocalUrlButtons(root) {
+      if (!root) return;
+      root.querySelectorAll('.local-url-open').forEach((btn) => {
+        btn.onclick = (e) => openLocalUrl(btn.getAttribute('data-url'), e);
+      });
+      root.querySelectorAll('.local-url-copy').forEach((btn) => {
+        btn.onclick = () => copyLocalUrl(btn.getAttribute('data-url'));
+      });
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('awp-toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyAwpCommand(cmd) {
+      navigator.clipboard.writeText(cmd).then(() => {
+        showToast('Copied: ' + cmd);
+      }).catch(() => showToast(cmd));
+    }
+
+    function setupAwpToolbar() {
+      document.querySelectorAll('.awp-btn[data-awp]').forEach((btn) => {
+        btn.addEventListener('click', () => copyAwpCommand(btn.getAttribute('data-awp')));
+      });
+    }
+
+    function formatCommitDate(iso) {
+      try {
+        return new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      } catch { return ''; }
+    }
+
+    function renderCommits() {
+      const ul = document.getElementById('commits-list');
+      if (!commitsData.length) {
+        ul.innerHTML = '<li class="empty">No AWP-format commits yet (type(scope step): subject)</li>';
+        return;
+      }
+      ul.innerHTML = commitsData.map((c) =>
+        `<li title="${esc(c.author)}">
+          <span class="commit-hash">${esc(c.shortHash)}</span>
+          <span class="commit-subject">${esc(c.subject)}</span>
+          <span class="commit-meta">${formatCommitDate(c.date)}</span>
+        </li>`
+      ).join('');
+    }
+
+    function setCommitsLive(ok) {
+      const el = document.getElementById('commits-live');
+      if (!el) return;
+      if (ok) {
+        el.classList.add('on');
+        el.textContent = '● live';
+      } else {
+        el.classList.remove('on');
+        el.textContent = '○ offline';
+      }
+    }
+
+    async function fetchCommits() {
+      try {
+        const res = await fetch('/api/commits.json');
+        if (!res.ok) throw new Error('commits');
+        const json = await res.json();
+        commitsData = json.commits || [];
+        renderCommits();
+        setCommitsLive(true);
+      } catch {
+        setCommitsLive(false);
+        document.getElementById('commits-list').innerHTML =
+          '<li class="empty">Git history unavailable (not a git repo or git not installed)</li>';
+      }
+    }
+
+    const COLS = [
+      { key: 'unplanned', label: 'Unplanned' },
+      { key: 'planned', label: 'Planned' },
+      { key: 'inProgress', label: 'In Progress' },
+      { key: 'completed', label: 'Completed' },
+    ];
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
+
+    function timeAgo(iso) {
+      if (!iso) return '';
+      const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+      if (s < 5) return 'just now';
+      if (s < 60) return s + 's ago';
+      if (s < 3600) return Math.floor(s / 60) + 'm ago';
+      return Math.floor(s / 3600) + 'h ago';
+    }
+
+    function formatTime(iso) {
+      if (!iso) return '';
+      try {
+        return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } catch { return ''; }
+    }
+
+    function setLive(connected) {
+      const el = document.getElementById('live-status');
+      if (syncing) {
+        el.innerHTML = '⟳ Syncing…';
+        el.classList.remove('on');
+        return;
+      }
+      if (connected) {
+        el.classList.add('on');
+        el.innerHTML = '<span class="dot">●</span> Live · Synced ' + (lastSync ? timeAgo(lastSync) : '—');
+      } else {
+        el.classList.remove('on');
+        el.innerHTML = '<span class="dot">○</span> Offline';
+      }
+    }
+
+    function renderCard(task) {
+      const col = task.column;
+      const cls = ['card'];
+      if (col === 'inProgress') cls.push('in-progress');
+      if (col === 'completed') cls.push('completed');
+      if (task.inferredInProgress) cls.push('inferred');
+      if (pulseIds.has(task.id)) cls.push('pulse');
+
+      const pri = (task.priority || 'medium').toLowerCase();
+      const logLine = pulseIds.has(task.id)
+        ? '⟳ updating…'
+        : (task.activityPeek || '');
+
+      return `<div class="${cls.join(' ')}" data-id="${esc(task.id)}">
+        <div class="card-id"><span>${esc(task.id)}</span>
+          <span class="priority ${pri}">${esc(task.priority)}</span></div>
+        <div class="card-title">${col === 'inProgress'
+          ? `<span class="task-spinner" role="status" aria-label="In progress"></span>`
+          : col === 'completed'
+          ? `<span class="task-done-icon" role="status" aria-label="Completed">✓</span>`
+          : ''}<span>${esc(task.title)}${pulseIds.has(task.id) ? ' ◌' : ''}${task.inferredInProgress ? ' ⟡' : ''}</span></div>
+        ${logLine ? `<div class="card-log">${esc(logLine)}</div>` : ''}
+        ${renderTaskTimeSpent(task)}
+        <div class="card-meta">${task.owner ? esc(task.owner) + ' · ' : ''}⛓ ${task.dependencyCount || 0} · ${timeAgo(task.lastUpdated)}</div>
+      </div>`;
+    }
+
+    function renderBoard() {
+      if (!data) return;
+      const board = document.getElementById('board');
+      board.innerHTML = COLS.map((c) => {
+        const tasks = data.columns[c.key] || [];
+        const heading = c.key === 'inProgress' && tasks.length > 0
+          ? `<span class="column-heading"><span class="task-spinner" aria-hidden="true"></span><span>${c.label} (${tasks.length})</span></span>`
+          : `${c.label} (${tasks.length})`;
+        return `<div class="column"><h3>${heading}</h3>
+          ${tasks.length ? tasks.map(renderCard).join('') : '<p class="empty">No tasks</p>'}
+        </div>`;
+      }).join('');
+
+      board.querySelectorAll('.card').forEach((el) => {
+        el.addEventListener('click', () => openTaskModal(el.dataset.id));
+      });
+    }
+
+    function getBoardProgress() {
+      if (data?.boardProgress && data.boardProgress.total > 0) {
+        return data.boardProgress;
+      }
+      if (!data?.columns) return { completed: 0, total: 0, remaining: 0, percent: 0 };
+      const completed = (data.columns.completed || []).length;
+      const planned = (data.columns.planned || []).length;
+      const inProgress = (data.columns.inProgress || []).length;
+      const unplanned = (data.columns.unplanned || []).length;
+      const total = completed + planned + inProgress + unplanned;
+      return {
+        completed,
+        total,
+        remaining: Math.max(0, total - completed),
+        percent: total ? Math.round((completed / total) * 100) : 0,
+        columnCounts: { planned, inProgress, unplanned },
+      };
+    }
+
+    function renderBoardProgress() {
+      if (!data) return;
+      const prog = getBoardProgress();
+      const counts = prog.columnCounts || {
+        planned: (data.columns?.planned || []).length,
+        inProgress: (data.columns?.inProgress || []).length,
+        unplanned: (data.columns?.unplanned || []).length,
+      };
+
+      const statsEl = document.getElementById('board-progress-stats');
+      const fillEl = document.getElementById('board-progress-fill');
+      const barEl = document.getElementById('board-progress-bar');
+      const metaEl = document.getElementById('board-progress-meta');
+
+      if (!prog.total) {
+        statsEl.textContent = 'No tasks yet';
+        fillEl.style.width = '0%';
+        barEl.setAttribute('aria-valuenow', '0');
+        metaEl.innerHTML = '';
+        return;
+      }
+
+      const remainingText = prog.remaining
+        ? `${prog.remaining} remaining`
+        : 'All tasks completed';
+
+      statsEl.innerHTML =
+        `${prog.completed} of ${prog.total} completed` +
+        `<span class="pct">(${prog.percent}%)</span>`;
+
+      fillEl.style.width = prog.percent + '%';
+      barEl.setAttribute('aria-valuenow', String(prog.percent));
+      barEl.setAttribute('aria-label', `${prog.percent}% complete`);
+
+      metaEl.innerHTML = [
+        `<span class="board-progress-chip completed">✓ Completed ${prog.completed}</span>`,
+        counts.inProgress
+          ? `<span class="board-progress-chip in-progress">◌ In progress ${counts.inProgress}</span>`
+          : '',
+        counts.planned
+          ? `<span class="board-progress-chip planned">Planned ${counts.planned}</span>`
+          : '',
+        counts.unplanned
+          ? `<span class="board-progress-chip unplanned">Unplanned ${counts.unplanned}</span>`
+          : '',
+        `<span class="board-progress-chip">${esc(remainingText)}</span>`,
+      ].filter(Boolean).join('');
+    }
+
+    function renderHeader() {
+      if (!data) return;
+      document.getElementById('project-name').textContent =
+        data.meta.name + ' · ' + data.meta.type.toUpperCase();
+
+      const s = data.summary;
+      const parts = [];
+      if (s.problem) parts.push('Problem: ' + s.problem);
+      if (s.technologies?.length) parts.push('Tech: ' + s.technologies.join(', '));
+      document.getElementById('summary-line').textContent = parts.join('   ');
+
+      const chip = document.getElementById('status-chip');
+      const popover = document.getElementById('status-popover');
+      const boardWarnings = [
+        ...(data._warnings || []),
+        ...(data.boardHealth?.warnings || []),
+      ].filter((w, i, a) => a.indexOf(w) === i);
+      if (boardWarnings.length) {
+        chip.classList.add('visible');
+        chip.textContent = 'Board status (' + boardWarnings.length + ')';
+        popover.innerHTML =
+          '<strong>Board status</strong><br>' +
+          boardWarnings.map((w) => esc(w)).join('<br>');
+      } else {
+        chip.classList.remove('visible');
+        chip.setAttribute('aria-expanded', 'false');
+        popover.classList.remove('open');
+        popover.innerHTML = '';
+      }
+
+      const disc = data.config?.disclaimer;
+      const foot = document.getElementById('disclaimer');
+      if (disc) {
+        foot.textContent = disc;
+        foot.classList.remove('hidden');
+      } else {
+        foot.classList.add('hidden');
+      }
+    }
+
+    const ACT_LABELS = {
+      added: 'Added',
+      removed: 'Removed',
+      moved: 'Moved',
+      status: 'Status',
+      updated: 'Updated',
+      sync: 'Sync',
+      contract: 'Agreement',
+    };
+
+    function setActivityLive(ok) {
+      const el = document.getElementById('activity-live');
+      if (!el) return;
+      if (ok) {
+        el.classList.add('on');
+        el.textContent = '● live';
+      } else {
+        el.classList.remove('on');
+        el.textContent = '○ offline';
+      }
+    }
+
+    function formatActivityTime(iso) {
+      if (!iso) return '';
+      try {
+        const d = new Date(iso);
+        const now = new Date();
+        if (d.toDateString() === now.toDateString()) {
+          return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        return d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      } catch { return ''; }
+    }
+
+    function resolveEventTaskId(ev) {
+      if (ev.taskId) return ev.taskId;
+      const msg = ev.message || '';
+      const idMatch = msg.match(/\b(\d+\.\d+)\b/);
+      if (idMatch && data?.tasks?.[idMatch[1]]) return idMatch[1];
+      if (data?.tasks) {
+        for (const t of Object.values(data.tasks)) {
+          if (t.title && msg.includes(t.title)) return t.id;
+        }
+      }
+      return '';
+    }
+
+    function buildActivityStream() {
+      const stream = [];
+      const seen = new Set();
+      const add = (ev) => {
+        const key = [ev.at, ev.kind || ev.type, ev.taskId, ev.message].join('|');
+        if (seen.has(key)) return;
+        seen.add(key);
+        stream.push(ev);
+      };
+      for (const ev of activityEventsList()) add(ev);
+      if (data?.tasks) {
+        for (const task of Object.values(data.tasks)) {
+          for (const line of task.activity || []) {
+            const msg = (line && line.message) || '';
+            if (!msg || /task created/i.test(msg)) continue;
+            add({
+              at: line.at || task.lastUpdated,
+              kind: 'updated',
+              taskId: task.id,
+              title: task.title,
+              message: msg.replace(/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}\s*[—–-]\s*/i, ''),
+            });
+          }
+        }
+      }
+      stream.sort((a, b) => (b.at || '').localeCompare(a.at || ''));
+      let contracts = 0;
+      return stream.filter((ev) => {
+        if (activityKind(ev) === 'contract') {
+          contracts += 1;
+          return contracts <= 2;
+        }
+        return true;
+      });
+    }
+
+    function activityKind(ev) {
+      return ev.kind || ev.type || 'updated';
+    }
+
+    function renderActivityRow(ev) {
+      const kind = activityKind(ev);
+      const label = ACT_LABELS[kind] || 'Updated';
+      const time = formatActivityTime(ev.at);
+      const taskId = resolveEventTaskId(ev);
+      const hasTask = taskId && data?.tasks?.[taskId];
+      const taskBadge = taskId
+        ? (hasTask
+          ? `<button type="button" class="act-task-badge" data-task-id="${esc(taskId)}" title="Open task">${esc(taskId)}</button>`
+          : `<span class="act-task-badge muted" title="Task">${esc(taskId)}</span>`)
+        : '';
+      const msg = ev.message || ev.title || '';
+      const safeKind = ACT_LABELS[kind] ? kind : 'updated';
+      return `<li class="activity-item act-${safeKind}">
+        <span class="act-time">${esc(time)}</span>
+        <span class="act-badge">${esc(label)}</span>
+        ${taskBadge}
+        <span class="act-msg">${esc(msg)}</span>
+      </li>`;
+    }
+
+    function activityEventsList() {
+      if (activityEvents.length) return activityEvents;
+      return data?.recentEvents || [];
+    }
+
+    function renderActivity() {
+      const ul = document.getElementById('activity-list');
+      const events = buildActivityStream().filter((e) => e.message || e.title);
+      const countEl = document.getElementById('activity-count');
+      const shown = events.slice(0, 50);
+      if (countEl) {
+        countEl.textContent = events.length
+          ? (shown.length < events.length ? `${shown.length} of ${events.length}` : `${events.length}`)
+          : '';
+      }
+      if (!events.length) {
+        ul.innerHTML = '<li class="empty">No activity yet — edit task .md files to see updates</li>';
+        return;
+      }
+      const topKey = events[0] ? `${events[0].at}|${events[0].message}` : '';
+      const isNew = topKey && topKey !== lastActivityTop;
+      lastActivityTop = topKey;
+
+      ul.innerHTML = shown.map(renderActivityRow).join('');
+      ul.querySelectorAll('.act-task-badge[data-task-id]').forEach((btn) => {
+        btn.onclick = () => openTaskModal(btn.getAttribute('data-task-id'));
+      });
+
+      if (isNew) {
+        const first = ul.querySelector('.activity-item');
+        if (first) {
+          first.classList.add('act-flash');
+          setTimeout(() => first.classList.remove('act-flash'), 1500);
+        }
+      }
+    }
+
+    async function fetchActivity() {
+      try {
+        const res = await fetch('/api/activity.json?t=' + Date.now());
+        if (!res.ok) throw new Error('activity');
+        const json = await res.json();
+        activityEvents = json.events || [];
+        setActivityLive(true);
+        renderActivity();
+      } catch {
+        setActivityLive(false);
+      }
+    }
+
+    const COL_LABELS = {
+      unplanned: 'Unplanned',
+      planned: 'Planned',
+      inProgress: 'In Progress',
+      completed: 'Completed',
+    };
+
+    function formatColumnLabel(col) {
+      return COL_LABELS[col] || col;
+    }
+
+    function formatStatusLabel(status) {
+      if (status === 'in_progress') return 'In Progress';
+      if (status === 'completed') return 'Completed';
+      return 'Pending';
+    }
+
+    function isCompletionActivity(msg) {
+      return /completed|finished|done|moved to completed/i.test(msg || '');
+    }
+
+    function openTaskModal(id) {
+      const task = data?.tasks[id];
+      if (!task) return;
+
+      const dialog = document.getElementById('modal-dialog');
+      dialog.classList.add('modal-task');
+      dialog.classList.remove('modal-dashboard');
+
+      const isCompleted = task.column === 'completed' || task.status === 'completed';
+
+      document.getElementById('modal-title').textContent = task.title;
+      document.getElementById('modal-path').textContent = task.sourcePath || task.id;
+      const meta = document.getElementById('modal-meta');
+      meta.classList.remove('hidden');
+      meta.textContent =
+        formatColumnLabel(task.column) + ' · ' + formatStatusLabel(task.status) +
+        (task.priority ? ' · ' + task.priority : '') +
+        (task.owner ? ' · ' + task.owner : '');
+
+      const act = (task.activity || []).map((a) => ({
+        at: a.at || '',
+        message: a.message || '',
+      })).filter((a) => a.message);
+
+      const doneBanner = isCompleted
+        ? `<div class="modal-done-banner"><span class="task-done-icon" aria-hidden="true">✓</span><span>Completed — file in <code>tasks/completed/</code>, status <code>[x] Completed</code> in task markdown</span></div>`
+        : '';
+
+      const criteriaBlock = task.acceptanceCriteria?.length
+        ? (isCompleted
+          ? '<ul class="criteria-done">' + task.acceptanceCriteria.map((c) => '<li>' + esc(c) + '</li>').join('') + '</ul>'
+          : '<ul>' + task.acceptanceCriteria.map((c) => '<li>' + esc(c) + '</li>').join('') + '</ul>')
+        : '<p class="empty">—</p>';
+
+      const activityBlock = act.length
+        ? '<ul class="activity-done">' + act.map((a) => {
+            const complete = isCompletionActivity(a.message);
+            const time = a.at ? `<span style="color:var(--text-faint);font-size:11px">${esc(a.at)} — </span>` : '';
+            return `<li class="${complete ? 'is-complete' : ''}">${time}${esc(a.message)}</li>`;
+          }).join('') + '</ul>'
+        : '<p class="empty">—</p>';
+
+      document.getElementById('modal-content').innerHTML = `
+        ${doneBanner}
+        <div class="modal-section"><h4>Description</h4><p>${esc(task.description) || '—'}</p></div>
+        <div class="modal-section"><h4>Dependencies</h4>
+          ${task.dependencies?.length
+            ? '<ul>' + task.dependencies.map((d) =>
+                '<li><button type="button" class="link-btn dep-link" data-dep="' + esc(d) + '">' + esc(d) + '</button></li>'
+              ).join('') + '</ul>'
+            : '<p class="empty">None</p>'}
+        </div>
+        <div class="modal-section"><h4>Acceptance criteria</h4>${criteriaBlock}</div>
+        ${task.timeSpent && (task.timeSpent.combinedMs || task.timeSpent.isActive)
+          ? `<div class="modal-section"><h4>Time spent</h4>
+              <p>
+                <span class="time-chip agent">Agent ${formatDuration(task.timeSpent.agentMs)}</span>
+                <span class="time-chip human">Human ${formatDuration(task.timeSpent.humanMs)}</span>
+                <span class="time-chip total">Total ${formatDuration(task.timeSpent.combinedMs)}</span>
+                ${task.timeSpent.isActive ? '<span class="time-chip live">session active</span>' : ''}
+              </p></div>`
+          : ''}
+        ${task.notes ? '<div class="modal-section"><h4>Notes</h4><p>' + esc(task.notes) + '</p></div>' : ''}
+        ${task.risk ? '<div class="modal-section"><h4>Risk</h4><p>' + esc(task.risk) + '</p></div>' : ''}
+        <div class="modal-section"><h4>Activity log</h4>
+          <p style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">Updated on <strong>awp update</strong> / <strong>awp commit</strong> / <strong>awp next</strong> via task <code>.md</code> and <code>backlog_sync</code>.</p>
+          ${activityBlock}
+        </div>`;
+
+      document.getElementById('modal-updated').textContent =
+        'Last updated ' + timeAgo(task.lastUpdated) +
+        (isCompleted ? ' · Completed task' : '');
+
+      document.getElementById('copy-contract-path').classList.add('hidden');
+      const copyTask = document.getElementById('copy-task-path');
+      copyTask.classList.remove('hidden');
+      copyTask.onclick = () => navigator.clipboard.writeText(task.sourcePath);
+
+      document.getElementById('modal-content').querySelectorAll('.dep-link').forEach((btn) => {
+        btn.onclick = (e) => { e.stopPropagation(); openTaskModal(btn.dataset.dep); };
+      });
+
+      document.getElementById('modal-backdrop').classList.add('open');
+    }
+
+    function openModal() {
+      if (!data?.contract) return;
+
+      const dialog = document.getElementById('modal-dialog');
+      dialog.classList.remove('modal-task');
+
+      document.getElementById('modal-title').textContent = data.contract.title;
+      document.getElementById('modal-path').textContent = data.contract.path;
+      document.getElementById('modal-meta').classList.add('hidden');
+      document.getElementById('modal-content').innerHTML =
+        '<pre class="modal-pre">' + esc(data.contract.content) + '</pre>';
+      document.getElementById('modal-updated').textContent =
+        'Updated ' + timeAgo(data.contract.lastUpdated);
+
+      document.getElementById('copy-task-path').classList.add('hidden');
+      const copyContract = document.getElementById('copy-contract-path');
+      copyContract.classList.remove('hidden');
+      copyContract.onclick = () => navigator.clipboard.writeText(data.contract.path);
+
+      document.getElementById('modal-backdrop').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.remove('open');
+      document.getElementById('modal-dialog').classList.remove('modal-dashboard', 'modal-report');
+      document.getElementById('copy-run-cmd').classList.add('hidden');
+      document.getElementById('open-dashboard-from-report').classList.add('hidden');
+    }
+
+    function openBacklogCompleteModal() {
+      if (!data || !isBacklogComplete()) return;
+      backlogCompleteShown = true;
+
+      const dialog = document.getElementById('modal-dialog');
+      dialog.classList.remove('modal-task', 'modal-dashboard');
+      dialog.classList.add('modal-report');
+
+      const prog = getBoardProgress();
+      const dash = data.timeDashboard;
+      lastRunBlock = buildRunCommands();
+      const port = data.config?.port || 4173;
+      const boardUrl = `http://localhost:${port}/`;
+      const kanbanRun = 'cd agentic-sdlc/kanban && npm install && npm run watch';
+      const completedTasks = (data.columns?.completed || [])
+        .map((t) => `<li><strong>${esc(t.id)}</strong> — ${esc(t.title)}</li>`)
+        .join('');
+
+      document.getElementById('modal-title').textContent = 'Backlog complete';
+      document.getElementById('modal-path').textContent = data.meta.name + ' · ' + data.meta.type.toUpperCase();
+      document.getElementById('modal-meta').classList.remove('hidden');
+      document.getElementById('modal-meta').textContent =
+        `${prog.completed} of ${prog.total} tasks done (100%)`;
+
+      const timeSection = dash
+        ? `<div class="time-summary-grid" style="margin-bottom:12px">
+            <div class="time-summary-card agent"><h3>Agent</h3><div class="time-value">${formatDuration(dash.agentMs || 0)}</div></div>
+            <div class="time-summary-card human"><h3>Human</h3><div class="time-value">${formatDuration(dash.humanMs || 0)}</div></div>
+            <div class="time-summary-card combined"><h3>Total</h3><div class="time-value">${formatDuration(dash.combinedMs || 0)}</div></div>
+          </div>`
+        : '<p class="empty">No time recorded yet.</p>';
+
+      document.getElementById('modal-content').innerHTML = `
+        <div class="modal-done-banner"><span class="task-done-icon" aria-hidden="true">✓</span><span>All <strong>${prog.total}</strong> backlog tasks completed</span></div>
+        <div class="modal-section">
+          <h4>Board progress</h4>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:100%"></div></div>
+          <p>${prog.completed} of ${prog.total} tasks completed</p>
+        </div>
+        <div class="modal-section"><h4>Completed tasks</h4>
+          <ul>${completedTasks || '<li class="empty">—</li>'}</ul>
+        </div>
+        <div class="modal-section"><h4>Time summary</h4>${timeSection}</div>
+        <div class="modal-section">
+          <h4>Run the app</h4>
+          <p style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">From your project root in a terminal:</p>
+          <pre class="run-script-block" id="run-script-pre">${esc(lastRunBlock)}</pre>
+          ${data.appRun?.hintUrl
+            ? `<p style="font-size:11px;color:var(--text-secondary);margin-top:8px">Then open the app:</p>${localUrlRow(data.appRun.hintUrl, 'app URL')}`
+            : ''}
+        </div>
+        <div class="modal-section">
+          <h4>Kanban board</h4>
+          <pre class="run-script-block">${esc(kanbanRun)}</pre>
+          <p style="font-size:11px;color:var(--text-secondary);margin-top:8px">Board URL:</p>
+          ${localUrlRow(boardUrl, 'board URL')}
+        </div>`;
+
+      bindLocalUrlButtons(document.getElementById('modal-content'));
+
+      document.getElementById('modal-updated').textContent =
+        'Backlog finished ' + timeAgo(data.meta.generatedAt);
+
+      document.getElementById('copy-contract-path').classList.add('hidden');
+      document.getElementById('copy-task-path').classList.add('hidden');
+      const copyRun = document.getElementById('copy-run-cmd');
+      copyRun.classList.remove('hidden');
+      copyRun.onclick = () => navigator.clipboard.writeText(lastRunBlock).then(() => showToast('Copied run commands'));
+      const dashBtn = document.getElementById('open-dashboard-from-report');
+      dashBtn.classList.remove('hidden');
+      dashBtn.onclick = () => {
+        fetchTimeTracking().then(() => openTimeDashboard()).catch(() => openTimeDashboard());
+      };
+
+      document.getElementById('modal-backdrop').classList.add('open');
+      if (history.replaceState) {
+        history.replaceState(null, '', '?backlog=complete');
+      }
+    }
+
+    function openTimeDashboard() {
+      const dash = data?.timeDashboard;
+      const store = timeTrackingData;
+      const agentMs = dash?.agentMs ?? store?.summary?.agentMs ?? 0;
+      const humanMs = dash?.humanMs ?? store?.summary?.humanMs ?? 0;
+      const combinedMs = dash?.combinedMs ?? store?.summary?.combinedMs ?? 0;
+
+      const dialog = document.getElementById('modal-dialog');
+      dialog.classList.remove('modal-task', 'modal-report');
+      dialog.classList.add('modal-dashboard');
+
+      document.getElementById('modal-title').textContent = 'Time dashboard';
+      document.getElementById('modal-path').textContent = 'kanban/time-tracking.json';
+      document.getElementById('modal-meta').classList.remove('hidden');
+      document.getElementById('modal-meta').textContent =
+        (dash?.taskCount ?? Object.keys(store?.tasks || {}).length) + ' tasks tracked · ' +
+        (dash?.activeTaskIds?.length ? dash.activeTaskIds.length + ' active now' : 'no active sessions');
+
+      const taskRows = [];
+      const ids = new Set([
+        ...Object.keys(data?.tasks || {}),
+        ...Object.keys(store?.tasks || {}),
+      ]);
+      const sorted = [...ids].sort((a, b) => {
+        const ta = (data?.tasks[a]?.timeSpent?.combinedMs) || (store?.tasks[a]?.totalsMs?.combined) || 0;
+        const tb = (data?.tasks[b]?.timeSpent?.combinedMs) || (store?.tasks[b]?.totalsMs?.combined) || 0;
+        return tb - ta;
+      });
+
+      for (const id of sorted) {
+        const task = data?.tasks[id];
+        const rec = store?.tasks[id];
+        const ts = task?.timeSpent || (rec ? {
+          agentMs: rec.totalsMs?.agent || 0,
+          humanMs: rec.totalsMs?.human || 0,
+          combinedMs: rec.totalsMs?.combined || 0,
+          isActive: !!store?.active?.[id],
+        } : null);
+        if (!ts || (!ts.combinedMs && !ts.isActive)) continue;
+        const title = task?.title || rec?.title || id;
+        const active = ts.isActive ? ' active' : '';
+        taskRows.push(`<tr class="${active}">
+          <td><button type="button" class="link-btn dep-link" data-dep="${esc(id)}">${esc(id)}</button></td>
+          <td>${esc(title)}${ts.isActive ? ' <span class="time-chip live">live</span>' : ''}</td>
+          <td>${formatDuration(ts.agentMs)}</td>
+          <td>${formatDuration(ts.humanMs)}</td>
+          <td><strong>${formatDuration(ts.combinedMs)}</strong></td>
+        </tr>`);
+      }
+
+      document.getElementById('modal-content').innerHTML = `
+        <div class="time-summary-grid">
+          <div class="time-summary-card agent">
+            <h3>Agent</h3>
+            <div class="time-value">${formatDuration(agentMs)}</div>
+          </div>
+          <div class="time-summary-card human">
+            <h3>Human</h3>
+            <div class="time-value">${formatDuration(humanMs)}</div>
+          </div>
+          <div class="time-summary-card combined">
+            <h3>Agent + Human</h3>
+            <div class="time-value">${formatDuration(combinedMs)}</div>
+          </div>
+        </div>
+        <div class="modal-section">
+          <h4>Per task</h4>
+          ${taskRows.length
+            ? `<table class="time-task-table">
+                <thead><tr><th>ID</th><th>Task</th><th>Agent</th><th>Human</th><th>Total</th></tr></thead>
+                <tbody>${taskRows.join('')}</tbody>
+              </table>`
+            : '<p class="empty">No time recorded yet — time starts when a task moves to In Progress.</p>'}
+        </div>
+        <p style="font-size:11px;color:var(--text-secondary);margin-top:12px">Sessions are inferred from Kanban status (In Progress → completed). Actor is inferred from activity lines (AI vs Human).</p>`;
+
+      document.getElementById('modal-updated').textContent =
+        'Updated ' + timeAgo(dash?.updatedAt || store?.updatedAt);
+
+      document.getElementById('copy-contract-path').classList.add('hidden');
+      document.getElementById('copy-task-path').classList.add('hidden');
+
+      document.getElementById('modal-content').querySelectorAll('.dep-link').forEach((btn) => {
+        btn.onclick = (e) => { e.stopPropagation(); openTaskModal(btn.dataset.dep); };
+      });
+
+      document.getElementById('modal-backdrop').classList.add('open');
+    }
+
+    async function fetchTimeTracking() {
+      try {
+        const res = await fetch('/api/time-tracking.json?t=' + Date.now());
+        if (!res.ok) return;
+        timeTrackingData = await res.json();
+      } catch { /* optional */ }
+    }
+
+    async function fetchData() {
+      syncing = true;
+      setLive(true);
+      const res = await fetch('/api/backlog.json');
+      syncing = false;
+      if (!res.ok) throw new Error('Failed to load backlog');
+      data = await res.json();
+      activityEvents = data.recentEvents || activityEvents;
+      lastSync = new Date().toISOString();
+      renderHeader();
+      renderBoardProgress();
+      renderBoard();
+      renderActivity();
+      setActivityLive(true);
+      setLive(true);
+      fetchTimeTracking().catch(() => {});
+      handleCompletionDetection();
+    }
+
+    function connectSse() {
+      const es = new EventSource('/events');
+      es.onopen = () => setLive(true);
+      es.onerror = () => setLive(false);
+      es.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg.type === 'backlog_updated') {
+            if (msg.taskIds?.length) {
+              msg.taskIds.forEach((id) => {
+                pulseIds.add(id);
+                setTimeout(() => { pulseIds.delete(id); renderBoard(); }, 3000);
+              });
+            }
+            fetchData().catch(console.error);
+            fetchActivity().catch(console.error);
+          } else if (msg.type === 'activity_updated') {
+            fetchActivity().catch(console.error);
+          } else if (msg.type === 'commits_updated') {
+            fetchCommits().catch(console.error);
+          } else if (msg.type === 'time_updated') {
+            fetchData().catch(console.error);
+            fetchTimeTracking().catch(console.error);
+          }
+        } catch (e) { console.error(e); }
+      };
+    }
+
+    document.getElementById('view-agreement').onclick = openModal;
+    document.getElementById('view-time-dashboard').onclick = () => {
+      fetchTimeTracking().then(() => openTimeDashboard()).catch(() => openTimeDashboard());
+    };
+    document.getElementById('status-chip').onclick = (e) => {
+      e.stopPropagation();
+      const pop = document.getElementById('status-popover');
+      const chip = document.getElementById('status-chip');
+      const open = !pop.classList.contains('open');
+      pop.classList.toggle('open', open);
+      chip.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    document.getElementById('status-popover').onclick = (e) => e.stopPropagation();
+    document.addEventListener('click', () => {
+      document.getElementById('status-popover').classList.remove('open');
+      document.getElementById('status-chip').setAttribute('aria-expanded', 'false');
+    });
+    document.getElementById('modal-close').onclick = closeModal;
+    document.getElementById('modal-backdrop').onclick = (e) => {
+      if (e.target.id === 'modal-backdrop') closeModal();
+    };
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+        document.getElementById('status-popover').classList.remove('open');
+        document.getElementById('status-chip').setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    setupAwpToolbar();
+
+    fetchData().then(() => {
+      connectSse();
+      fetchCommits();
+      fetchActivity();
+      setInterval(() => {
+        fetchData().catch(() => setLive(false));
+      }, 5000);
+      setInterval(() => {
+        fetchActivity().catch(() => setActivityLive(false));
+      }, 3000);
+      setInterval(() => {
+        fetchCommits().catch(() => setCommitsLive(false));
+      }, 3000);
+      setInterval(() => {
+        if (document.getElementById('modal-backdrop').classList.contains('open') &&
+            document.getElementById('modal-dialog').classList.contains('modal-dashboard')) {
+          fetchData().then(() => fetchTimeTracking()).then(() => openTimeDashboard()).catch(() => {});
+        }
+      }, 10000);
+    }).catch((e) => {
+      console.error(e);
+      setLive(false);
+    });
+  </script>
+</body>
+</html>

@@ -13,7 +13,9 @@ import {
 import { handleBaseTool } from './tools/base.js';
 import { handleRecommendTool } from './tools/recommend.js';
 import { handleInitTool } from './tools/init.js';
+import { handleBacklogSyncTool } from './tools/backlogSync.js';
 import { handleRecipeResource, handleRecipeUri, getRecipeResources } from './resources/recipes.js';
+import { getBacklogResources, handleBacklogUri } from './resources/backlog.js';
 
 /**
  * Create MCP server with the init tool
@@ -42,7 +44,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           
           MODE 1 (Questions): Call with no parameters to get the list of questions to ask the user.
           
-          MODE 2 (Create base.md): After collecting all answers through conversation, call with all parameters to create base.md file.
+          MODE 2 (Create base.md): After collecting all answers through conversation, call with all parameters to create base.md and user.md files.
           
           This tool starts the Agentic SDLC project setup process. 
           Use this FIRST to gather project information and create the foundation agreement (base.md).
@@ -50,7 +52,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           Workflow:
           1. Call base tool (no params) → Get questions
           2. Discuss with user → Collect all answers
-          3. Call base tool (with all params) → Creates base.md file
+          3. Call base tool (with all params) → Creates base.md and user.md files
           4. Then proceed to init tool`,
         inputSchema: {
           type: "object",
@@ -66,6 +68,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             projectType: {
               type: "string",
               description: "Project type: 'mvp', 'poc', or 'pro' (required when creating base.md)",
+            },
+            userSource: {
+              type: "string",
+              description: "Verbatim user first message or brief (creates user.md beside base.md)",
+            },
+            userSourceFile: {
+              type: "string",
+              description: "Repo file path relative to appDir (e.g. idea1.md) — content preserved in user.md",
             },
             // MVP-specific parameters
             mvpCoreValueProposition: {
@@ -202,9 +212,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           3. Uses recipe methodology to ensure all questions are answered
           4. Validates completeness
           5. Generates files using recipe templates (section 9)
-          6. Creates tasks/ directory
+          6. Creates tasks/ directory (planned/ with initial tasks; unplanned/ and completed/ empty)
+          7. Scaffolds kanban/ and starts the live board (browser opens at http://localhost:4173)
           
-          Use this ONLY AFTER base.md has been created and reviewed.
+          After init: tell the user Kanban is already running — NOT optional. Ask how they want to begin: awp refine (when user.md is comprehensive), awp start (first task), awp next (one task), or awp auto (all tasks). Do not assume.
+          During development, AI agents add subtasks to planned/ and unplanned tasks to unplanned/
+          per the backlog recipe (get_*_backlog_recipe) section 5 and docs/workflow.md section 9.
           IMPORTANT: Specify the appDir parameter to indicate where the agentic-sdlc folder is located.`,
         inputSchema: {
           type: "object",
@@ -500,6 +513,48 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {},
         },
       },
+      {
+        name: "backlog_sync",
+        description: `
+          Recompile kanban/backlog.json from markdown and optionally update task status for the live board.
+          REQUIRED on awp start / awp next / each awp auto iteration: use startTaskId (and completeTaskId when advancing).
+          awp auto = loop of awp next: ONE task → ONE commit (single task id, never 1.0-9.0 range) → complete on Kanban → next task. Do not batch all phases into one delivery commit.
+          Example: { "appDir": ".", "completeTaskId": "1.0", "startTaskId": "2.0", "activity": "Phase 2 started" }
+          Run cd agentic-sdlc/kanban && npm run watch for live browser updates at http://localhost:4173`,
+        inputSchema: {
+          type: "object",
+          properties: {
+            appDir: {
+              type: "string",
+              description: "Project root containing agentic-sdlc/ (defaults to cwd)",
+            },
+            startTaskId: {
+              type: "string",
+              description: "Mark this task In Progress in tasks/planned/ (demotes other In Progress tasks). Accepts shorthand: \"1\" resolves to \"1.0\" when that task file exists.",
+            },
+            completeTaskId: {
+              type: "string",
+              description: "Mark completed and move task file to tasks/completed/. Accepts shorthand: \"1\" → \"1.0\".",
+            },
+            activity: {
+              type: "string",
+              description: "Optional line appended to ## Activity on updated tasks",
+            },
+            autoStart: {
+              type: "boolean",
+              description: "When true (default), bare sync starts the first planned task if none is In Progress. Set false to recompile only.",
+            },
+            backlogName: {
+              type: "string",
+              description: "Required only if kanban/ does not exist yet — scaffolds kanban for this backlog",
+            },
+            projectType: {
+              type: "string",
+              description: "mvp, poc, or pro — required with backlogName when scaffolding kanban",
+            },
+          },
+        },
+      },
     ],
   };
 });
@@ -507,7 +562,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 // List available resources
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
   return {
-    resources: getRecipeResources(),
+    resources: [...getRecipeResources(), ...getBacklogResources()],
   };
 });
 
@@ -518,6 +573,13 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   // Handle recipe URIs
   if (uri.startsWith("recipe://")) {
     const result = handleRecipeUri(uri);
+    if (result) {
+      return result;
+    }
+  }
+
+  if (uri.startsWith("backlog://")) {
+    const result = handleBacklogUri(uri);
     if (result) {
       return result;
     }
@@ -559,6 +621,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   if (name === "init") {
     return handleInitTool(args || {});
+  }
+
+  if (name === "backlog_sync") {
+    return handleBacklogSyncTool(args || {});
   }
 
       return {

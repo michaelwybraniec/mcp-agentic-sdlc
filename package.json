@@ -4,14 +4,20 @@
   "description": "Model Context Protocol tool: init_sdlc creates agentic-sdlc folder in the app directory.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "mcp-agentic-sdlc-backlog": "dist/backlog/cli.js"
+  },
   "scripts": {
-    "build": "tsc && npm run copy-assets",
+    "build": "tsc && node scripts/bundle-kanban-runner.js && npm run copy-assets",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
     "copy-assets": "cp -r src/templates dist && cp -r src/recipes dist",
-    "test": "node test/workflow.test.js"
+    "test": "node test/workflow.test.js && node test/backlog.test.js && node test/backlog-mcp.test.js && node test/base-user-md.test.js && node test/git-commits.test.js && node test/launch.test.js && node test/activity.test.js && node test/task-status.test.js && node test/task-md.test.js && node test/time-tracking.test.js && node test/app-run.test.js && node test/task-planning.test.js",
+    "backlog:sync": "node dist/backlog/cli.js sync",
+    "backlog:watch": "node dist/backlog/cli.js watch",
+    "backlog:serve": "node dist/backlog/cli.js serve"
   },
   "keywords": [
     "mcp",
@@ -23,6 +29,7 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "chokidar": "^4.0.3",
     "yaml": "^2.8.0"
   },
   "devDependencies": {

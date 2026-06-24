@@ -29,13 +29,14 @@ The server is an **MCP (Model Context Protocol) server** that exposes tools and 
 - **Purpose**: Collect project requirements
 - **Two Modes**:
   - **MODE 1**: No params → Returns questions to ask
-  - **MODE 2**: With params → Creates `base.md` file
+  - **MODE 2**: With params → Creates `user.md` and `base.md` files
+- **Optional param**: `appDir` — directory where `agentic-sdlc/` is created (defaults to current working directory)
 - **Flow**:
   ```
   User → "base" (no params) → AI gets questions
   AI → asks user questions
   User → provides answers
-  AI → "base" (with params) → creates base.md
+  AI → "base" (with params) → creates user.md + base.md
   ```
 
 #### 2. `recommend` Tool (`src/tools/recommend.ts`)
@@ -49,13 +50,15 @@ The server is an **MCP (Model Context Protocol) server** that exposes tools and 
 
 #### 3. `init` Tool (`src/tools/init.ts`)
 - **Purpose**: Create complete project structure
-- **Reads**: `base.md` (created by `base` tool)
+- **Reads**: `base.md` (created by `base` tool; not overwritten)
+- **Optional param**: `appDir` — directory containing `agentic-sdlc/` (defaults to current working directory)
 - **Generates**:
   - `requirements.md` (from recipe template)
   - `backlog.md` (from recipe template)
   - `tech-specs.md` (from recipe template)
   - `tasks/` directory structure
   - `AWP.md` (from AWP recipe)
+  - Root files: `README.md`, `commitStandard.md`, `ASDLC.md`
 
 ### B. Resources (Read-Only Content)
 
@@ -75,7 +78,7 @@ The server is an **MCP (Model Context Protocol) server** that exposes tools and 
 - `extractTemplateFromRecipe()` - Extracts template section from recipe
 - `populateTemplate()` - Replaces placeholders with actual data
 - `createProjectBacklog()` - Generates backlog markdown
-- `createInitialTasks()` - Creates task files
+- `createInitialTasks()` - Creates task files (top-level tasks use `task-{id}.0.md` for correct sort order)
 - `parseBaseMd()` - Parses `base.md` to extract data
 
 ## 3. Complete Workflow
@@ -113,12 +116,14 @@ If user said "I don't know":
   User: Reviews, accepts, or modifies
 
 ┌─────────────────────────────────────────────────────────────┐
-│ STEP 4: Create base.md (base tool - MODE 2)                  │
+│ STEP 4: Create user.md + base.md (base tool - MODE 2)        │
 └─────────────────────────────────────────────────────────────┘
 AI: Calls base tool (with all params)
     ↓
 base.ts:
   - Creates directory: agentic-sdlc/backlog-<name>/<type>/
+  - Agent passes userSource and/or userSourceFile (first message or repo file)
+  - Creates user.md with raw user input
   - Creates base.md with all agreed information
   - Format: "Base: AWP Project Foundation Agreement"
 
@@ -152,6 +157,7 @@ User: Works on project following:
   - Recipe methodologies (from recipe resources)
   - AWP protocol (from AWP.md)
   - Task structure (from tasks/)
+  - Unplanned task rules (see **Unplanned Tasks (AI Instructions)** under section 9)
 ```
 
 ## 4. Recipe System
@@ -195,7 +201,7 @@ recommend tool (if needed) → Recommendations
     ↓
 User Confirms
     ↓
-base tool (MODE 2) → base.md
+base tool (MODE 2) → user.md + base.md
     ↓
 init tool → Reads base.md
     ↓
@@ -265,12 +271,13 @@ After initialization, your project will have:
 agentic-sdlc/
 ├── backlog-<name>/
 │   └── <type>/          # mvp, poc, or pro
+│       ├── user.md              # Raw user input (before base.md)
 │       ├── base.md              # AWP Project Foundation Agreement
 │       ├── requirements.md      # Project requirements
 │       ├── backlog.md           # Project backlog
 │       ├── tech-specs.md        # Technical specifications
 │       └── tasks/
-│           ├── planned/         # Active tasks
+│           ├── planned/         # task-1.0.md, task-1.1.md, task-1.2.1.md (flat layout)
 │           ├── unplanned/       # Unplanned tasks (U- prefix)
 │           └── completed/      # Completed tasks
 ├── README.md
@@ -278,6 +285,76 @@ agentic-sdlc/
 ├── AWP.md
 └── commitStandard.md
 ```
+
+### After init — how to begin
+
+Init scaffolds the backlog and starts Kanban. Tasks are created from **base.md phases** and enriched from **user.md** when present. The agent must **ask you** which command to run:
+
+| Command | Use when |
+|---------|----------|
+| **`awp refine`** | **After init** when `user.md` is comprehensive — slice/review tasks, human approves before coding |
+| **`awp start`** | **First task** after init/refine (readiness checks + mark task In Progress) |
+| `awp next` | One task at a time |
+| `awp auto` / `awp auto strict` | All remaining tasks — **strict loop** (one task, one commit, one Kanban move per iteration) |
+
+**Making `awp auto` unambiguous** — say `awp auto strict` or paste from the Kanban **Auto** button. Add constraints in chat if needed: *one commit per task, backlog_sync each step, checkpoint report after each task*. See `.cursor/rules/awp-auto.mdc` in this repo.
+
+**`awp start` readiness** (before coding): Kanban visible, AWP.md + first task read, `awp check`, then `backlog_sync` with `startTaskId` (e.g. `"1.0"`).
+
+### Task File Naming
+
+Task files use a flat layout within each status folder (no nested subdirectories for hierarchy):
+
+- **Planned tasks** → `tasks/planned/`
+- **Unplanned tasks** → `tasks/unplanned/`
+- **Completed tasks** → `tasks/completed/`
+
+ID and filename conventions:
+
+- **Level 1 (top-level parent)**: `task-1.0.md`, `task-2.0.md` — `.0` suffix ensures correct alphabetical sort (parent before children)
+- **Level 2 (tasks)**: `task-1.1.md`, `task-1.2.md`, `task-2.1.md`
+- **Level 3 (subtasks)**: `task-1.2.1.md`, `task-1.2.2.md`
+- **Unplanned**: `task-U-1.md`, `task-U-1.1.md` (or `task-U-1.0.md` for top-level unplanned)
+
+### Unplanned Tasks (AI Instructions)
+
+**For AI agents consuming this MCP server:** Unplanned tasks are not created by `base` or `init`. They are added **during development** when work is discovered that was not in the original backlog. Read the type-specific backlog recipe (`get_*_backlog_recipe` tool) — especially `pro-backlog-recipe.md` section 5 — and follow `AWP.md` procedure 1.8.
+
+#### When is something an unplanned task?
+
+Not everything "missing" during development is unplanned. Use this decision guide:
+
+| Situation | What to create | Where |
+|-----------|----------------|-------|
+| A step needed to **finish a planned task** you are already working on | **Subtask** (e.g., `1.2.1`) | `tasks/planned/task-1.2.1.md` |
+| New work **not in original backlog or requirements** (forgotten feature, new requirement, bug fix, scope expansion) | **Unplanned task** (`U-1`, `U-1.1`) | `tasks/unplanned/task-U-1.md` |
+| A **concern or risk** to track, not yet actionable work | **Risk entry** (`R.1`, `R.2`) | `AWP.md` → Risks Tasks section |
+| Unsure whether it belongs in planned or unplanned scope | **Ask the human** before creating | — |
+
+**Examples:**
+- Implementing task 1.2 and realizing you need a database migration script → **subtask** `1.2.1` under the planned task
+- Discovering the app needs login, but auth was never in requirements or backlog → **unplanned** `U-1`
+- Fixing a bug found while working on task 2.0 → if **out of scope**, **unplanned** `U-2` (per AWP §2.7); if **required to finish 2.0**, commit `fix(scope 2.0): …` on the active task
+- Noticing the architecture may not scale — worth tracking but not a task yet → **risk** `R.1` in AWP.md
+
+#### How to create an unplanned task (step-by-step)
+
+1. **Confirm with the human** before creating U- tasks (required by backlog recipes)
+2. **Assign the next U- ID** (e.g., `U-1`, then `U-2`; use `U-1.1` for child work under `U-1`)
+3. **Create the task file** at `tasks/unplanned/task-U-1.md` using the same schema as planned tasks (see backlog recipe section 3)
+4. **Update `backlog.md`** — add a link under the `## Unplanned Tasks` section:
+   `- [ ] [Task U-1: Title](tasks/unplanned/task-U-1.md)`
+5. **Log in `AWP.md`** — add an entry under the `## Unplanned Tasks` section (AWP procedure 1.8)
+6. **Notify the human** that a new unplanned task was added
+
+#### What `init` creates vs what you add later
+
+| Created by `init` | Added during development |
+|-------------------|--------------------------|
+| `tasks/planned/` with Level 1 tasks (`task-1.0.md`, …) | Subtasks (`task-1.1.md`, `task-1.2.1.md`, …) |
+| Empty `tasks/unplanned/` directory | Unplanned tasks (`task-U-*.md`) |
+| `backlog.md` with Planned Tasks section populated | Updates to Unplanned Tasks section in `backlog.md` |
+| `AWP.md` from awp-recipe | Entries in AWP.md Unplanned Tasks and Risks sections |
 
 ## 10. Technical Details
 
@@ -288,17 +365,152 @@ agentic-sdlc/
 - Handles requests via `CallToolRequestSchema` and `ReadResourceRequestSchema`
 
 ### Module Organization
-- `src/index.ts` - Server setup and routing (553 lines)
-- `src/tools/` - Tool handlers (base, init, recommend)
-- `src/resources/` - Resource handlers (recipes)
+- `src/index.ts` - Server setup and routing
+- `src/tools/` - Tool handlers (base, init, recommend, backlog_sync)
+- `src/resources/` - Resource handlers (recipes, backlog snapshot)
+- `src/backlog/` - Kanban compiler, watcher CLI, and HTTP server
 - `src/utils/` - Shared helper functions
 - `src/recipes/` - Recipe markdown files
-- `src/templates/` - Template files (README, commitStandard)
+- `src/templates/` - Template files (README, commitStandard, kanban)
 
 ### Recipe Access
-- **As Tools**: `get_mvp_backlog_recipe` → Returns recipe content
-- **As Resources**: `recipe://mvp-backlog-recipe` → Direct URI access
+- **As Tools**: `get_mvp_backlog_recipe`, `get_awp_recipe` → Returns recipe content
+- **As Resources**: `recipe://mvp-backlog-recipe`, `recipe://awp-recipe` → Direct URI access
 - Both methods return the same recipe content
+
+## 11. Live Kanban Board
+
+The Kanban board is a **read-only** live view of your markdown backlog. Markdown stays the source of truth; the board is compiled into JSON and served over HTTP.
+
+### Directory layout
+
+```
+agentic-sdlc/
+├── backlog-<name>/
+│   └── <type>/
+│       ├── user.md          ← raw user input (preserved before base.md)
+│       ├── base.md          ← foundation agreement (shown in modal)
+│       ├── backlog.md
+│       └── tasks/
+│           ├── planned/     ← In Progress inferred from # Status: [~]
+│           ├── unplanned/
+│           └── completed/
+└── kanban/                  ← generated viewer + JSON + in-repo runner
+    ├── index.html
+    ├── backlog.json
+    ├── package.json
+    ├── runner/
+    ├── KANBAN.md
+    ├── activity.json
+    └── .kanban-config.json  ← includes appDir for MCP resources
+```
+
+### Column rules
+
+| Column | Rule |
+|--------|------|
+| Unplanned | File in `tasks/unplanned/` |
+| Planned | File in `tasks/planned/` with `# Status: [ ] Pending` |
+| In Progress | File in `tasks/planned/` with `# Status: [~] In Progress` |
+| Completed | File in `tasks/completed/` |
+
+### After `init`
+
+The Kanban board **starts automatically** when `init` completes. It opens in **Cursor/VS Code Simple Browser** when available (integrated preview beside your code); otherwise your **system browser** opens at http://localhost:4173.
+
+To start manually:
+
+```bash
+cd agentic-sdlc/kanban && npm run watch
+```
+
+Preview/browser open is automatic. Environment overrides:
+
+| Variable | Effect |
+|----------|--------|
+| `AWP_KANBAN_NO_OPEN=1` | Do not open any window |
+| `AWP_KANBAN_FORCE_BROWSER=1` | Skip Cursor preview; use system browser only |
+
+When the AI edits task `.md` files, the board updates within ~1s (file watcher + SSE). The board also polls every 5s as a fallback.
+
+**Agents must update task markdown** on every `awp update` / `awp commit` / `awp next`:
+
+1. **Finish task:** `# Status: [x] Completed` → move file to `tasks/completed/`
+2. **Start task:** `# Status: [~] In Progress` in `tasks/planned/` (only **one** at a time)
+3. **Other planned tasks:** `# Status: [ ] Pending`
+4. Append lines under `## Activity` with a timestamp
+
+The board shows a **status warning** when rules are violated (e.g. no In Progress task while work continues, multiple In Progress, completed status still in `planned/`).
+
+See `agentic-sdlc/kanban/KANBAN.md` for copy-paste instructions agents can quote to users.
+
+### AWP command bar (Kanban UI)
+
+The board header includes AWP procedure buttons (`AWP.md`):
+
+| Button | Copies to clipboard |
+|--------|---------------------|
+| Refine | `awp refine` — slice tasks from user.md before start |
+| Check | `awp check` — review state, restore context |
+| **Start** | **`awp start`** — first task after init (readiness + Kanban sync) |
+| Update | `awp update` |
+| Commit | `awp commit` |
+| **Test** | **`awp test`** — run tests; on success **must commit** `test(scope id): …` |
+| **Fix** | **`awp fix`** — fix bug; on verified fix **must commit** `fix(scope id): …` |
+| Next | `awp next` — one task (update → commit → next) |
+| **Auto** | **`awp auto`** — all remaining tasks in a strict per-task loop |
+| Handoff | `awp handoff` |
+
+Hover a button for its description, click to copy, then paste into the agent chat. The board is read-only; commands run in the IDE agent, not in the browser.
+
+**After init** — agent asks you to pick **`awp start`** (recommended), **`awp next`**, or **`awp auto`**.
+
+**`awp start`** — readiness checks (Kanban, AWP.md, first task, `awp check`), then `backlog_sync` `startTaskId` for task 1. Use **`awp next`** for subsequent tasks.
+
+**`awp next`** — mandatory sequence per task: **update → commit → next** (see AWP.md).
+
+**`awp test`** — run project tests (and lint/typecheck when available). On **success**, **must commit** with `test(scope taskId): subject`. On failure, use **`awp fix`** or hand off — do not commit red builds.
+
+**`awp fix`** — fix a bug on the active task or unplanned `U-n`. On **verified** fix, **must commit** with `fix(scope taskId): subject`. Does not complete the task — use **`awp next`** when acceptance criteria are met.
+
+**`awp auto`** — a **strict per-task loop**, not one bulk delivery:
+1. `backlog_sync` `startTaskId` → implement **that task only** → **`awp test`** (commit on green) → **`feat`/`fix` commit** → `backlog_sync` `completeTaskId` + next `startTaskId`
+2. Repeat for 2.0, 3.0, … until planned is empty
+3. **Never** one commit covering `1.0-9.0` or all phases. Kanban must show each card complete before the next starts.
+
+### Agent commits panel
+
+The **Agent commits** section lists recent git commits from the project root that match the AWP commit standard (`type(scope step): subject` from `commitStandard.md`). This surfaces work the agent committed during the workflow.
+
+- Live API: `GET /api/commits.json` (filtered to AWP-format commits)
+- All commits: `GET /api/commits.json?all=1`
+- Refreshes automatically when git HEAD changes (server watches `.git`) and every 3s via polling
+
+Requires a git repository at `appDir` (from `.kanban-config.json`).
+
+### MCP tools and resources
+
+| Name | Purpose |
+|------|---------|
+| `backlog_sync` | Recompile `kanban/backlog.json` from markdown (pass `appDir`) |
+| `backlog://<name>/snapshot` | Read compiled JSON for agent context |
+
+Set `AGENTIC_SDLC_APP_DIR` to your project root in MCP config if the server cwd is not your project (so snapshot resources resolve correctly).
+
+### In-repo NPM scripts (`agentic-sdlc/kanban/`)
+
+- `npm run sync` — one-shot compile
+- `npm run open` — sync + open preview (when server already running on 4173)
+- `npm run watch` — watch + serve on port 4173
+- `npm run serve` — serve only
+
+### MCP package scripts (developers only)
+
+When working on the `mcp-agentic-sdlc` repo itself:
+
+- `npm run backlog:sync` — one-shot compile
+- `npm run backlog:watch` — watch + serve (optional `--appDir`)
+- `npm run backlog:serve` — serve only
 
 ---
 
