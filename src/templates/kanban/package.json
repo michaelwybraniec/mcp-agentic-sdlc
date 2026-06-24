@@ -2,6 +2,7 @@
   "name": "awp-kanban",
   "private": true,
   "scripts": {
+    "open": "node runner/cli.js open",
     "watch": "node runner/cli.js watch",
     "sync": "node runner/cli.js sync",
     "serve": "node runner/cli.js serve"

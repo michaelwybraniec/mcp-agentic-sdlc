@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AWP Kanban</title>
   <style>
+    :root { color-scheme: light; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -57,8 +58,9 @@
       bottom: calc(100% + 8px);
       transform: translateX(-50%);
       padding: 8px 10px;
-      background: #111;
-      color: #fff;
+      background: #fff;
+      color: #333;
+      border: 1px solid #e5e5e5;
       font-size: 11px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-weight: 400;
@@ -67,8 +69,8 @@
       white-space: normal;
       width: max-content;
       max-width: 260px;
-      border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
@@ -82,7 +84,7 @@
       bottom: calc(100% + 2px);
       transform: translateX(-50%);
       border: 6px solid transparent;
-      border-top-color: #111;
+      border-top-color: #e5e5e5;
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
@@ -100,11 +102,13 @@
       position: fixed;
       top: 16px;
       right: 16px;
-      background: #111;
-      color: #fff;
+      background: #fff;
+      color: #333;
+      border: 1px solid #e5e5e5;
       font-size: 12px;
       padding: 8px 12px;
-      border-radius: 4px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       z-index: 300;
       opacity: 0;
       transition: opacity 0.2s;
@@ -144,8 +148,17 @@
       font-size: 13px;
       text-decoration: underline;
     }
-    .board {
-      display: grid;
+    .board-hint {
+      margin: 0 24px 12px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #555;
+      background: #f8faff;
+      border: 1px solid #dbeafe;
+      border-radius: 6px;
+      line-height: 1.45;
+    }
+    .board-hint strong { color: #1e40af; font-weight: 600; }
       grid-template-columns: repeat(4, 1fr);
       gap: 12px;
       padding: 16px 24px;
@@ -303,6 +316,8 @@
     </h4>
     <ul id="commits-list"><li class="empty">Loading…</li></ul>
   </div>
+
+  <p class="board-hint" id="board-hint"><strong>Live board</strong> updates when agents edit task <code>.md</code> files: set <code># Status</code>, append <code>## Activity</code>, move to <code>tasks/completed/</code>. Git commits and app code alone do not move cards.</p>
 
   <div class="board" id="board"></div>
 
@@ -621,6 +636,9 @@
     fetchData().then(() => {
       connectSse();
       fetchCommits();
+      setInterval(() => {
+        fetchData().catch(() => setLive(false));
+      }, 5000);
     }).catch((e) => {
       console.error(e);
       setLive(false);

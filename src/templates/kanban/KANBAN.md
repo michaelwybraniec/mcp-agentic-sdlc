@@ -15,6 +15,14 @@ npm run watch
 
 Environment: `AWP_KANBAN_NO_OPEN=1` disables open; `AWP_KANBAN_FORCE_BROWSER=1` skips preview and uses the external browser only. CLI flag: `npm run watch -- --no-open`
 
+If port 4173 is already in use, `watch` syncs backlog, opens preview, and **still watches** task markdown for live updates:
+
+```bash
+npm run open    # sync + open preview only (use when board is already running)
+```
+
+**Agents**: the board updates only when task `.md` files change (`# Status`, `## Activity`, move to `tasks/completed/`). Git commits and app code alone do not move cards.
+
 ### AWP command bar
 
 The board header includes buttons for common AWP chat commands: **Start**, **Update**, **Commit**, **Next**, **Check**, **Handoff**. Click a button to copy the command (e.g. `awp next`) — paste it into your agent chat.

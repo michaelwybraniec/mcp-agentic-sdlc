@@ -143,6 +143,9 @@ Phase ${index + 1} of ${overview.length}: ${phase}
 - [ ] Test and validate implementation
 - [ ] Document phase completion
 
+## Activity
+- ${new Date().toISOString().slice(0, 16).replace('T', ' ')} — Task created
+
 ## Completed
 [ ] Pending`;
     

@@ -328,6 +328,7 @@ Add risk tasks below:
         3.1.2. Second: Execute "awp commit" (commit any pending changes)
         3.1.3. Third: Execute "awp next" (move to next actionable step)
         3.1.4. You MAY NOT skip any step in this sequence.
+        3.1.5. **Live Kanban**: On update/commit/next, edit the active task `.md` — set `# Status`, append `## Activity`, move to `tasks/completed/` when done. Code commits alone do not update the board.
 
     3.2. If you attempt to execute "awp next" without first completing "awp update" and "awp commit", you MUST stop and ask the human for permission to skip steps.
 

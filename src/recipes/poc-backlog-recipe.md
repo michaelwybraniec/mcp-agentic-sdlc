@@ -124,6 +124,16 @@ Designed to be both **human- and AI-friendly**.
    - Parent tasks are only complete when ALL subtasks are complete
    - Tasks start as `[ ] Pending` - NEVER mark complete until all criteria met
 
+2.10 **Live Kanban board** — the board at `agentic-sdlc/kanban/` updates ONLY when task markdown changes:
+
+  2.10.1 On **awp update / awp next / awp commit**, edit the active task file under `tasks/planned/` or move it to `tasks/completed/`
+
+  2.10.2 Set `# Status: [~] In Progress` when starting; `[x] Completed` or move file to `completed/` when done
+
+  2.10.3 Append to `## Activity` with timestamp (e.g. `- 2026-06-24 10:00 — Started scaffold`)
+
+  2.10.4 Code commits alone do NOT update the board — task `.md` is the source of truth for Kanban columns
+
 ## 3. POC Task Schema Definition (Markdown Format)
 
 Each POC task should be created as a separate Markdown file with the following structure (based on pro-backlog-recipe.md with POC adaptations):

@@ -2,8 +2,10 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import { detectAppDirForCli, getAgenticSdlcDir, syncBacklog } from './compiler.js';
-import { broadcastSse, readPortFromConfig, startKanbanServer } from './server.js';
+import { broadcastSse, isPortInUse, kanbanBoardUrl, readPortFromConfig, startKanbanServer } from './server.js';
+import { openKanbanInBrowser } from './launch.js';
 import { taskIdFromFilename } from './parser.js';
+import { watchBacklogPaths } from './watchBacklog.js';
 
 function parseArgs(argv: string[]): Record<string, string | boolean> {
   const out: Record<string, string | boolean> = { command: argv[0] || 'sync' };
@@ -36,32 +38,40 @@ function runSync(appDir?: string): void {
   console.log(`Synced backlog.json (${Object.keys(snapshot.tasks).length} tasks)`);
 }
 
-function watchWithFs(watchPaths: string[], onChange: (filePath: string) => void): void {
-  const watched = new Set<string>();
-
-  for (const watchPath of watchPaths) {
-    if (!fs.existsSync(watchPath)) continue;
-
-    const stat = fs.statSync(watchPath);
-    if (stat.isDirectory()) {
-      for (const name of fs.readdirSync(watchPath)) {
-        const child = path.join(watchPath, name);
-        if (!watched.has(child)) {
-          watched.add(child);
-          fs.watch(child, () => onChange(child));
-        }
-      }
-      fs.watch(watchPath, (_event, filename) => {
-        if (filename) onChange(path.join(watchPath, filename));
-      });
-    } else {
-      watched.add(watchPath);
-      fs.watch(watchPath, () => onChange(watchPath));
-    }
+async function runOpen(appDir?: string, portOverride?: number): Promise<void> {
+  const { agentic, kanban } = getDirs(appDir);
+  if (!fs.existsSync(kanban)) {
+    console.error(`kanban/ not found at ${kanban}. Run init first.`);
+    process.exit(1);
   }
+  syncBacklog(agentic);
+  const port = portOverride ?? readPortFromConfig(kanban);
+  const url = kanbanBoardUrl(port);
+  openKanbanInBrowser(url);
+  console.log(`Opened Kanban preview: ${url}`);
 }
 
-function runWatch(appDir?: string, portOverride?: number, openBrowser = true): void {
+function startFileWatcher(agentic: string, backlogDir: string): void {
+  watchBacklogPaths(backlogDir, (filePath) => {
+    const changedFiles = filePath ? [path.basename(filePath)] : [];
+    const taskIds = changedFiles.map((f) => taskIdFromFilename(f)).filter(Boolean);
+
+    syncBacklog(agentic, changedFiles.length ? changedFiles : undefined);
+    broadcastSse({
+      type: 'backlog_updated',
+      changedFiles,
+      taskIds,
+    });
+    if (filePath) {
+      const rel = path.relative(agentic, filePath).replace(/\\/g, '/');
+      console.log(`Updated: ${rel}`);
+    } else {
+      console.log('Updated: backlog markdown');
+    }
+  });
+}
+
+async function runWatch(appDir?: string, portOverride?: number, openBrowser = true): Promise<void> {
   const { agentic, kanban } = getDirs(appDir);
   if (!fs.existsSync(kanban)) {
     console.error(`kanban/ not found at ${kanban}. Run init first.`);
@@ -72,35 +82,19 @@ function runWatch(appDir?: string, portOverride?: number, openBrowser = true): v
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   const backlogDir = path.join(agentic, config.backlogPath);
   const port = portOverride ?? readPortFromConfig(kanban);
+  const url = kanbanBoardUrl(port);
 
   syncBacklog(agentic);
+
+  if (await isPortInUse(port)) {
+    if (openBrowser) openKanbanInBrowser(url);
+    startFileWatcher(agentic, backlogDir);
+    console.log(`Kanban already running at ${url} — watching markdown for live updates`);
+    return;
+  }
+
   startKanbanServer(kanban, port, { openBrowser });
-
-  const watchPaths = [
-    path.join(backlogDir, 'tasks'),
-    path.join(backlogDir, 'base.md'),
-    path.join(backlogDir, 'backlog.md'),
-  ];
-
-  let debounce: ReturnType<typeof setTimeout> | null = null;
-
-  watchWithFs(watchPaths, (filePath) => {
-    if (debounce) clearTimeout(debounce);
-    debounce = setTimeout(() => {
-      const rel = path.relative(agentic, filePath).replace(/\\/g, '/');
-      const changedFiles = [path.basename(filePath)];
-      const taskIds = changedFiles.map((f) => taskIdFromFilename(f)).filter(Boolean);
-
-      syncBacklog(agentic, changedFiles);
-      broadcastSse({
-        type: 'backlog_updated',
-        changedFiles,
-        taskIds,
-      });
-      console.log(`Updated: ${rel}`);
-    }, 200);
-  });
-
+  startFileWatcher(agentic, backlogDir);
   console.log(`Watching ${backlogDir}`);
 }
 
@@ -111,31 +105,28 @@ function runServe(appDir?: string, portOverride?: number, openBrowser = false): 
   startKanbanServer(kanban, port, { openBrowser });
 }
 
-export function main(argv: string[]): void {
+export async function main(argv: string[]): Promise<void> {
   const args = parseArgs(argv);
   const cmd = args.command;
+  const port = args.port ? parseInt(args.port as string, 10) : undefined;
 
   if (cmd === 'sync') {
     runSync(args.appDir as string | undefined);
+  } else if (cmd === 'open') {
+    await runOpen(args.appDir as string | undefined, port);
   } else if (cmd === 'watch') {
-    const openBrowser = !args.noOpen;
-    runWatch(
-      args.appDir as string | undefined,
-      args.port ? parseInt(args.port as string, 10) : undefined,
-      openBrowser
-    );
+    await runWatch(args.appDir as string | undefined, port, !args.noOpen);
   } else if (cmd === 'serve') {
-    runServe(
-      args.appDir as string | undefined,
-      args.port ? parseInt(args.port as string, 10) : undefined,
-      !args.noOpen
-    );
+    runServe(args.appDir as string | undefined, port, !args.noOpen);
   } else {
-    console.log('Usage: backlog <sync|watch|serve> [--appDir path] [--port 4173] [--no-open]');
+    console.log('Usage: backlog <sync|open|watch|serve> [--appDir path] [--port 4173] [--no-open]');
     process.exit(1);
   }
 }
 
 if (require.main === module) {
-  main(process.argv.slice(2));
+  main(process.argv.slice(2)).catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
 }

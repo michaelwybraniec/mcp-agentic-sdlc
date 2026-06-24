@@ -416,7 +416,15 @@ Preview/browser open is automatic. Environment overrides:
 | `AWP_KANBAN_NO_OPEN=1` | Do not open any window |
 | `AWP_KANBAN_FORCE_BROWSER=1` | Skip Cursor preview; use system browser only |
 
-When the AI edits task `.md` files, the board updates within ~1s (file watcher + SSE).
+When the AI edits task `.md` files, the board updates within ~1s (file watcher + SSE). The board also polls every 5s as a fallback.
+
+**Agents must update task markdown** on every `awp update` / `awp commit` / `awp next`:
+
+1. Set `# Status: [~] In Progress` when starting a task; `[x] Completed` when done
+2. Append lines under `## Activity` with a timestamp (e.g. `- 2026-06-24 10:00 — Started scaffold`)
+3. Move the file to `tasks/completed/` when the task is finished
+
+Git commits and application code **do not** move Kanban cards — only changes to task `.md` files (or `backlog_sync`) recompile the board.
 
 See `agentic-sdlc/kanban/KANBAN.md` for copy-paste instructions agents can quote to users.
 
@@ -459,6 +467,7 @@ Set `AGENTIC_SDLC_APP_DIR` to your project root in MCP config if the server cwd 
 ### In-repo NPM scripts (`agentic-sdlc/kanban/`)
 
 - `npm run sync` — one-shot compile
+- `npm run open` — sync + open preview (when server already running on 4173)
 - `npm run watch` — watch + serve on port 4173
 - `npm run serve` — serve only
 

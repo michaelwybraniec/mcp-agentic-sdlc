@@ -33,15 +33,34 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.isPortInUse = isPortInUse;
+exports.kanbanBoardUrl = kanbanBoardUrl;
 exports.broadcastSse = broadcastSse;
 exports.startKanbanServer = startKanbanServer;
 exports.readPortFromConfig = readPortFromConfig;
 const http = __importStar(require("http"));
+const net = __importStar(require("net"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const compiler_js_1 = require("./compiler.js");
 const launch_js_1 = require("./launch.js");
 const gitCommits_js_1 = require("./gitCommits.js");
+/** True if something is already listening on the port. */
+function isPortInUse(port, host = '127.0.0.1') {
+    return new Promise((resolve) => {
+        const tester = net.createServer();
+        tester.once('error', (err) => {
+            resolve(err.code === 'EADDRINUSE');
+        });
+        tester.once('listening', () => {
+            tester.close(() => resolve(false));
+        });
+        tester.listen(port, host);
+    });
+}
+function kanbanBoardUrl(port) {
+    return `http://localhost:${port}`;
+}
 const sseClients = new Set();
 function broadcastSse(payload) {
     const data = `data: ${JSON.stringify(payload)}\n\n`;
@@ -130,11 +149,23 @@ function startKanbanServer(kanbanDir, port, options) {
         res.end(fs.readFileSync(abs));
     });
     server.listen(port, () => {
-        const url = `http://localhost:${port}`;
+        const url = kanbanBoardUrl(port);
         console.log(`Kanban board: ${url}`);
         if (options?.openBrowser !== false) {
             (0, launch_js_1.openKanbanInBrowser)(url);
         }
+    });
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            const url = kanbanBoardUrl(port);
+            console.log(`Port ${port} already in use — Kanban likely already running at ${url}`);
+            if (options?.openBrowser !== false) {
+                (0, launch_js_1.openKanbanInBrowser)(url);
+            }
+            return;
+        }
+        console.error(err);
+        process.exit(1);
     });
     return server;
 }

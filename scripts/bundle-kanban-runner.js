@@ -16,6 +16,7 @@ const files = [
   'types.js',
   'launch.js',
   'gitCommits.js',
+  'watchBacklog.js',
 ];
 
 if (!fs.existsSync(distBacklog)) {

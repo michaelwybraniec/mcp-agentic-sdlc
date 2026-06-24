@@ -1,4 +1,5 @@
 import * as http from 'http';
+import * as net from 'net';
 import * as fs from 'fs';
 import * as path from 'path';
 import { KanbanConfig } from './types.js';
@@ -8,6 +9,24 @@ import { loadAgentCommits, loadGitCommits } from './gitCommits.js';
 
 export interface KanbanServerOptions {
   openBrowser?: boolean;
+}
+
+/** True if something is already listening on the port. */
+export function isPortInUse(port: number, host = '127.0.0.1'): Promise<boolean> {
+  return new Promise((resolve) => {
+    const tester = net.createServer();
+    tester.once('error', (err: NodeJS.ErrnoException) => {
+      resolve(err.code === 'EADDRINUSE');
+    });
+    tester.once('listening', () => {
+      tester.close(() => resolve(false));
+    });
+    tester.listen(port, host);
+  });
+}
+
+export function kanbanBoardUrl(port: number): string {
+  return `http://localhost:${port}`;
 }
 
 export type SsePayload = {
@@ -81,7 +100,7 @@ export function startKanbanServer(
     if (url === '/api/commits.json') {
       const config = readKanbanConfig(kanbanDir);
       const appDir = config?.appDir ? path.resolve(config.appDir) : '';
-    const agentOnly = !req.url?.includes('all=1');
+      const agentOnly = !req.url?.includes('all=1');
       const commits = appDir
         ? agentOnly
           ? loadAgentCommits(appDir)
@@ -118,11 +137,24 @@ export function startKanbanServer(
   });
 
   server.listen(port, () => {
-    const url = `http://localhost:${port}`;
+    const url = kanbanBoardUrl(port);
     console.log(`Kanban board: ${url}`);
     if (options?.openBrowser !== false) {
       openKanbanInBrowser(url);
     }
+  });
+
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      const url = kanbanBoardUrl(port);
+      console.log(`Port ${port} already in use — Kanban likely already running at ${url}`);
+      if (options?.openBrowser !== false) {
+        openKanbanInBrowser(url);
+      }
+      return;
+    }
+    console.error(err);
+    process.exit(1);
   });
 
   return server;
