@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.readKanbanConfig = readKanbanConfig;
 exports.writeKanbanConfig = writeKanbanConfig;
 exports.resolveAppDir = resolveAppDir;
+exports.resolveAppDirFromKanban = resolveAppDirFromKanban;
 exports.discoverKanbanContext = discoverKanbanContext;
 exports.compileBacklog = compileBacklog;
 exports.syncBacklog = syncBacklog;
@@ -80,6 +81,31 @@ function resolveAppDir(config, fallback) {
         }
     }
     return path.resolve(fallback || process.cwd());
+}
+/**
+ * Project root for git history / commits API.
+ * Resolves relative appDir against the kanban tree (not process.cwd), so
+ * `npm run watch` from agentic-sdlc/kanban still finds the repo .git.
+ */
+function resolveAppDirFromKanban(kanbanDir, config) {
+    const kanban = path.resolve(kanbanDir);
+    const inferred = path.resolve(kanban, '..', '..');
+    const cfg = config ?? readKanbanConfig(kanban);
+    if (cfg?.appDir) {
+        const fromConfig = path.isAbsolute(cfg.appDir)
+            ? path.resolve(cfg.appDir)
+            : path.resolve(inferred, cfg.appDir);
+        if (fs.existsSync(path.join(fromConfig, '.git'))) {
+            return fromConfig;
+        }
+        if (fs.existsSync(path.join(fromConfig, 'agentic-sdlc', 'kanban'))) {
+            return fromConfig;
+        }
+    }
+    if (fs.existsSync(path.join(inferred, '.git'))) {
+        return inferred;
+    }
+    return resolveAppDir(cfg, inferred);
 }
 /** Locate kanban config from explicit dir, cwd, or AGENTIC_SDLC_APP_DIR. */
 function discoverKanbanContext(baseDir) {
@@ -244,7 +270,7 @@ function compileBacklog(agenticSdlcDir, config, options) {
     };
     snapshot._warnings = [...warnings, ...snapshot.boardHealth.warnings];
     let inferredId = '';
-    const appDir = config.appDir ? path.resolve(config.appDir) : '';
+    const appDir = resolveAppDirFromKanban(kanbanDir, config);
     if (appDir) {
         const latestAgent = (0, gitCommits_js_1.loadAgentCommits)(appDir, 1)[0];
         const latestAny = (0, gitCommits_js_1.loadGitCommits)(appDir, 1)[0];
@@ -340,7 +366,7 @@ function syncBacklog(agenticSdlcDir, changedFiles) {
     }
     const timeStore = (0, timeTracking_js_1.updateTimeTracking)(kanbanDir, prev, snapshot);
     (0, timeTracking_js_1.enrichSnapshotWithTime)(snapshot, timeStore);
-    const appDir = snapshot.config.appDir ? path.resolve(snapshot.config.appDir) : '';
+    const appDir = resolveAppDirFromKanban(kanbanDir, snapshot.config);
     if (appDir) {
         snapshot.appRun = (0, appRun_js_1.ensureRunAppScript)(appDir);
     }
@@ -378,8 +404,8 @@ function detectAppDirForCli(explicitAppDir) {
     }
     for (const kanbanDir of kanbanCandidates) {
         const config = readKanbanConfig(kanbanDir);
-        if (config?.appDir) {
-            return path.resolve(config.appDir);
+        if (config) {
+            return resolveAppDirFromKanban(kanbanDir, config);
         }
     }
     return process.cwd();

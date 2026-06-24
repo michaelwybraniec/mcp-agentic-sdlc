@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   discoverKanbanContext,
-  getAgenticSdlcDir,
   readKanbanConfig,
+  resolveAppDirFromKanban,
   writeKanbanConfig,
 } from '../backlog/compiler.js';
 
@@ -67,12 +67,15 @@ export function handleBacklogUri(
   };
 }
 
-/** Ensure .kanban-config.json includes appDir after backlog_sync. */
+/** Ensure .kanban-config.json includes absolute appDir after backlog_sync. */
 export function ensureKanbanAppDir(agenticDir: string, appDir: string): void {
   const kanbanDir = path.join(agenticDir, 'kanban');
   const config = readKanbanConfig(kanbanDir);
   if (!config) return;
-  const resolved = path.resolve(appDir);
+  const resolved = resolveAppDirFromKanban(kanbanDir, {
+    ...config,
+    appDir: path.resolve(appDir),
+  });
   if (config.appDir !== resolved) {
     config.appDir = resolved;
     writeKanbanConfig(kanbanDir, config);

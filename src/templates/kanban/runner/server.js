@@ -142,7 +142,7 @@ function startKanbanServer(kanbanDir, port, options) {
         }
         if (url === '/api/commits.json') {
             const config = (0, compiler_js_1.readKanbanConfig)(kanbanDir);
-            const appDir = config?.appDir ? path.resolve(config.appDir) : '';
+            const appDir = (0, compiler_js_1.resolveAppDirFromKanban)(kanbanDir, config);
             const agentOnly = !req.url?.includes('all=1');
             const commits = appDir
                 ? agentOnly
@@ -193,8 +193,8 @@ function startKanbanServer(kanbanDir, port, options) {
         }
         if (!gitWatchStarted) {
             const config = (0, compiler_js_1.readKanbanConfig)(kanbanDir);
-            const appDir = config?.appDir ? path.resolve(config.appDir) : '';
-            if (appDir) {
+            const appDir = (0, compiler_js_1.resolveAppDirFromKanban)(kanbanDir, config);
+            if (appDir && fs.existsSync(path.join(appDir, '.git'))) {
                 (0, watchGit_js_1.watchGitHead)(appDir, () => broadcastSse({ type: 'commits_updated' }));
                 gitWatchStarted = true;
             }

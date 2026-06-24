@@ -92,6 +92,9 @@ async function runWatch(appDir?: string, portOverride?: number, openBrowser = tr
     if (openBrowser) openKanbanInBrowser(url);
     startFileWatcher(agentic, backlogDir);
     console.log(`Kanban already running at ${url} — watching markdown for live updates`);
+    console.warn(
+      'Agent commits API is served by the existing process — restart watch (stop port 4173, then npm run watch) after MCP upgrades.'
+    );
     return;
   }
 

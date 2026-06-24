@@ -3,7 +3,7 @@ import * as net from 'net';
 import * as fs from 'fs';
 import * as path from 'path';
 import { KanbanConfig } from './types.js';
-import { readKanbanConfig } from './compiler.js';
+import { readKanbanConfig, resolveAppDirFromKanban } from './compiler.js';
 import { openKanbanInBrowser } from './launch.js';
 import { loadAgentCommits, loadGitCommits } from './gitCommits.js';
 import { loadActivityLog } from './activity.js';
@@ -127,7 +127,7 @@ export function startKanbanServer(
 
     if (url === '/api/commits.json') {
       const config = readKanbanConfig(kanbanDir);
-      const appDir = config?.appDir ? path.resolve(config.appDir) : '';
+      const appDir = resolveAppDirFromKanban(kanbanDir, config);
       const agentOnly = !req.url?.includes('all=1');
       const commits = appDir
         ? agentOnly
@@ -184,8 +184,8 @@ export function startKanbanServer(
 
     if (!gitWatchStarted) {
       const config = readKanbanConfig(kanbanDir);
-      const appDir = config?.appDir ? path.resolve(config.appDir) : '';
-      if (appDir) {
+      const appDir = resolveAppDirFromKanban(kanbanDir, config);
+      if (appDir && fs.existsSync(path.join(appDir, '.git'))) {
         watchGitHead(appDir, () => broadcastSse({ type: 'commits_updated' }));
         gitWatchStarted = true;
       }

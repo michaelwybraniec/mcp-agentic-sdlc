@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { scaffoldKanban } = require('../dist/backlog/scaffold');
-const { syncBacklog, readKanbanConfig } = require('../dist/backlog/compiler');
+const { syncBacklog, readKanbanConfig, resolveAppDirFromKanban, writeKanbanConfig } = require('../dist/backlog/compiler');
 const { parseTaskMd } = require('../dist/backlog/parser');
 
 function test(name, fn) {
@@ -162,5 +162,27 @@ if (test('compileBacklog splits columns', () => {
   assert(path.resolve(snap.config.appDir) === path.resolve(tmp), 'snapshot includes appDir');
 })) passed++;
 
-console.log(`\n${passed}/6 backlog tests passed`);
-process.exit(passed === 6 ? 0 : 1);
+if (test('resolveAppDirFromKanban finds git root when cwd is kanban/', () => {
+  const kanbanDir = path.join(agentic, 'kanban');
+  execSync('git init', { cwd: tmp });
+  execSync('git config user.email "t@test.com"', { cwd: tmp });
+  execSync('git config user.name "T"', { cwd: tmp });
+  fs.writeFileSync(path.join(tmp, 'marker.txt'), 'x');
+  execSync('git add marker.txt', { cwd: tmp });
+  execSync('git commit -m "chore: marker"', { cwd: tmp });
+  writeKanbanConfig(kanbanDir, { ...readKanbanConfig(kanbanDir), appDir: '.' });
+  const resolved = resolveAppDirFromKanban(kanbanDir);
+  assert(path.resolve(resolved) === path.resolve(tmp), 'relative appDir resolves from kanban tree');
+  const { loadAgentCommits } = require('../dist/backlog/gitCommits');
+  execSync('git commit --allow-empty -m "feat(demo 1.0): from kanban cwd test"', { cwd: tmp });
+  const origCwd = process.cwd();
+  try {
+    process.chdir(kanbanDir);
+    assert(loadAgentCommits(resolved, 5).some((c) => c.subject.includes('from kanban cwd')), 'git log from resolved appDir');
+  } finally {
+    process.chdir(origCwd);
+  }
+})) passed++;
+
+console.log(`\n${passed}/7 backlog tests passed`);
+process.exit(passed === 7 ? 0 : 1);

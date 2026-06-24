@@ -47,6 +47,35 @@ export function resolveAppDir(config: KanbanConfig | null, fallback?: string): s
   return path.resolve(fallback || process.cwd());
 }
 
+/**
+ * Project root for git history / commits API.
+ * Resolves relative appDir against the kanban tree (not process.cwd), so
+ * `npm run watch` from agentic-sdlc/kanban still finds the repo .git.
+ */
+export function resolveAppDirFromKanban(kanbanDir: string, config?: KanbanConfig | null): string {
+  const kanban = path.resolve(kanbanDir);
+  const inferred = path.resolve(kanban, '..', '..');
+  const cfg = config ?? readKanbanConfig(kanban);
+
+  if (cfg?.appDir) {
+    const fromConfig = path.isAbsolute(cfg.appDir)
+      ? path.resolve(cfg.appDir)
+      : path.resolve(inferred, cfg.appDir);
+    if (fs.existsSync(path.join(fromConfig, '.git'))) {
+      return fromConfig;
+    }
+    if (fs.existsSync(path.join(fromConfig, 'agentic-sdlc', 'kanban'))) {
+      return fromConfig;
+    }
+  }
+
+  if (fs.existsSync(path.join(inferred, '.git'))) {
+    return inferred;
+  }
+
+  return resolveAppDir(cfg, inferred);
+}
+
 export interface KanbanContext {
   appDir: string;
   kanbanDir: string;
@@ -246,7 +275,7 @@ export function compileBacklog(
   snapshot._warnings = [...warnings, ...snapshot.boardHealth.warnings];
 
   let inferredId = '';
-  const appDir = config.appDir ? path.resolve(config.appDir) : '';
+  const appDir = resolveAppDirFromKanban(kanbanDir, config);
   if (appDir) {
     const latestAgent = loadAgentCommits(appDir, 1)[0];
     const latestAny = loadGitCommits(appDir, 1)[0];
@@ -359,7 +388,7 @@ export function syncBacklog(agenticSdlcDir: string, changedFiles?: string[]): Ba
   const timeStore = updateTimeTracking(kanbanDir, prev, snapshot);
   enrichSnapshotWithTime(snapshot, timeStore);
 
-  const appDir = snapshot.config.appDir ? path.resolve(snapshot.config.appDir) : '';
+  const appDir = resolveAppDirFromKanban(kanbanDir, snapshot.config);
   if (appDir) {
     snapshot.appRun = ensureRunAppScript(appDir);
   }
@@ -405,8 +434,8 @@ export function detectAppDirForCli(explicitAppDir?: string): string {
 
   for (const kanbanDir of kanbanCandidates) {
     const config = readKanbanConfig(kanbanDir);
-    if (config?.appDir) {
-      return path.resolve(config.appDir);
+    if (config) {
+      return resolveAppDirFromKanban(kanbanDir, config);
     }
   }
 
