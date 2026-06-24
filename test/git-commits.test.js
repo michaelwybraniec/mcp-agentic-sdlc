@@ -6,7 +6,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { loadAgentCommits, loadGitCommits } = require('../dist/backlog/gitCommits');
+const { loadAgentCommits, loadGitCommits, isBatchStepCommit } = require('../dist/backlog/gitCommits');
 
 function test(name, fn) {
   try {
@@ -48,5 +48,12 @@ if (test('loadAgentCommits filters AWP commitStandard only', () => {
   assert(!agent.some((c) => c.subject === 'chore: non-awp commit'), 'excludes non-awp');
 })) passed++;
 
-console.log(`\n${passed}/2 gitCommits tests passed`);
-process.exit(passed === 2 ? 0 : 1);
+if (test('loadAgentCommits excludes batch step ranges', () => {
+  execSync('git commit --allow-empty -m "feat(console 1.0-9.0): deliver POC via awp auto"', { cwd: tmp });
+  assert(isBatchStepCommit('feat(console 1.0-9.0): deliver POC via awp auto'));
+  const agent = loadAgentCommits(tmp, 5);
+  assert(!agent.some((c) => c.subject.includes('1.0-9.0')), 'batch commit excluded');
+})) passed++;
+
+console.log(`\n${passed}/3 gitCommits tests passed`);
+process.exit(passed === 3 ? 0 : 1);

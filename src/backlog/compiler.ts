@@ -10,7 +10,7 @@ import {
 } from './activity.js';
 import { parseTaskMd, peek } from './parser.js';
 import { resolveTaskColumn, validateTaskBoard, applyInProgressInference, inferActiveTaskId } from './taskStatus.js';
-import { loadAgentCommits, taskIdFromCommitSubject } from './gitCommits.js';
+import { loadGitCommits, loadAgentCommits, taskIdFromCommitSubject } from './gitCommits.js';
 import { BacklogSnapshot, KanbanConfig, TaskCard, TaskColumn } from './types.js';
 
 export function readKanbanConfig(kanbanDir: string): KanbanConfig | null {
@@ -243,19 +243,28 @@ export function compileBacklog(
 
   snapshot._warnings = [...warnings, ...snapshot.boardHealth.warnings];
 
+  let inferredId = '';
   const appDir = config.appDir ? path.resolve(config.appDir) : '';
   if (appDir) {
-    const latest = loadAgentCommits(appDir, 1)[0];
-    let inferredId = latest ? taskIdFromCommitSubject(latest.subject) : '';
-    if (!inferredId || !snapshot.tasks[inferredId]) {
-      inferredId = inferActiveTaskId(snapshot) || '';
+    const latestAgent = loadAgentCommits(appDir, 1)[0];
+    const latestAny = loadGitCommits(appDir, 1)[0];
+    const subject = latestAgent?.subject || latestAny?.subject || '';
+    inferredId = taskIdFromCommitSubject(subject);
+    if (!inferredId && subject) {
+      const loose = subject.match(/\b(\d+(?:\.\d+)*)\b/);
+      if (loose && snapshot.tasks[loose[1]]) inferredId = loose[1];
     }
-    if (inferredId && applyInProgressInference(snapshot, inferredId)) {
-      snapshot._warnings.push(
-        `Task ${inferredId} shown In Progress (inferred) — call backlog_sync with startTaskId: "${inferredId}" to persist`
-      );
-      snapshot.boardHealth = validateTaskBoard(snapshot);
-    }
+  }
+  if (!inferredId || !snapshot.tasks[inferredId]) {
+    inferredId = inferActiveTaskId(snapshot) || '';
+  }
+  if (inferredId && applyInProgressInference(snapshot, inferredId)) {
+    snapshot.boardHealth = validateTaskBoard(snapshot);
+    snapshot._warnings = [
+      ...warnings,
+      ...snapshot.boardHealth.warnings,
+      `Task ${inferredId} shown In Progress (inferred) — call backlog_sync with startTaskId: "${inferredId}" to persist`,
+    ];
   }
 
   const prev = options?.prevSnapshot ?? loadPreviousSnapshot(kanbanDir);

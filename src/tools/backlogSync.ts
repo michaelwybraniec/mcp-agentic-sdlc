@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { getAgenticSdlcDir, readKanbanConfig, syncBacklog } from '../backlog/compiler.js';
 import { scaffoldKanban } from '../backlog/scaffold.js';
-import { applyTaskLifecycle } from '../backlog/taskMd.js';
+import { applyTaskLifecycle, findInProgressTaskId, firstPlannedTaskId } from '../backlog/taskMd.js';
 import { ensureKanbanAppDir } from '../resources/backlog.js';
 
 export async function handleBacklogSyncTool(args: Record<string, unknown>) {
@@ -30,13 +30,28 @@ export async function handleBacklogSyncTool(args: Record<string, unknown>) {
 
   ensureKanbanAppDir(agenticDir, appDir);
 
-  const startTaskId = args?.startTaskId as string | undefined;
+  let startTaskId = args?.startTaskId as string | undefined;
   const completeTaskId = args?.completeTaskId as string | undefined;
-  const activity = args?.activity as string | undefined;
+  let activity = args?.activity as string | undefined;
+  const autoStart = args?.autoStart !== false;
   const lifecycleLines: string[] = [];
 
+  const config = fs.existsSync(path.join(kanbanDir, '.kanban-config.json'))
+    ? readKanbanConfig(kanbanDir)
+    : null;
+
+  if (!startTaskId && !completeTaskId && autoStart && config) {
+    const tasksDir = path.join(agenticDir, config.backlogPath, 'tasks');
+    if (!findInProgressTaskId(tasksDir)) {
+      const first = firstPlannedTaskId(tasksDir);
+      if (first) {
+        startTaskId = first;
+        activity = activity || 'Task started (backlog_sync)';
+      }
+    }
+  }
+
   if (startTaskId || completeTaskId) {
-    const config = readKanbanConfig(kanbanDir);
     if (!config) {
       return {
         content: [{ type: 'text', text: 'ERROR: missing .kanban-config.json' }],

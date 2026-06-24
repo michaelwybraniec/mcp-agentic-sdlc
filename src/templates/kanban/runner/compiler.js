@@ -241,17 +241,29 @@ function compileBacklog(agenticSdlcDir, config, options) {
         _warnings: warnings,
     };
     snapshot._warnings = [...warnings, ...snapshot.boardHealth.warnings];
+    let inferredId = '';
     const appDir = config.appDir ? path.resolve(config.appDir) : '';
     if (appDir) {
-        const latest = (0, gitCommits_js_1.loadAgentCommits)(appDir, 1)[0];
-        let inferredId = latest ? (0, gitCommits_js_1.taskIdFromCommitSubject)(latest.subject) : '';
-        if (!inferredId || !snapshot.tasks[inferredId]) {
-            inferredId = (0, taskStatus_js_1.inferActiveTaskId)(snapshot) || '';
+        const latestAgent = (0, gitCommits_js_1.loadAgentCommits)(appDir, 1)[0];
+        const latestAny = (0, gitCommits_js_1.loadGitCommits)(appDir, 1)[0];
+        const subject = latestAgent?.subject || latestAny?.subject || '';
+        inferredId = (0, gitCommits_js_1.taskIdFromCommitSubject)(subject);
+        if (!inferredId && subject) {
+            const loose = subject.match(/\b(\d+(?:\.\d+)*)\b/);
+            if (loose && snapshot.tasks[loose[1]])
+                inferredId = loose[1];
         }
-        if (inferredId && (0, taskStatus_js_1.applyInProgressInference)(snapshot, inferredId)) {
-            snapshot._warnings.push(`Task ${inferredId} shown In Progress (inferred) — call backlog_sync with startTaskId: "${inferredId}" to persist`);
-            snapshot.boardHealth = (0, taskStatus_js_1.validateTaskBoard)(snapshot);
-        }
+    }
+    if (!inferredId || !snapshot.tasks[inferredId]) {
+        inferredId = (0, taskStatus_js_1.inferActiveTaskId)(snapshot) || '';
+    }
+    if (inferredId && (0, taskStatus_js_1.applyInProgressInference)(snapshot, inferredId)) {
+        snapshot.boardHealth = (0, taskStatus_js_1.validateTaskBoard)(snapshot);
+        snapshot._warnings = [
+            ...warnings,
+            ...snapshot.boardHealth.warnings,
+            `Task ${inferredId} shown In Progress (inferred) — call backlog_sync with startTaskId: "${inferredId}" to persist`,
+        ];
     }
     const prev = options?.prevSnapshot ?? loadPreviousSnapshot(kanbanDir);
     const changedTaskIds = options?.changedFiles?.length

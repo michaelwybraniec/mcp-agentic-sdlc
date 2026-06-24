@@ -652,7 +652,7 @@ ${proDataModels || 'To be defined'}
       ? `Kanban board: STARTED — opens in Cursor Simple Browser when available, else system browser at http://localhost:${kanbanPort}\nDo NOT tell the user Kanban is optional. If the board is not visible, run: cd agentic-sdlc/kanban && npm run watch`
       : `Kanban board: run \`cd agentic-sdlc/kanban && npm run watch\` — opens in Cursor preview when available, else browser at http://localhost:${kanbanPort}`;
 
-    const agentNext = `Ready to begin? Ask the human which command to run:\n• awp start — first task (recommended after init; readiness checks + Kanban sync)\n• awp next — one task at a time\n• awp auto — all remaining tasks in sequence\n\nDo not assume — wait for their choice.\n\nKanban: http://localhost:${kanbanPort}\nOn start/next: backlog_sync { "startTaskId": "1.0" } (use completeTaskId + startTaskId when advancing)`;
+    const agentNext = `Ready to begin? Ask the human which command to run:\n• awp start — first task (recommended after init; readiness checks + Kanban sync)\n• awp next — one task at a time\n• awp auto — loop awp next for ALL tasks: each iteration = one task + one commit + Kanban complete (NEVER one commit for 1.0-9.0)\n\nDo not assume — wait for their choice.\n\nKanban: http://localhost:${kanbanPort}\nPer task: backlog_sync start → work → commit feat(scope X.Y): … → backlog_sync complete + start next`;
 
     return {
       content: [

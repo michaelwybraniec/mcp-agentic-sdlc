@@ -133,9 +133,11 @@ Designed to be both **human- and AI-friendly**.
 
     1.13. AWP COMMAND RECOGNITION: When you see commands starting with "awp", you MUST immediately recognise this as an AWP protocol trigger and follow AWP procedures.
 
-    1.13.1. AWP commands include: "awp start", "awp next", "awp commit", "awp update", "awp check", "awp handoff", "awp auto"
+    1.13.1. AWP commands include: "awp start", "awp next", "awp commit", "awp update", "awp check", "awp handoff", "awp auto", "awp auto strict"
 
-    1.13.2. Upon seeing any "awp" command, you MUST first read this AWP.md file before proceeding with any action.
+    1.13.2. **`awp auto` = `awp auto strict`**: There is no "fast batch" mode. Both mean the same strict per-task loop (§7). Humans may say `awp auto strict` to emphasise one task / one commit / one Kanban move per iteration.
+
+    1.13.3. Upon seeing any "awp" command, you MUST first read this AWP.md file before proceeding with any action.
 
     1.14. SCOPE CLARIFICATION: When commands contain ambiguous terms like "end", "all", or "complete", you MUST ask for clarification before proceeding.
 
@@ -149,7 +151,7 @@ Designed to be both **human- and AI-friendly**.
     1.14.3. **After init — human chooses**: When init completes, you MUST ask the human how to begin. Present three options — do NOT assume `awp next`:
         - **`awp start`** — first task only (recommended after init; runs readiness checks)
         - **`awp next`** — one task at a time (ongoing work, or if they prefer it for task 1)
-        - **`awp auto`** — all remaining tasks in sequence
+        - **`awp auto`** / **`awp auto strict`** — all remaining tasks, strict per-task loop (§7)
         Wait for the human's choice before running any of them.
 
     1.15. ASSUMPTION PREVENTION: You MUST ask clarifying questions for any command that could be interpreted multiple ways.
@@ -205,7 +207,9 @@ Designed to be both **human- and AI-friendly**.
 
 6. **Ignoring AWP Procedures**: You MUST follow AWP procedures exactly. They are not suggestions; they are mandatory.
 
-**If you catch yourself doing any of these, STOP immediately and follow error_recovery procedures (6.1-6.4).**
+7. **Batching awp auto into one delivery**: On `awp auto`, you MUST NOT implement multiple tasks then commit once. You MUST NOT use a step range in commit messages (e.g. `1.0-9.0`). Each loop iteration = one task = one commit = Kanban card moves to Completed before starting the next task.
+
+**If you catch yourself doing any of these, STOP immediately and follow error_recovery procedures (8.1-8.4).**
 
 ## Author
 
@@ -401,31 +405,61 @@ Add risk tasks below:
 
 7. **auto**
 
-    7.1. **Purpose**: Work through the entire remaining backlog by repeating the full **awp next** cycle for each planned task until none remain or a stop condition is hit.
+    7.0. **What `awp auto` is** (plain language):
+        - Runs **all remaining** planned backlog tasks in order (e.g. 1.0 → 2.0 → … → 9.0)
+        - Does **not** pause for the human after each task (unlike `awp next`) — unless blocked
+        - **Does** pause **inside** each iteration for the full `awp next` cycle: update → implement → **commit** → next
+        - It is **not** "build the whole POC, then one commit, then mark all tasks done"
 
-    7.2. **Scope**: `awp auto` = all tasks still in `agentic-sdlc/backlog-*/tasks/planned/` (pending or in progress), in numeric task-id order (e.g. 2.0 → 3.0 → …). Optional: `awp auto 2.0-5.0` limits the range.
+    7.1. **Purpose**: Work through the entire remaining backlog by repeating the full **awp next** cycle **once per task** until none remain or a stop condition is hit. `awp auto` is a **loop of awp next** — not a single delivery sprint.
 
-    7.3. **Start once** (before the loop):
-        7.3.1. If no completed tasks and nothing In Progress, run **awp start** readiness checks (§5.3) or full **awp start** kickoff for task 1
-        7.3.2. Otherwise: read AWP.md, **awp check**, confirm Kanban
-        7.3.3. List remaining task IDs; note the first task to run (or continue in-progress task)
+    7.2. **Scope**: `awp auto` = all tasks still in `agentic-sdlc/backlog-*/tasks/planned/` (pending or in progress), in numeric task-id order (e.g. 1.0 → 2.0 → 3.0 → …). Optional: `awp auto 2.0-5.0` limits the range.
 
-    7.4. **Per-task loop** — for each remaining task, run this full sequence (same as one **awp next** cycle):
-        7.4.1. **update** — Review active task `.md`, sync docs/code, call `backlog_sync` with `startTaskId` if not already In Progress
-        7.4.2. **Implement** — Complete that task's acceptance criteria only (no scope creep; log extras in Unplanned Tasks)
-        7.4.3. **commit** — Commit with commitStandard: `type(scope taskId): subject`
-        7.4.4. **next** — `backlog_sync` with `completeTaskId` (current task) and `startTaskId` (next task, if any); set `# Status: [x] Completed` and move file to `tasks/completed/`; append `## Activity`
-        7.4.5. You MAY NOT skip update, commit, or next inside the loop
+    7.3. **STRICTLY FORBIDDEN on awp auto**:
+        7.3.1. Implementing tasks 2, 3, … N before committing task 1
+        7.3.2. One commit at the end covering multiple tasks or the whole POC
+        7.3.3. Commit messages with a **step range** (e.g. `feat(console 1.0-9.0): deliver POC via awp auto`)
+        7.3.4. Skipping `backlog_sync` between tasks (Kanban must show each card move Planned → In Progress → Completed)
+        7.3.5. Treating `awp auto` as "build everything, commit once, mark all done"
 
-    7.5. **Kanban**: The board updates only from task `.md` changes. Each loop iteration must move the card Planned → In Progress → Completed.
+    7.4. **Start once** (before the loop):
+        7.4.1. If no completed tasks and nothing In Progress, run **awp start** readiness checks (§5.3) or full **awp start** kickoff for task 1
+        7.4.2. Otherwise: read AWP.md, **awp check**, confirm Kanban
+        7.4.3. List remaining task IDs in order; state how many iterations the loop will run
 
-    7.6. **Stop and hand off** when:
+    7.5. **Per-task loop** — repeat for **each** task id until `tasks/planned/` is empty. **Finish one full cycle before starting the next task's implementation:**
+
+        ```
+        FOR each taskId in [1.0, 2.0, 3.0, …]:
+          1. update    — backlog_sync { startTaskId: taskId }; review task .md
+          2. implement — ONLY this task's acceptance criteria
+          3. commit    — ONE commit: type(scope taskId): subject  (e.g. feat(console 2.0): add map tab)
+          4. next      — backlog_sync { completeTaskId: taskId, startTaskId: nextId }
+          5. verify    — Kanban shows this task in Completed before coding the next task
+        ```
+
+        7.5.1. **update** — `backlog_sync` with `startTaskId`; sync docs for this task only
+        7.5.2. **Implement** — Complete **only** this task's acceptance criteria (no scope creep; log extras in Unplanned Tasks)
+        7.5.3. **commit** — **Exactly one** commit referencing **only** the current task id (commitStandard). Push/commit before moving on.
+        7.5.4. **next** — `backlog_sync` with `completeTaskId` (current) and `startTaskId` (next, if any); move `.md` to `tasks/completed/`; append `## Activity`
+        7.5.5. You MAY NOT skip update, commit, or next inside the loop
+        7.5.6. You MAY NOT start implementing the next task until the current task is committed and marked completed on Kanban
+        7.5.7. **Checkpoint report** — after each task, before starting the next, report to the human:
+            - Task id completed
+            - Commit hash and message (single task id only)
+            - Key files touched
+            - Kanban: previous task → Completed; next task → In Progress
+            If you cannot show this, you MUST NOT proceed to the next task.
+
+    7.6. **Kanban**: The board updates only from task `.md` changes. Each loop iteration must move one card Planned → In Progress → Completed. If In Progress is empty while you code, you skipped a step.
+
+    7.7. **Stop and hand off** when:
         - A step requires human approval (`requires_human`, approver gate)
         - You hit a blocker you cannot resolve
         - Build, test, or lint fails after a reasonable retry
         - You need a product/architecture decision — add to Unplanned Tasks and run **awp handoff**
 
-    7.7. **Done**: When `tasks/planned/` is empty, run a final **awp update** + **awp commit**, then report completed task IDs and any handoff notes.
+    7.8. **Done**: When `tasks/planned/` is empty, report completed task ids and commit list (one per task). A final docs-only commit is optional; **do not** use it to land all application code.
 
 8. **test**
 

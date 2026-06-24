@@ -5,7 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { applyTaskLifecycle } = require('../dist/backlog/taskMd');
+const { applyTaskLifecycle, findInProgressTaskId, firstPlannedTaskId } = require('../dist/backlog/taskMd');
 
 function test(name, fn) {
   try {
@@ -49,5 +49,14 @@ if (
 )
   passed++;
 
-console.log(`\n${passed}/1 taskMd tests passed`);
-process.exit(passed === 1 ? 0 : 1);
+if (
+  test('firstPlannedTaskId returns lowest id', () => {
+    fs.writeFileSync(path.join(tasksDir, 'task-2.0.md'), '# Task ID: 2.0\n# Status: [ ] Pending\n');
+    assert(firstPlannedTaskId(path.join(tmp, 'tasks')) === '1.0');
+    assert(findInProgressTaskId(path.join(tmp, 'tasks')) === '1.0');
+  })
+)
+  passed++;
+
+console.log(`\n${passed}/2 taskMd tests passed`);
+process.exit(passed === 2 ? 0 : 1);

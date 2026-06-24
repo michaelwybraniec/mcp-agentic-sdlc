@@ -39,6 +39,8 @@ exports.setTaskStatusInMarkdown = setTaskStatusInMarkdown;
 exports.updateTaskMarkdownFile = updateTaskMarkdownFile;
 exports.moveTaskMarkdownFile = moveTaskMarkdownFile;
 exports.applyTaskLifecycle = applyTaskLifecycle;
+exports.findInProgressTaskId = findInProgressTaskId;
+exports.firstPlannedTaskId = firstPlannedTaskId;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const taskStatus_js_1 = require("./taskStatus.js");
@@ -141,4 +143,39 @@ function applyTaskLifecycle(tasksDir, options) {
         results.push({ taskId: id, action: 'completed', path: abs });
     }
     return results;
+}
+function readTaskStatusFromMarkdown(raw) {
+    if (/^# Status:.*\[~\]/im.test(raw) || /\bin progress\b/i.test(raw))
+        return 'in_progress';
+    if (/^# Status:.*\[x\]/im.test(raw) || /\bcompleted\b/i.test(raw))
+        return 'completed';
+    return 'pending';
+}
+/** Task id marked In Progress in planned/, if any. */
+function findInProgressTaskId(tasksDir) {
+    const plannedDir = path.join(tasksDir, 'planned');
+    if (!fs.existsSync(plannedDir))
+        return undefined;
+    for (const file of fs.readdirSync(plannedDir).filter((f) => f.endsWith('.md'))) {
+        const id = (0, parser_js_1.taskIdFromFilename)(file);
+        if (!id)
+            continue;
+        const raw = fs.readFileSync(path.join(plannedDir, file), 'utf8');
+        if (readTaskStatusFromMarkdown(raw) === 'in_progress')
+            return id;
+    }
+    return undefined;
+}
+/** Lowest planned task id (e.g. 1.0), by numeric sort. */
+function firstPlannedTaskId(tasksDir) {
+    const plannedDir = path.join(tasksDir, 'planned');
+    if (!fs.existsSync(plannedDir))
+        return undefined;
+    const ids = [];
+    for (const file of fs.readdirSync(plannedDir).filter((f) => f.endsWith('.md'))) {
+        const id = (0, parser_js_1.taskIdFromFilename)(file);
+        if (id)
+            ids.push(id);
+    }
+    return (0, taskStatus_js_1.sortTaskIds)(ids)[0];
 }

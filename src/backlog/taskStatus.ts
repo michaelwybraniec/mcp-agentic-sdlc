@@ -115,22 +115,7 @@ export function inferActiveTaskId(snapshot: BacklogSnapshot): string | undefined
   const pending = sortTaskIds(snapshot.columns.planned.map((t) => t.id));
   if (!pending.length) return undefined;
 
-  const hasCompleted = snapshot.columns.completed.length > 0;
-
-  if (hasCompleted) {
-    return pending[0];
-  }
-
-  const byMtime = [...snapshot.columns.planned].sort((a, b) =>
-    b.lastUpdated.localeCompare(a.lastUpdated)
-  );
-  if (byMtime.length === 1) return byMtime[0].id;
-
-  const newest = new Date(byMtime[0].lastUpdated).getTime();
-  const second = new Date(byMtime[1].lastUpdated).getTime();
-  if (newest - second > 120_000) return byMtime[0].id;
-
-  return undefined;
+  return pending[0];
 }
 
 /** Promote a planned task to In Progress in the snapshot (display only; does not edit .md). */

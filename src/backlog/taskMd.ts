@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { TASK_STATUS } from './taskStatus.js';
+import { TASK_STATUS, sortTaskIds } from './taskStatus.js';
 import { taskIdFromFilename } from './parser.js';
 
 export type TaskMdStatus = 'pending' | 'in_progress' | 'completed';
@@ -142,4 +142,35 @@ export function applyTaskLifecycle(
   }
 
   return results;
+}
+
+function readTaskStatusFromMarkdown(raw: string): 'pending' | 'in_progress' | 'completed' {
+  if (/^# Status:.*\[~\]/im.test(raw) || /\bin progress\b/i.test(raw)) return 'in_progress';
+  if (/^# Status:.*\[x\]/im.test(raw) || /\bcompleted\b/i.test(raw)) return 'completed';
+  return 'pending';
+}
+
+/** Task id marked In Progress in planned/, if any. */
+export function findInProgressTaskId(tasksDir: string): string | undefined {
+  const plannedDir = path.join(tasksDir, 'planned');
+  if (!fs.existsSync(plannedDir)) return undefined;
+  for (const file of fs.readdirSync(plannedDir).filter((f) => f.endsWith('.md'))) {
+    const id = taskIdFromFilename(file);
+    if (!id) continue;
+    const raw = fs.readFileSync(path.join(plannedDir, file), 'utf8');
+    if (readTaskStatusFromMarkdown(raw) === 'in_progress') return id;
+  }
+  return undefined;
+}
+
+/** Lowest planned task id (e.g. 1.0), by numeric sort. */
+export function firstPlannedTaskId(tasksDir: string): string | undefined {
+  const plannedDir = path.join(tasksDir, 'planned');
+  if (!fs.existsSync(plannedDir)) return undefined;
+  const ids: string[] = [];
+  for (const file of fs.readdirSync(plannedDir).filter((f) => f.endsWith('.md'))) {
+    const id = taskIdFromFilename(file);
+    if (id) ids.push(id);
+  }
+  return sortTaskIds(ids)[0];
 }

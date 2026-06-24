@@ -140,7 +140,10 @@ Designed to be both **human- and AI-friendly**.
 
   2.10.4 Code commits alone do NOT update the board — task `.md` is the source of truth for Kanban columns
 
-  2.10.5 On **awp auto**, repeat the full **awp next** cycle for every remaining planned task (in task-id order) until `tasks/planned/` is empty or you must hand off. If nothing started yet, use **awp start** readiness checks first. See AWP.md procedure **auto**.
+  2.10.5 On **awp auto**, loop **awp next** per task — **one task, one commit, one Kanban move** before starting the next:
+      - FOR each taskId: `backlog_sync` start → implement **only that task** → commit `type(scope taskId): subject` → `backlog_sync` complete + start next
+      - **FORBIDDEN**: one commit for multiple tasks (e.g. `feat(app 1.0-9.0): deliver POC`); implementing all phases then committing once
+      - If nothing started yet, run **awp start** readiness first. See AWP.md procedure **auto** (§7).
 
   2.10.6 After **init**, ask the human: **awp start**, **awp next**, or **awp auto** — do not assume.
 

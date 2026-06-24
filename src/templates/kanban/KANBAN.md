@@ -44,7 +44,7 @@ The agent should **ask you** which command to run (not assume `awp next`):
 | Update | `awp update` | Sync docs and task markdown |
 | Commit | `awp commit` | Commit with commitStandard |
 | Next | `awp next` | One task: update → commit → next |
-| **Auto** | **`awp auto`** | **All remaining tasks** — loop awp next until backlog done or blocked |
+| **Auto** | **`awp auto strict`** | Strict loop — one task, one commit, checkpoint per iteration |
 | Handoff | `awp handoff` | Transfer context to human |
 
 ### Agent commits panel

@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loadGitCommits = loadGitCommits;
 exports.taskIdFromCommitSubject = taskIdFromCommitSubject;
+exports.isBatchStepCommit = isBatchStepCommit;
 exports.loadAgentCommits = loadAgentCommits;
 const child_process_1 = require("child_process");
 const fs = __importStar(require("fs"));
@@ -72,7 +73,11 @@ function taskIdFromCommitSubject(subject) {
     const m = subject.match(/\([^)]+\s+(\d+(?:\.\d+)*)\)/);
     return m ? m[1] : '';
 }
-/** Commits matching AWP commitStandard (agent workflow commits). */
+/** Step range in commit scope e.g. (console 1.0-9.0) — invalid for awp auto loop. */
+function isBatchStepCommit(subject) {
+    return /\(\s*[^)]*\s+\d+(?:\.\d+)?\s*-\s*\d+/.test(subject);
+}
+/** Commits matching AWP commitStandard (agent workflow commits). Excludes batch step ranges. */
 function loadAgentCommits(appDir, limit = 30) {
-    return loadGitCommits(appDir, limit).filter((c) => c.isAwp);
+    return loadGitCommits(appDir, limit).filter((c) => c.isAwp && !isBatchStepCommit(c.subject));
 }

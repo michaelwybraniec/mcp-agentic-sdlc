@@ -517,8 +517,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "backlog_sync",
         description: `
           Recompile kanban/backlog.json from markdown and optionally update task status for the live board.
-          REQUIRED on awp start / awp next / each awp auto iteration: use startTaskId to mark the active task In Progress (and completeTaskId when advancing).
-          awp start: readiness checks then startTaskId for first planned task. awp auto: loop update → implement → commit → next.
+          REQUIRED on awp start / awp next / each awp auto iteration: use startTaskId (and completeTaskId when advancing).
+          awp auto = loop of awp next: ONE task → ONE commit (single task id, never 1.0-9.0 range) → complete on Kanban → next task. Do not batch all phases into one delivery commit.
           Example: { "appDir": ".", "completeTaskId": "1.0", "startTaskId": "2.0", "activity": "Phase 2 started" }
           Run cd agentic-sdlc/kanban && npm run watch for live browser updates at http://localhost:4173`,
         inputSchema: {
@@ -539,6 +539,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             activity: {
               type: "string",
               description: "Optional line appended to ## Activity on updated tasks",
+            },
+            autoStart: {
+              type: "boolean",
+              description: "When true (default), bare sync starts the first planned task if none is In Progress. Set false to recompile only.",
             },
             backlogName: {
               type: "string",

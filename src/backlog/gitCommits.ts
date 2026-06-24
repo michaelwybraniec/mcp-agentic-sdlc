@@ -50,7 +50,12 @@ export function taskIdFromCommitSubject(subject: string): string {
   return m ? m[1] : '';
 }
 
-/** Commits matching AWP commitStandard (agent workflow commits). */
+/** Step range in commit scope e.g. (console 1.0-9.0) — invalid for awp auto loop. */
+export function isBatchStepCommit(subject: string): boolean {
+  return /\(\s*[^)]*\s+\d+(?:\.\d+)?\s*-\s*\d+/.test(subject);
+}
+
+/** Commits matching AWP commitStandard (agent workflow commits). Excludes batch step ranges. */
 export function loadAgentCommits(appDir: string, limit = 30): AgentCommit[] {
-  return loadGitCommits(appDir, limit).filter((c) => c.isAwp);
+  return loadGitCommits(appDir, limit).filter((c) => c.isAwp && !isBatchStepCommit(c.subject));
 }

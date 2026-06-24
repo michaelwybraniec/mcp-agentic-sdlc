@@ -294,7 +294,9 @@ Init scaffolds the backlog and starts Kanban. The agent must **ask you** which c
 |---------|----------|
 | **`awp start`** | **First task** after init (readiness checks + mark task 1 In Progress) — **recommended** |
 | `awp next` | One task at a time |
-| `awp auto` | Run the full backlog in a loop |
+| `awp auto` / `awp auto strict` | All remaining tasks — **strict loop** (one task, one commit, one Kanban move per iteration) |
+
+**Making `awp auto` unambiguous** — say `awp auto strict` or paste from the Kanban **Auto** button. Add constraints in chat if needed: *one commit per task, backlog_sync each step, checkpoint report after each task*. See `.cursor/rules/awp-auto.mdc` in this repo.
 
 **`awp start` readiness** (before coding): Kanban visible, AWP.md + first task read, `awp check`, then `backlog_sync` with `startTaskId` (e.g. `"1.0"`).
 
@@ -463,7 +465,10 @@ Hover a button for its description, click to copy, then paste into the agent cha
 
 **`awp next`** — mandatory sequence per task: **update → commit → next** (see AWP.md).
 
-**`awp auto`** — run **awp start** readiness if nothing started yet, then loop **awp next** for all remaining tasks. Stop and **awp handoff** on approval gates or blockers. See AWP.md § auto.
+**`awp auto`** — a **loop of awp next**, not one bulk delivery:
+1. `backlog_sync` `startTaskId` → implement **that task only** → **one commit** (`feat(scope 1.0): …`) → `backlog_sync` `completeTaskId` + next `startTaskId`
+2. Repeat for 2.0, 3.0, … until planned is empty
+3. **Never** one commit covering `1.0-9.0` or all phases. Kanban must show each card complete before the next starts.
 
 ### Agent commits panel
 

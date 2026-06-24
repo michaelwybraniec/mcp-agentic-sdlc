@@ -181,8 +181,8 @@ steps:
    - Set expectations and timeouts
 
 7. **auto**
-   - Run every remaining backlog task in order
-   - Repeat the full **update → implement → commit → next** cycle per task
+   - Run every remaining backlog task **in order**, one at a time
+   - Each task: **update → implement → commit → next** — then repeat; never batch all work into one commit
    - Stop on human approval gates or blockers; hand off when done or blocked
 
 ## commitStandard
