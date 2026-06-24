@@ -105,12 +105,12 @@ function openOSUri(uri) {
 }
 /** Open in Cursor/VS Code Simple Browser (integrated preview). */
 function openInEditorSimpleBrowser(url) {
-    for (const scheme of editorSchemesToTry()) {
-        if (openOSUri(buildSimpleBrowserUri(url, scheme))) {
-            return true;
-        }
-    }
-    return false;
+    const schemes = editorSchemesToTry();
+    if (schemes.length === 0)
+        return false;
+    // Use a single scheme — trying cursor and vscode both spawns duplicate Simple Browser tabs.
+    const scheme = schemes[0];
+    return openOSUri(buildSimpleBrowserUri(url, scheme));
 }
 /** Open URL in the system default browser (best-effort, non-blocking). */
 function openInSystemBrowser(url) {

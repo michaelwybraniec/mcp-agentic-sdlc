@@ -3,17 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
   <title>AWP tools: Kanban</title>
   <style>
-    :root { color-scheme: light; }
+    :root {
+      color-scheme: light only;
+      --bg-page: #ffffff;
+      --bg-surface: #ffffff;
+      --bg-muted: #fafafa;
+      --bg-subtle: #f8fafc;
+      --bg-code: #f5f5f4;
+      --border: #e5e5e5;
+      --border-strong: #d4d4d4;
+      --text: #111111;
+      --text-secondary: #525252;
+      --text-muted: #737373;
+      --text-faint: #999999;
+      --accent: #2563eb;
+      --overlay: rgba(15, 23, 42, 0.12);
+    }
+    html {
+      color-scheme: light only;
+      background: var(--bg-page);
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #fff;
-      color: #111;
+      background: var(--bg-page);
+      color: var(--text);
       min-height: 100vh;
       padding-bottom: 48px;
     }
+    code, pre, kbd {
+      background: var(--bg-code);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+    code { padding: 1px 4px; font-size: 0.92em; }
+    pre { padding: 0; border: none; background: transparent; }
+    a { color: var(--accent); }
     .site-header { padding: 20px 24px 12px; border-bottom: 1px solid #e5e5e5; }
     .site-header h1 { font-size: 18px; font-weight: 600; }
     .site-header p { font-size: 13px; color: #666; margin-top: 4px; }
@@ -305,8 +334,9 @@
     .modal.modal-dashboard { width: min(640px, 94vw); }
     .modal.modal-report { width: min(680px, 94vw); }
     .run-script-block {
-      background: #0f172a;
-      color: #e2e8f0;
+      background: var(--bg-code);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
       padding: 12px 14px;
       border-radius: 6px;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -316,17 +346,81 @@
       margin: 0;
     }
     .progress-bar-wrap {
-      background: #e5e5e5;
+      background: var(--border);
       border-radius: 999px;
       height: 8px;
       overflow: hidden;
-      margin: 8px 0 4px;
     }
     .progress-bar-fill {
       background: #059669;
       height: 100%;
       border-radius: 999px;
       transition: width 0.3s ease;
+      min-width: 0;
+    }
+    .board-progress {
+      margin: 0 24px 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-surface);
+    }
+    .board-progress-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .board-progress-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+    .board-progress-stats {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .board-progress-stats .pct {
+      color: #059669;
+      margin-left: 4px;
+    }
+    .board-progress-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .board-progress-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-muted);
+    }
+    .board-progress-chip.completed { border-color: #a7f3d0; background: #f0fdf4; color: #047857; }
+    .board-progress-chip.in-progress { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+    .board-progress-chip.planned { border-color: var(--border); background: var(--bg-muted); color: var(--text-secondary); }
+    .board-progress-chip.unplanned { border-color: #fde68a; background: #fffbeb; color: #b45309; }
+    .local-url-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+    .local-url-row code {
+      font-size: 11px;
+      word-break: break-all;
     }
     .time-summary-grid {
       display: grid;
@@ -344,7 +438,7 @@
     .time-summary-card.human { border-color: #fde68a; background: #fffbeb; }
     .time-summary-card.combined { border-color: #a7f3d0; background: #f0fdf4; }
     .time-summary-card h3 { font-size: 11px; text-transform: uppercase; color: #64748b; margin-bottom: 6px; font-weight: 600; }
-    .time-summary-card .time-value { font-size: 22px; font-weight: 600; color: #0f172a; }
+    .time-summary-card .time-value { font-size: 22px; font-weight: 600; color: var(--text); }
     .time-task-table { width: 100%; border-collapse: collapse; font-size: 12px; }
     .time-task-table th, .time-task-table td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #eee; }
     .time-task-table th { font-size: 10px; text-transform: uppercase; color: #666; font-weight: 600; }
@@ -452,7 +546,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.2);
+      background: var(--overlay);
       z-index: 200;
       align-items: center;
       justify-content: center;
@@ -474,7 +568,18 @@
     .modal-path { font-size: 11px; color: #999; margin-top: 4px; font-family: ui-monospace, monospace; }
     .modal-meta { font-size: 12px; color: #666; margin-top: 6px; }
     .modal-body { padding: 16px; overflow-y: auto; flex: 1; font-size: 13px; line-height: 1.5; }
-    .modal-body pre, .modal-pre { white-space: pre-wrap; font-size: 13px; line-height: 1.5; font-family: inherit; margin: 0; }
+    .modal-body pre, .modal-pre {
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.5;
+      font-family: inherit;
+      margin: 0;
+      background: var(--bg-muted);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+    }
     .modal-section { margin-bottom: 16px; }
     .modal-section:last-child { margin-bottom: 0; }
     .modal-section h4 { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 6px; font-weight: 600; }
@@ -554,7 +659,18 @@
     <button type="button" class="awp-btn" data-awp="awp handoff"
       data-tip="Package context and transfer responsibility between human and agent (AWP.md § handoff)."
       title="Handoff — awp handoff">Handoff</button>
-    <span style="font-size:11px;color:#999;margin-left:8px">Hover for description · click to copy — paste into agent chat</span>
+    <span style="font-size:11px;color:var(--text-faint);margin-left:8px">Hover for description · click to copy — paste into agent chat</span>
+  </div>
+
+  <div class="board-progress" id="board-progress" aria-label="Board progress">
+    <div class="board-progress-head">
+      <span class="board-progress-title">Board progress</span>
+      <span class="board-progress-stats" id="board-progress-stats">—</span>
+    </div>
+    <div class="progress-bar-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="board-progress-bar">
+      <div class="progress-bar-fill" id="board-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="board-progress-meta" id="board-progress-meta"></div>
   </div>
 
   <div class="board" id="board"></div>
@@ -676,6 +792,61 @@
       if (t.humanMs) parts.push(`<span class="time-chip human${live}" title="Human time">👤 ${formatDuration(t.humanMs)}</span>`);
       parts.push(`<span class="time-chip total${live}" title="Total time">⏱ ${formatDuration(t.combinedMs)}</span>`);
       return `<div class="card-time">${parts.join('')}</div>`;
+    }
+
+    let lastUrlOpen = { url: '', at: 0 };
+
+    /** Navigate same tab once — avoids Cursor Simple Browser spawning many previews on target=_blank. */
+    function openLocalUrl(url, e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      const now = Date.now();
+      if (lastUrlOpen.url === url && now - lastUrlOpen.at < 3000) return;
+      lastUrlOpen = { url, at: now };
+      window.location.assign(url);
+    }
+
+    function copyLocalUrl(url, label) {
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('Copied' + (label ? ': ' + label : ''));
+      }).catch(() => showToast(url));
+    }
+
+    function isCurrentBoardUrl(url) {
+      try {
+        const u = new URL(url, window.location.origin);
+        return u.origin === window.location.origin && u.pathname === '/';
+      } catch {
+        return false;
+      }
+    }
+
+    function localUrlRow(url, label) {
+      const safe = esc(url);
+      if (isCurrentBoardUrl(url)) {
+        return `<div class="local-url-row">
+          <code>${safe}</code>
+          <span style="font-size:11px;color:var(--text-muted)">(this page)</span>
+          <button type="button" class="link-btn local-url-copy" data-url="${safe}">Copy</button>
+        </div>`;
+      }
+      return `<div class="local-url-row">
+        <code>${safe}</code>
+        <button type="button" class="link-btn local-url-open" data-url="${safe}">Open here</button>
+        <button type="button" class="link-btn local-url-copy" data-url="${safe}">Copy</button>
+      </div>`;
+    }
+
+    function bindLocalUrlButtons(root) {
+      if (!root) return;
+      root.querySelectorAll('.local-url-open').forEach((btn) => {
+        btn.onclick = (e) => openLocalUrl(btn.getAttribute('data-url'), e);
+      });
+      root.querySelectorAll('.local-url-copy').forEach((btn) => {
+        btn.onclick = () => copyLocalUrl(btn.getAttribute('data-url'));
+      });
     }
 
     function showToast(msg) {
@@ -841,6 +1012,74 @@
           }
         });
       });
+    }
+
+    function getBoardProgress() {
+      if (data?.boardProgress && data.boardProgress.total > 0) {
+        return data.boardProgress;
+      }
+      if (!data?.columns) return { completed: 0, total: 0, remaining: 0, percent: 0 };
+      const completed = (data.columns.completed || []).length;
+      const planned = (data.columns.planned || []).length;
+      const inProgress = (data.columns.inProgress || []).length;
+      const unplanned = (data.columns.unplanned || []).length;
+      const total = completed + planned + inProgress + unplanned;
+      return {
+        completed,
+        total,
+        remaining: Math.max(0, total - completed),
+        percent: total ? Math.round((completed / total) * 100) : 0,
+        columnCounts: { planned, inProgress, unplanned },
+      };
+    }
+
+    function renderBoardProgress() {
+      if (!data) return;
+      const prog = getBoardProgress();
+      const counts = prog.columnCounts || {
+        planned: (data.columns?.planned || []).length,
+        inProgress: (data.columns?.inProgress || []).length,
+        unplanned: (data.columns?.unplanned || []).length,
+      };
+
+      const statsEl = document.getElementById('board-progress-stats');
+      const fillEl = document.getElementById('board-progress-fill');
+      const barEl = document.getElementById('board-progress-bar');
+      const metaEl = document.getElementById('board-progress-meta');
+
+      if (!prog.total) {
+        statsEl.textContent = 'No tasks yet';
+        fillEl.style.width = '0%';
+        barEl.setAttribute('aria-valuenow', '0');
+        metaEl.innerHTML = '';
+        return;
+      }
+
+      const remainingText = prog.remaining
+        ? `${prog.remaining} remaining`
+        : 'All tasks completed';
+
+      statsEl.innerHTML =
+        `${prog.completed} of ${prog.total} completed` +
+        `<span class="pct">(${prog.percent}%)</span>`;
+
+      fillEl.style.width = prog.percent + '%';
+      barEl.setAttribute('aria-valuenow', String(prog.percent));
+      barEl.setAttribute('aria-label', `${prog.percent}% complete`);
+
+      metaEl.innerHTML = [
+        `<span class="board-progress-chip completed">✓ Completed ${prog.completed}</span>`,
+        counts.inProgress
+          ? `<span class="board-progress-chip in-progress">◌ In progress ${counts.inProgress}</span>`
+          : '',
+        counts.planned
+          ? `<span class="board-progress-chip planned">Planned ${counts.planned}</span>`
+          : '',
+        counts.unplanned
+          ? `<span class="board-progress-chip unplanned">Unplanned ${counts.unplanned}</span>`
+          : '',
+        `<span class="board-progress-chip">${esc(remainingText)}</span>`,
+      ].filter(Boolean).join('');
     }
 
     function renderHeader() {
@@ -1099,7 +1338,7 @@
       const activityBlock = act.length
         ? '<ul class="activity-done">' + act.map((a) => {
             const complete = isCompletionActivity(a.message);
-            const time = a.at ? `<span style="color:#999;font-size:11px">${esc(a.at)} — </span>` : '';
+            const time = a.at ? `<span style="color:var(--text-faint);font-size:11px">${esc(a.at)} — </span>` : '';
             return `<li class="${complete ? 'is-complete' : ''}">${time}${esc(a.message)}</li>`;
           }).join('') + '</ul>'
         : '<p class="empty">—</p>';
@@ -1127,7 +1366,7 @@
         ${task.notes ? '<div class="modal-section"><h4>Notes</h4><p>' + esc(task.notes) + '</p></div>' : ''}
         ${task.risk ? '<div class="modal-section"><h4>Risk</h4><p>' + esc(task.risk) + '</p></div>' : ''}
         <div class="modal-section"><h4>Activity log</h4>
-          <p style="font-size:11px;color:#666;margin-bottom:8px">Updated on <strong>awp update</strong> / <strong>awp commit</strong> / <strong>awp next</strong> via task <code>.md</code> and <code>backlog_sync</code>.</p>
+          <p style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">Updated on <strong>awp update</strong> / <strong>awp commit</strong> / <strong>awp next</strong> via task <code>.md</code> and <code>backlog_sync</code>.</p>
           ${activityBlock}
         </div>`;
 
@@ -1189,6 +1428,7 @@
       const ts = task.timeSpent;
       lastRunBlock = buildRunCommands();
       const port = data.config?.port || 4173;
+      const boardUrl = `http://localhost:${port}/`;
       const kanbanRun = 'cd agentic-sdlc/kanban && npm install && npm run watch';
 
       document.getElementById('modal-title').textContent = `Completion report — ${task.id}`;
@@ -1207,14 +1447,15 @@
             <div class="time-summary-card human"><h3>Human</h3><div class="time-value">${formatDuration(ts.humanMs)}</div></div>
             <div class="time-summary-card combined"><h3>Total</h3><div class="time-value">${formatDuration(ts.combinedMs)}</div></div>
           </div>
-          <p style="font-size:11px;color:#666;margin-bottom:12px">Project totals: Agent ${formatDuration(dash?.agentMs || 0)} · Human ${formatDuration(dash?.humanMs || 0)} · Combined ${formatDuration(dash?.combinedMs || 0)}</p>`
+          <p style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">Project totals: Agent ${formatDuration(dash?.agentMs || 0)} · Human ${formatDuration(dash?.humanMs || 0)} · Combined ${formatDuration(dash?.combinedMs || 0)}</p>`
         : `<p class="empty" style="margin-bottom:12px">No time recorded for this task yet.</p>
-           <p style="font-size:11px;color:#666;margin-bottom:12px">Project totals: Agent ${formatDuration(dash?.agentMs || 0)} · Human ${formatDuration(dash?.humanMs || 0)} · Combined ${formatDuration(dash?.combinedMs || 0)}</p>`;
+           <p style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">Project totals: Agent ${formatDuration(dash?.agentMs || 0)} · Human ${formatDuration(dash?.humanMs || 0)} · Combined ${formatDuration(dash?.combinedMs || 0)}</p>`;
 
       document.getElementById('modal-content').innerHTML = `
         <div class="modal-done-banner"><span class="task-done-icon" aria-hidden="true">✓</span><span>Task <strong>${esc(task.id)}</strong> completed — ready to run and verify</span></div>
         <div class="modal-section">
           <h4>Board progress</h4>
+          <p style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">See the progress bar above the Kanban board for live status.</p>
           <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${prog.percent || 0}%"></div></div>
           <p>${prog.completed ?? 0} of ${prog.total ?? 0} tasks completed${prog.remaining ? ` · ${prog.remaining} remaining` : ' · all done!'}</p>
         </div>
@@ -1222,15 +1463,20 @@
         <div class="modal-section"><h4>Time on this task</h4>${timeSection}</div>
         <div class="modal-section">
           <h4>Run the app</h4>
-          <p style="font-size:11px;color:#666;margin-bottom:8px">From your project root in a terminal:</p>
+          <p style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">From your project root in a terminal:</p>
           <pre class="run-script-block" id="run-script-pre">${esc(lastRunBlock)}</pre>
-          ${data.appRun?.hintUrl ? `<p style="font-size:11px;color:#666;margin-top:8px">Then open <a href="${esc(data.appRun.hintUrl)}" target="_blank" rel="noopener">${esc(data.appRun.hintUrl)}</a></p>` : ''}
+          ${data.appRun?.hintUrl
+            ? `<p style="font-size:11px;color:var(--text-secondary);margin-top:8px">Then open the app:</p>${localUrlRow(data.appRun.hintUrl, 'app URL')}`
+            : ''}
         </div>
         <div class="modal-section">
           <h4>Kanban board</h4>
           <pre class="run-script-block">${esc(kanbanRun)}</pre>
-          <p style="font-size:11px;color:#666;margin-top:8px">Board URL: <a href="http://localhost:${port}/" target="_blank" rel="noopener">http://localhost:${port}/</a></p>
+          <p style="font-size:11px;color:var(--text-secondary);margin-top:8px">Board URL:</p>
+          ${localUrlRow(boardUrl, 'board URL')}
         </div>`;
+
+      bindLocalUrlButtons(document.getElementById('modal-content'));
 
       document.getElementById('modal-updated').textContent =
         'Completed ' + timeAgo(task.lastUpdated);
@@ -1326,7 +1572,7 @@
               </table>`
             : '<p class="empty">No time recorded yet — time starts when a task moves to In Progress.</p>'}
         </div>
-        <p style="font-size:11px;color:#666;margin-top:12px">Sessions are inferred from Kanban status (In Progress → completed). Actor is inferred from activity lines (AI vs Human).</p>`;
+        <p style="font-size:11px;color:var(--text-secondary);margin-top:12px">Sessions are inferred from Kanban status (In Progress → completed). Actor is inferred from activity lines (AI vs Human).</p>`;
 
       document.getElementById('modal-updated').textContent =
         'Updated ' + timeAgo(dash?.updatedAt || store?.updatedAt);
@@ -1359,6 +1605,7 @@
       activityEvents = data.recentEvents || activityEvents;
       lastSync = new Date().toISOString();
       renderHeader();
+      renderBoardProgress();
       renderBoard();
       renderActivity();
       setActivityLive(true);
