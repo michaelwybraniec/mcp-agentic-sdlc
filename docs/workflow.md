@@ -451,7 +451,7 @@ The **Agent commits** section lists recent git commits from the project root tha
 
 - Live API: `GET /api/commits.json` (filtered to AWP-format commits)
 - All commits: `GET /api/commits.json?all=1`
-- Refreshes when the backlog syncs; use **Refresh** to reload git log
+- Refreshes automatically when git HEAD changes (server watches `.git`) and every 5s via polling; **Refresh** forces an immediate reload
 
 Requires a git repository at `appDir` (from `.kanban-config.json`).
 

@@ -45,6 +45,7 @@ const path = __importStar(require("path"));
 const compiler_js_1 = require("./compiler.js");
 const launch_js_1 = require("./launch.js");
 const gitCommits_js_1 = require("./gitCommits.js");
+const watchGit_js_1 = require("./watchGit.js");
 /** True if something is already listening on the port. */
 function isPortInUse(port, host = '127.0.0.1') {
     return new Promise((resolve) => {
@@ -61,6 +62,7 @@ function isPortInUse(port, host = '127.0.0.1') {
 function kanbanBoardUrl(port) {
     return `http://localhost:${port}`;
 }
+let gitWatchStarted = false;
 const sseClients = new Set();
 function broadcastSse(payload) {
     const data = `data: ${JSON.stringify(payload)}\n\n`;
@@ -153,6 +155,14 @@ function startKanbanServer(kanbanDir, port, options) {
         console.log(`Kanban board: ${url}`);
         if (options?.openBrowser !== false) {
             (0, launch_js_1.openKanbanInBrowser)(url);
+        }
+        if (!gitWatchStarted) {
+            const config = (0, compiler_js_1.readKanbanConfig)(kanbanDir);
+            const appDir = config?.appDir ? path.resolve(config.appDir) : '';
+            if (appDir) {
+                (0, watchGit_js_1.watchGitHead)(appDir, () => broadcastSse({ type: 'commits_updated' }));
+                gitWatchStarted = true;
+            }
         }
     });
     server.on('error', (err) => {

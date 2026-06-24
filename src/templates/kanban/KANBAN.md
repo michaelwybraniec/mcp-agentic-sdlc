@@ -31,7 +31,7 @@ The board header includes buttons for common AWP chat commands: **Start**, **Upd
 
 ### Agent commits panel
 
-Below the command bar, **Agent commits** lists recent git commits matching the AWP commit standard (`type(scope step): subject`). Refreshes when the backlog updates. Requires a git repo at the project root.
+Below the command bar, **Agent commits** lists recent git commits matching the AWP commit standard (`type(scope step): subject`). Updates live when you commit (git watcher + 5s poll). Requires a git repo at the project root.
 
 To skip auto-open: `npm run watch -- --no-open` or set `AWP_KANBAN_NO_OPEN=1`
 

@@ -601,18 +601,19 @@
       es.onmessage = (ev) => {
         try {
           const msg = JSON.parse(ev.data);
-          if (msg.type === 'backlog_updated' && msg.taskIds) {
-            msg.taskIds.forEach((id) => {
-              pulseIds.add(id);
-              setTimeout(() => { pulseIds.delete(id); renderBoard(); }, 3000);
-            });
-            if (msg.taskIds.length) {
+          if (msg.type === 'backlog_updated') {
+            if (msg.taskIds?.length) {
+              msg.taskIds.forEach((id) => {
+                pulseIds.add(id);
+                setTimeout(() => { pulseIds.delete(id); renderBoard(); }, 3000);
+              });
               activityLog.unshift(formatTime(new Date().toISOString()) + '  ' + msg.taskIds.join(', ') + ' updated');
               activityLog = activityLog.slice(0, 30);
             }
+            fetchData().catch(console.error);
+          } else if (msg.type === 'commits_updated') {
+            fetchCommits().catch(console.error);
           }
-          fetchData().catch(console.error);
-          fetchCommits().catch(console.error);
         } catch (e) { console.error(e); }
       };
     }
@@ -638,6 +639,7 @@
       fetchCommits();
       setInterval(() => {
         fetchData().catch(() => setLive(false));
+        fetchCommits().catch(() => {});
       }, 5000);
     }).catch((e) => {
       console.error(e);

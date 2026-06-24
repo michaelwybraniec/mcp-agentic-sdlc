@@ -6,6 +6,7 @@ import { KanbanConfig } from './types.js';
 import { readKanbanConfig } from './compiler.js';
 import { openKanbanInBrowser } from './launch.js';
 import { loadAgentCommits, loadGitCommits } from './gitCommits.js';
+import { watchGitHead } from './watchGit.js';
 
 export interface KanbanServerOptions {
   openBrowser?: boolean;
@@ -34,6 +35,8 @@ export type SsePayload = {
   changedFiles?: string[];
   taskIds?: string[];
 };
+
+let gitWatchStarted = false;
 
 const sseClients = new Set<http.ServerResponse>();
 
@@ -141,6 +144,15 @@ export function startKanbanServer(
     console.log(`Kanban board: ${url}`);
     if (options?.openBrowser !== false) {
       openKanbanInBrowser(url);
+    }
+
+    if (!gitWatchStarted) {
+      const config = readKanbanConfig(kanbanDir);
+      const appDir = config?.appDir ? path.resolve(config.appDir) : '';
+      if (appDir) {
+        watchGitHead(appDir, () => broadcastSse({ type: 'commits_updated' }));
+        gitWatchStarted = true;
+      }
     }
   });
 
