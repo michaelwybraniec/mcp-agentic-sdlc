@@ -215,7 +215,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           6. Creates tasks/ directory (planned/ with initial tasks; unplanned/ and completed/ empty)
           7. Scaffolds kanban/ and starts the live board (browser opens at http://localhost:4173)
           
-          After init: tell the user Kanban is already running — NOT optional. Ask how they want to begin: awp start (first task, recommended), awp next (one task), or awp auto (all tasks). Do not assume.
+          After init: tell the user Kanban is already running — NOT optional. Ask how they want to begin: awp refine (when user.md is comprehensive), awp start (first task), awp next (one task), or awp auto (all tasks). Do not assume.
           During development, AI agents add subtasks to planned/ and unplanned tasks to unplanned/
           per the backlog recipe (get_*_backlog_recipe) section 5 and docs/workflow.md section 9.
           IMPORTANT: Specify the appDir parameter to indicate where the agentic-sdlc folder is located.`,

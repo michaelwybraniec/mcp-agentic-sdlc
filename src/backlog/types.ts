@@ -46,6 +46,23 @@ export interface TaskCard {
   sourcePath: string;
   /** Column inferred from latest AWP git commit — update task .md to persist */
   inferredInProgress?: boolean;
+  timeSpent?: {
+    agentMs: number;
+    humanMs: number;
+    combinedMs: number;
+    isActive: boolean;
+  };
+}
+
+export interface AppRunInfo {
+  hasPackageJson: boolean;
+  appDir: string;
+  installCmd: string;
+  startCmd: string;
+  startScript: string;
+  scriptRelPath: string;
+  oneLiner: string;
+  hintUrl?: string;
 }
 
 export interface KanbanConfig {
@@ -96,6 +113,21 @@ export interface BacklogSnapshot {
   }>;
   boardHealth: BoardHealth;
   _warnings: string[];
+  timeDashboard?: {
+    agentMs: number;
+    humanMs: number;
+    combinedMs: number;
+    updatedAt: string;
+    taskCount: number;
+    activeTaskIds: string[];
+  };
+  appRun?: AppRunInfo;
+  boardProgress?: {
+    completed: number;
+    total: number;
+    remaining: number;
+    percent: number;
+  };
 }
 
 export interface ParsedTaskMd {

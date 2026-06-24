@@ -19,9 +19,12 @@ For each task id (e.g. 1.0, then 2.0, …):
 
 1. **update** — `backlog_sync` `{ "startTaskId": "<id>" }`; read that task's `.md`
 2. **implement** — only that task's acceptance criteria
-3. **commit** — exactly one commit: `type(scope taskId): subject` (single id, never `1.0-9.0`)
-4. **next** — `backlog_sync` `{ "completeTaskId": "<id>", "startTaskId": "<next>" }`
-5. **report** — task id, commit hash, files, Kanban column moves; then continue
+3. **test** — `awp test`; on success **must commit** `test(scope taskId): …`
+4. **commit** — at least one `feat`/`fix` commit for the task if not already committed: `type(scope taskId): subject` (single id, never `1.0-9.0`)
+5. **next** — `backlog_sync` `{ "completeTaskId": "<id>", "startTaskId": "<next>" }`
+6. **report** — task id, commit hash(es), files, Kanban column moves; then continue
+
+If tests fail: **`awp fix`** → verify → **must commit** `fix(scope taskId): …` before continuing the loop.
 
 ## Forbidden
 

@@ -43,17 +43,27 @@ Prefer **atomic commits** — one logical change per commit, not one blob per da
 
 During **awp auto**, still **one commit minimum per backlog task** when completing that task — but you may use **extra commits** on the same task id for granular steps (feat + test, or multiple small feats) before `completeTaskId`.
 
-## Bug fixes
+## Bug fixes — `awp fix`
 
-No separate `awp fix` command — use **awp update → commit → next** (or finish the active task) with type `fix`.
+Use **`awp fix`** when something is broken. On a **verified** fix you MUST **`awp commit`** (procedure §10.4).
 
 | Situation | Task id in commit | Kanban |
 |-----------|-------------------|--------|
-| Fix required to **finish the active planned task** (broken AC, regression in current work) | Active task, e.g. `fix(console 2.0): …` | Stay on same task; append `## Activity` |
-| Bug **outside** current task scope, or found while on another task | Unplanned `U-n`, e.g. `fix(auth U-1): …` | Create `task-U-1.md` in `tasks/unplanned/` (ask human first); move via `backlog_sync` when done |
-| Typo / lint / copy fix tied to current change | Same task id | Same commit or small follow-up `chore`/`fix` |
+| Fix required to **finish the active planned task** | Active task, e.g. `fix(console 2.0): …` | Stay In Progress; append `## Activity` |
+| Bug **outside** current task scope | Unplanned `U-n`, e.g. `fix(auth U-1): …` | `task-U-1.md` in `tasks/unplanned/` (ask human first) |
 
-**Procedure:** Log out-of-scope bugs in AWP.md **Unplanned Tasks** (§1.8). Notify the human before creating `U-` tasks.
+**Sequence:** reproduce → fix → verify → **`awp commit`** (`fix(scope id): …`). Do not leave a verified fix uncommitted.
+
+## Tests — `awp test`
+
+Use **`awp test`** to run the project test suite (and lint/typecheck when available). On **success** you MUST **`awp commit`** (procedure §9.4).
+
+| Result | Action |
+|--------|--------|
+| **All pass** | `test(scope taskId): subject` — commit test files and green run evidence |
+| **Fail** | Do **not** commit; run **`awp fix`** or hand off |
+
+**Sequence:** run tests → green → **`awp commit`**. A green run without a commit is incomplete.
 
 ## awp auto
 

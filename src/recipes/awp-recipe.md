@@ -28,7 +28,7 @@ Designed to be both **human- and AI-friendly**.
   - Project Backlog (reference to detailed backlog - see backlog recipes for task structure)
   - Unplanned Tasks section
   - Risks Tasks section
-  - Procedures (update, commit, next, check, handoff, test, error_recovery)
+  - Procedures (update, commit, next, check, start, handoff, auto, refine, test, fix, error_recovery)
   - Commit Standard reference
 
 1.2 **Project-Specific Content**: The AWP.md file is populated with project-specific information:
@@ -133,7 +133,7 @@ Designed to be both **human- and AI-friendly**.
 
     1.13. AWP COMMAND RECOGNITION: When you see commands starting with "awp", you MUST immediately recognise this as an AWP protocol trigger and follow AWP procedures.
 
-    1.13.1. AWP commands include: "awp start", "awp next", "awp commit", "awp update", "awp check", "awp handoff", "awp auto", "awp auto strict"
+    1.13.1. AWP commands include: "awp refine", "awp start", "awp next", "awp commit", "awp update", "awp check", "awp test", "awp fix", "awp handoff", "awp auto", "awp auto strict"
 
     1.13.2. **`awp auto` = `awp auto strict`**: There is no "fast batch" mode. Both mean the same strict per-task loop (§7). Humans may say `awp auto strict` to emphasise one task / one commit / one Kanban move per iteration.
 
@@ -148,9 +148,10 @@ Designed to be both **human- and AI-friendly**.
 
     1.14.2. **Explicit scope — no clarification needed**: `awp auto` means execute **all remaining** planned backlog tasks in order (see procedure **auto**, §7). Optional qualifier: `awp auto 2.0-5.0` limits the range.
 
-    1.14.3. **After init — human chooses**: When init completes, you MUST ask the human how to begin. Present three options — do NOT assume `awp next`:
-        - **`awp start`** — first task only (recommended after init; runs readiness checks)
-        - **`awp next`** — one task at a time (ongoing work, or if they prefer it for task 1)
+    1.14.3. **After init — human chooses**: When init completes, you MUST ask the human how to begin. Present options — do NOT assume `awp next`:
+        - **`awp refine`** — slice/review planned tasks using `user.md` + `base.md` (recommended when `user.md` is comprehensive; see procedure **refine**, §8)
+        - **`awp start`** — first task only (readiness checks + Kanban sync; run after refine when the brief is large)
+        - **`awp next`** — one task at a time (ongoing work)
         - **`awp auto`** / **`awp auto strict`** — all remaining tasks, strict per-task loop (§7)
         Wait for the human's choice before running any of them.
 
@@ -335,12 +336,11 @@ Add risk tasks below:
 
     2.6. **Granular commits**: Prefer atomic commits — one logical change per commit. Multiple commits on the **same** task id are encouraged (e.g. `feat` then `test`) before completing the task. Do not mix unrelated types or tasks in one commit.
 
-    2.7. **Bug fixes** (no separate `awp fix` command):
-        2.7.1. **In scope of active task** — `fix(scope taskId): subject` on the current task; stay In Progress; append `## Activity`
-        2.7.2. **Out of scope** — create unplanned task `U-n` (ask human first), file in `tasks/unplanned/`, commit `fix(scope U-1): …`, track in AWP.md Unplanned Tasks
-        2.7.3. Use `awp update` → `awp commit` → continue or `awp next` when the fix is done; same sequence as feature work
+    2.7. **Bug fixes** — use procedure **fix** (§10); on verified fix you MUST **commit** (see §10.4).
 
     2.8. **Types**: `feat`, `fix`, `docs`, `test`, `refactor`, `perf`, `chore`, `build`, `ci`, `revert` — see commitStandard.md
+
+    2.9. **Test commits** — use procedure **test** (§9); when the test run **succeeds**, you MUST **commit** with type `test` (see §9.4). A passing test run with uncommitted test output or fixes is incomplete.
 
 3.  **next**
 
@@ -442,9 +442,10 @@ Add risk tasks below:
         FOR each taskId in [1.0, 2.0, 3.0, …]:
           1. update    — backlog_sync { startTaskId: taskId }; review task .md
           2. implement — ONLY this task's acceptance criteria
-          3. commit    — ONE commit: type(scope taskId): subject  (e.g. feat(console 2.0): add map tab)
-          4. next      — backlog_sync { completeTaskId: taskId, startTaskId: nextId }
-          5. verify    — Kanban shows this task in Completed before coding the next task
+          3. test      — awp test; on success MUST commit test(scope taskId): …
+          4. commit    — ONE feat/fix commit if not yet committed: type(scope taskId): subject
+          5. next      — backlog_sync { completeTaskId: taskId, startTaskId: nextId }
+          6. verify    — Kanban shows this task in Completed before coding the next task
         ```
 
         7.5.1. **update** — `backlog_sync` with `startTaskId`; sync docs for this task only
@@ -470,77 +471,104 @@ Add risk tasks below:
 
     7.8. **Done**: When `tasks/planned/` is empty, report completed task ids and commit list (one per task). A final docs-only commit is optional; **do not** use it to land all application code.
 
-8. **test**
+8. **refine**
 
-   6.1. **Unit Testing**
-   6.1.1. Test individual components/modules with an appropriate testing framework
-   6.1.2. Verify component props, events, and rendering
-   6.1.3. Test component interactions and state changes
-   6.1.4. Ensure minimum code coverage for critical components
-   6.1.5. Run tests before each commit
+    8.1. **When**: After **init**, especially when `user.md` exists and is comprehensive; before **awp start** or **awp auto**; when a parent task (e.g. `1.0`) is too large for one commit cycle.
 
-   6.2. **Integration Testing**
-   6.2.1. Test API endpoints and service integrations
-   6.2.2. Verify database operations and data flow
-   6.2.3. Test authentication and authorisation flows
-   6.2.4. Validate API response formats and error handling
-   6.2.5. Test real-time features and external integrations
+    8.2. **Purpose**: Turn agreed scope (`base.md`) + detailed user input (`user.md`) into **small, executable** planned tasks with clear acceptance criteria — without scope creep.
 
-   6.3. **E2E Testing**
-   6.3.1. Test complete user journeys with E2E testing framework
-   6.3.2. Verify core application flows and business logic
-   6.3.3. Test multilingual functionality if applicable
-   6.3.4. Validate responsive design and cross-browser compatibility
-   6.3.5. Test offline functionality if required
+    8.3. **Read first** (in order):
+        8.3.1. `user.md` — raw user brief (source material)
+        8.3.2. `base.md` — agreed contract (scope boundary)
+        8.3.3. `requirements.md`, `backlog.md`, `tech-specs.md`
+        8.3.4. Next parent task in `tasks/planned/` (lowest id without completed children, usually `N.0`)
 
-   6.4. **Performance Testing**
-   6.4.1. Run performance audits (Lighthouse, WebPageTest, etc.)
-   6.4.2. Monitor bundle size and loading performance
-   6.4.3. Test image optimisation and resource loading
-   6.4.4. Validate database query performance
-   6.4.5. Test under various network conditions
+    8.4. **Refine procedure**:
+        8.4.1. Identify the **next parent** task id (e.g. `1.0`) — only refine **one parent per refine cycle** unless the human asks for more
+        8.4.2. Extract from `user.md` only items that belong to this phase and are **in scope** per `base.md`
+        8.4.3. If the parent has **no** child tasks (`1.1`, `1.2`, …) and user detail is rich → create subtasks:
+            - `1.1`, `1.2`, … under `tasks/planned/` (max ~8 per parent)
+            - Each subtask: title, description from user text, acceptance criteria, dependencies (`1.2` depends on `1.1`)
+            - Parent `1.0` becomes a **container** — complete only when all children are done
+        8.4.4. If subtasks already exist → review/update descriptions and acceptance criteria from `user.md`; do not duplicate work
+        8.4.5. Work **not** in `base.md` scope → `tasks/unplanned/task-U-*.md`, not planned/
+        8.4.6. **Present the slice to the human** — list task ids, titles, acceptance criteria; ask for approval
+        8.4.7. You MAY NOT run **awp start** or write application code until the human approves the slice (or explicitly skips refine)
 
-   6.5. **Accessibility Testing**
-   6.5.1. Run automated accessibility testing tools
-   6.5.2. Test keyboard navigation and screen reader compatibility
-   6.5.3. Verify colour contrast and text readability
-   6.5.4. Test with users with disabilities when possible
-   6.5.5. Ensure WCAG compliance standards
+    8.5. **Sizing rules** (backlog recipe §2.9):
+        - One Kanban card ≈ one `awp next` cycle ≈ one commit
+        - Break down when: > 8 hours, multiple components, vague criteria, or > 200 words in description
+        - Each subtask must be independently testable
 
-   6.6. **Security Testing**
-   6.6.1. Run security compliance checks and vulnerability scans
-   6.6.2. Test authentication and authorisation mechanisms
-   6.6.3. Validate input sanitisation and XSS prevention
-   6.6.4. Test API rate limiting and abuse prevention
-   6.6.5. Verify data encryption and privacy compliance
+    8.6. **After approval**:
+        8.6.1. Save task `.md` files; run `backlog_sync` (or `cd agentic-sdlc/kanban && npm run sync`) so Kanban updates
+        8.6.2. Suggest **`awp start`** on the first executable task (`1.1` if subtasks exist, else `1.0`)
 
-   6.7. **Localization Testing**
-   6.7.1. Test all content in supported languages
-   6.7.2. Verify date/time formats for target timezones
-   6.7.3. Test currency formatting for target markets
-   6.7.4. Validate cultural appropriateness of translations
-   6.7.5. Test with native speakers when possible
+    8.7. **Init already used user.md**: `init` may have created subtasks from `user.md` heuristics. **awp refine** is still required to validate, adjust slices, and get human approval before coding.
 
-   6.8. **Mobile Testing**
-   6.8.1. Test on target market devices and browsers
-   6.8.2. Verify touch interactions and mobile gestures
-   6.8.3. Test mobile keyboard and form inputs
-   6.8.4. Validate offline functionality if applicable
-   6.8.5. Test mobile-specific features and flows
+9. **test**
 
-9. **error_recovery**
+    9.1. **When**: After implementation on the active task; before **awp next**; when the human says `awp test`; in CI-like verification loops during **awp auto** (per task, before that task's completion commit).
 
-    6.1. If you realise you have violated AWP procedures, you MUST immediately:
-        6.1.1. Stop all current actions
-        6.1.2. Acknowledge the violation to the human
-        6.1.3. Ask for permission to correct the error
-        6.1.4. Follow proper AWP procedures going forward
+    9.2. **Readiness**: Identify the **active task id** (In Progress on Kanban). Run **awp check** if context is stale.
 
-    6.2. Document the violation in the Unplanned Tasks section for future reference.
+    9.3. **Run** (project-appropriate — use `package.json` scripts when present):
+        9.3.1. Unit / component tests (`npm test`, `npm run test`, etc.)
+        9.3.2. Typecheck and linter when available
+        9.3.3. Smoke or manual check only when no automated suite exists — document what you ran
 
-    6.3. Ask the human how they want to proceed with the error.
+    9.4. **On success — MUST commit** (this is mandatory, not optional):
+        9.4.1. Execute **awp commit** immediately after a green run
+        9.4.2. Message: `test(scope taskId): subject` — e.g. `test(console 2.0): add map tab render tests`
+        9.4.3. Include new/updated test files and any small test-only config in the commit
+        9.4.4. Append `## Activity` on the active task `.md` (e.g. "Tests passed — committed")
+        9.4.5. **Do not** call **awp next** — **test** verifies and commits evidence; **next** advances the task
 
-    6.4. Examples of AWP violations:
+    9.5. **On failure**:
+        9.5.1. **Do not commit** failing code or broken tests
+        9.5.2. Report failures to the human with logs
+        9.5.3. Run **awp fix** for in-scope failures, or **awp handoff** if blocked
+
+    9.6. **Testing reference** (what to cover when choosing tests):
+        9.6.1. **Unit** — components/modules, props, state, coverage on critical paths
+        9.6.2. **Integration** — APIs, data flow, auth, error handling
+        9.6.3. **E2E** — core user journeys, responsive/cross-browser when relevant
+        9.6.4. **Performance / a11y / security** — when acceptance criteria or task requires it
+
+10. **fix**
+
+    10.1. **When**: Test/lint/build failure; bug found in **awp check**; regression blocking active acceptance criteria; human says `awp fix`.
+
+    10.2. **Scope** (pick one before coding):
+        10.2.1. **Active task** — fix required to complete current In Progress task → commit `fix(scope taskId): …`
+        10.2.2. **Out of scope** — ask human first → unplanned `U-n` in `tasks/unplanned/` → commit `fix(scope U-n): …`; log in AWP.md Unplanned Tasks
+
+    10.3. **Procedure**:
+        10.3.1. Reproduce the issue; state root cause briefly
+        10.3.2. Implement minimal fix (no scope creep)
+        10.3.3. Re-run tests or verification that failed before
+
+    10.4. **On success — MUST commit** (mandatory):
+        10.4.1. Execute **awp commit** immediately after the fix is verified
+        10.4.2. Message: `fix(scope taskId): subject` — e.g. `fix(map 2.0): handle null facility id`
+        10.4.3. Append `## Activity` on the task `.md` (active or `U-n`)
+        10.4.4. Task stays **In Progress** (or unplanned open) — fixing does not complete the task; use **awp next** when acceptance criteria are met
+
+    10.5. **On failure**: Do not commit partial fixes. Document attempts; run **awp handoff** or add **Unplanned Tasks** / **Risks** as needed.
+
+11. **error_recovery**
+
+    11.1. If you realise you have violated AWP procedures, you MUST immediately:
+        11.1.1. Stop all current actions
+        11.1.2. Acknowledge the violation to the human
+        11.1.3. Ask for permission to correct the error
+        11.1.4. Follow proper AWP procedures going forward
+
+    11.2. Document the violation in the Unplanned Tasks section for future reference.
+
+    11.3. Ask the human how they want to proceed with the error.
+
+    11.4. Examples of AWP violations:
         - Skipping AWP.md reading when seeing "awp" commands
         - Making assumptions about command scope
         - Skipping the update → commit → next sequence

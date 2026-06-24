@@ -63,6 +63,7 @@ function startFileWatcher(agentic: string, backlogDir: string): void {
       taskIds,
     });
     broadcastSse({ type: 'activity_updated' });
+    broadcastSse({ type: 'time_updated' });
     if (filePath) {
       const rel = path.relative(agentic, filePath).replace(/\\/g, '/');
       console.log(`Updated: ${rel}`);

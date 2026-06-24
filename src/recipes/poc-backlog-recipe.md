@@ -145,7 +145,7 @@ Designed to be both **human- and AI-friendly**.
       - **FORBIDDEN**: one commit for multiple tasks (e.g. `feat(app 1.0-9.0): deliver POC`); implementing all phases then committing once
       - If nothing started yet, run **awp start** readiness first. See AWP.md procedure **auto** (§7).
 
-  2.10.6 After **init**, ask the human: **awp start**, **awp next**, or **awp auto** — do not assume.
+  2.10.6 After **init**, ask the human: **awp refine** (when `user.md` is comprehensive), **awp start**, **awp next**, or **awp auto** — do not assume.
 
 ## 3. POC Task Schema Definition (Markdown Format)
 

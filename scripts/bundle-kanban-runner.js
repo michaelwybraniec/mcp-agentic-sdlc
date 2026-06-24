@@ -20,6 +20,8 @@ const files = [
   'watchGit.js',
   'taskStatus.js',
   'taskMd.js',
+  'timeTracking.js',
+  'appRun.js',
 ];
 
 if (!fs.existsSync(distBacklog)) {

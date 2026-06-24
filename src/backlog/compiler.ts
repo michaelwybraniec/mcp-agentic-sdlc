@@ -11,6 +11,8 @@ import {
 import { parseTaskMd, peek } from './parser.js';
 import { resolveTaskColumn, validateTaskBoard, applyInProgressInference, inferActiveTaskId } from './taskStatus.js';
 import { loadGitCommits, loadAgentCommits, taskIdFromCommitSubject } from './gitCommits.js';
+import { ensureRunAppScript } from './appRun.js';
+import { updateTimeTracking, enrichSnapshotWithTime } from './timeTracking.js';
 import { BacklogSnapshot, KanbanConfig, TaskCard, TaskColumn } from './types.js';
 
 export function readKanbanConfig(kanbanDir: string): KanbanConfig | null {
@@ -353,6 +355,22 @@ export function syncBacklog(agenticSdlcDir: string, changedFiles?: string[]): Ba
   if (!fs.existsSync(kanbanDir)) {
     fs.mkdirSync(kanbanDir, { recursive: true });
   }
+
+  const timeStore = updateTimeTracking(kanbanDir, prev, snapshot);
+  enrichSnapshotWithTime(snapshot, timeStore);
+
+  const appDir = snapshot.config.appDir ? path.resolve(snapshot.config.appDir) : '';
+  if (appDir) {
+    snapshot.appRun = ensureRunAppScript(appDir);
+  }
+  const total = Object.keys(snapshot.tasks).length;
+  const completed = snapshot.boardHealth.completedIds.length;
+  snapshot.boardProgress = {
+    completed,
+    total,
+    remaining: Math.max(0, total - completed),
+    percent: total ? Math.round((completed / total) * 100) : 0,
+  };
 
   fs.writeFileSync(path.join(kanbanDir, 'backlog.json'), JSON.stringify(snapshot, null, 2));
   return snapshot;

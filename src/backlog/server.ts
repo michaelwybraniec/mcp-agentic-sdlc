@@ -7,6 +7,7 @@ import { readKanbanConfig } from './compiler.js';
 import { openKanbanInBrowser } from './launch.js';
 import { loadAgentCommits, loadGitCommits } from './gitCommits.js';
 import { loadActivityLog } from './activity.js';
+import { loadTimeTracking } from './timeTracking.js';
 import { watchGitHead } from './watchGit.js';
 
 export interface KanbanServerOptions {
@@ -139,6 +140,17 @@ export function startKanbanServer(
         'Access-Control-Allow-Origin': '*',
       });
       res.end(JSON.stringify({ commits, appDir, generatedAt: new Date().toISOString() }));
+      return;
+    }
+
+    if (url === '/api/time-tracking.json') {
+      const store = loadTimeTracking(kanbanDir);
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Access-Control-Allow-Origin': '*',
+      });
+      res.end(JSON.stringify(store));
       return;
     }
 

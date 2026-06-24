@@ -48,6 +48,8 @@ const activity_js_1 = require("./activity.js");
 const parser_js_1 = require("./parser.js");
 const taskStatus_js_1 = require("./taskStatus.js");
 const gitCommits_js_1 = require("./gitCommits.js");
+const appRun_js_1 = require("./appRun.js");
+const timeTracking_js_1 = require("./timeTracking.js");
 function readKanbanConfig(kanbanDir) {
     const configPath = path.join(kanbanDir, '.kanban-config.json');
     if (!fs.existsSync(configPath))
@@ -336,6 +338,20 @@ function syncBacklog(agenticSdlcDir, changedFiles) {
     if (!fs.existsSync(kanbanDir)) {
         fs.mkdirSync(kanbanDir, { recursive: true });
     }
+    const timeStore = (0, timeTracking_js_1.updateTimeTracking)(kanbanDir, prev, snapshot);
+    (0, timeTracking_js_1.enrichSnapshotWithTime)(snapshot, timeStore);
+    const appDir = snapshot.config.appDir ? path.resolve(snapshot.config.appDir) : '';
+    if (appDir) {
+        snapshot.appRun = (0, appRun_js_1.ensureRunAppScript)(appDir);
+    }
+    const total = Object.keys(snapshot.tasks).length;
+    const completed = snapshot.boardHealth.completedIds.length;
+    snapshot.boardProgress = {
+        completed,
+        total,
+        remaining: Math.max(0, total - completed),
+        percent: total ? Math.round((completed / total) * 100) : 0,
+    };
     fs.writeFileSync(path.join(kanbanDir, 'backlog.json'), JSON.stringify(snapshot, null, 2));
     return snapshot;
 }

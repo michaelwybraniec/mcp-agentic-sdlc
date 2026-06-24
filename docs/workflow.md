@@ -288,11 +288,12 @@ agentic-sdlc/
 
 ### After init — how to begin
 
-Init scaffolds the backlog and starts Kanban. The agent must **ask you** which command to run:
+Init scaffolds the backlog and starts Kanban. Tasks are created from **base.md phases** and enriched from **user.md** when present. The agent must **ask you** which command to run:
 
 | Command | Use when |
 |---------|----------|
-| **`awp start`** | **First task** after init (readiness checks + mark task 1 In Progress) — **recommended** |
+| **`awp refine`** | **After init** when `user.md` is comprehensive — slice/review tasks, human approves before coding |
+| **`awp start`** | **First task** after init/refine (readiness checks + mark task In Progress) |
 | `awp next` | One task at a time |
 | `awp auto` / `awp auto strict` | All remaining tasks — **strict loop** (one task, one commit, one Kanban move per iteration) |
 
@@ -445,16 +446,19 @@ See `agentic-sdlc/kanban/KANBAN.md` for copy-paste instructions agents can quote
 
 ### AWP command bar (Kanban UI)
 
-The board header includes buttons for the seven AWP procedures (`AWP.md`):
+The board header includes AWP procedure buttons (`AWP.md`):
 
 | Button | Copies to clipboard |
 |--------|---------------------|
+| Refine | `awp refine` — slice tasks from user.md before start |
 | Check | `awp check` — review state, restore context |
 | **Start** | **`awp start`** — first task after init (readiness + Kanban sync) |
 | Update | `awp update` |
 | Commit | `awp commit` |
+| **Test** | **`awp test`** — run tests; on success **must commit** `test(scope id): …` |
+| **Fix** | **`awp fix`** — fix bug; on verified fix **must commit** `fix(scope id): …` |
 | Next | `awp next` — one task (update → commit → next) |
-| **Auto** | **`awp auto`** — all remaining tasks in a loop of awp next |
+| **Auto** | **`awp auto`** — all remaining tasks in a strict per-task loop |
 | Handoff | `awp handoff` |
 
 Hover a button for its description, click to copy, then paste into the agent chat. The board is read-only; commands run in the IDE agent, not in the browser.
@@ -465,8 +469,12 @@ Hover a button for its description, click to copy, then paste into the agent cha
 
 **`awp next`** — mandatory sequence per task: **update → commit → next** (see AWP.md).
 
-**`awp auto`** — a **loop of awp next**, not one bulk delivery:
-1. `backlog_sync` `startTaskId` → implement **that task only** → **one commit** (`feat(scope 1.0): …`) → `backlog_sync` `completeTaskId` + next `startTaskId`
+**`awp test`** — run project tests (and lint/typecheck when available). On **success**, **must commit** with `test(scope taskId): subject`. On failure, use **`awp fix`** or hand off — do not commit red builds.
+
+**`awp fix`** — fix a bug on the active task or unplanned `U-n`. On **verified** fix, **must commit** with `fix(scope taskId): subject`. Does not complete the task — use **`awp next`** when acceptance criteria are met.
+
+**`awp auto`** — a **strict per-task loop**, not one bulk delivery:
+1. `backlog_sync` `startTaskId` → implement **that task only** → **`awp test`** (commit on green) → **`feat`/`fix` commit** → `backlog_sync` `completeTaskId` + next `startTaskId`
 2. Repeat for 2.0, 3.0, … until planned is empty
 3. **Never** one commit covering `1.0-9.0` or all phases. Kanban must show each card complete before the next starts.
 

@@ -1,7 +1,23 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  assignItemsToPhases,
+  criteriaFromItem,
+  extractWorkItems,
+  isComprehensiveUserMd,
+  TaskPlanningOptions,
+  TaskPlanningResult,
+  titleFromItem,
+} from './taskPlanning.js';
 
 export { parseBaseMd } from '../backlog/parseBaseMd.js';
+export type { TaskPlanningOptions, TaskPlanningResult } from './taskPlanning.js';
+export {
+  extractWorkItems,
+  isComprehensiveUserMd,
+  assignItemsToPhases,
+  stripUserMdHeader,
+} from './taskPlanning.js';
 
 // Helper function to extract template section from recipe
 export function extractTemplateFromRecipe(recipeContent: string): string | null {
@@ -88,19 +104,71 @@ ${taskLinks}
 }
 
 // Helper function to create initial task files using type-specific backlog recipe as guide
-export function createInitialTasks(plannedDir: string, goals: string[], overview: string[], technology: string[], outcome: string[], projectType: string = 'pro'): void {
+export function createInitialTasks(
+  plannedDir: string,
+  goals: string[],
+  overview: string[],
+  technology: string[],
+  outcome: string[],
+  projectType: string = 'pro',
+  planning?: TaskPlanningOptions
+): TaskPlanningResult {
   const recipeFileName = `${projectType}-backlog-recipe.md`;
   const recipePath = path.join(__dirname, "..", "recipes", recipeFileName);
   fs.readFileSync(recipePath, 'utf8');
 
+  const userMd = planning?.userMdContent?.trim() || '';
+  const comprehensive = userMd ? isComprehensiveUserMd(userMd) : false;
+  const userItems = userMd ? extractWorkItems(userMd) : [];
+  const goalItems = (planning?.goals || goals).map((g) => normalizeGoalItem(g));
+  const allItems = [...userItems];
+  for (const g of goalItems) {
+    if (!allItems.some((i) => i.toLowerCase().includes(g.toLowerCase().slice(0, 20)))) {
+      allItems.push(g);
+    }
+  }
+  const phaseAssignments = assignItemsToPhases(allItems, overview, goals);
+
+  let subtaskCount = 0;
   let taskCounter = 1;
 
   overview.forEach((phase: string, index: number) => {
-    const taskId = `${taskCounter}.0`;
+    const parentId = `${taskCounter}.0`;
     const taskTitle = phase.replace(/^\d+\.\s*/, '');
-    const prevId = taskCounter === 1 ? null : `${taskCounter - 1}.0`;
+    const prevParentId = taskCounter === 1 ? null : `${taskCounter - 1}.0`;
+    const phaseItems = phaseAssignments.get(index) || [];
+    const shouldSlice = phaseItems.length >= 2;
 
-    const acceptanceCriteria = buildAcceptanceCriteria(
+    const childIds: string[] = [];
+
+    if (shouldSlice && phaseItems.length > 0) {
+      const sliceItems = phaseItems.slice(0, 8);
+      sliceItems.forEach((item, subIdx) => {
+        const childId = `${taskCounter}.${subIdx + 1}`;
+        childIds.push(childId);
+        const prevChild = subIdx === 0 ? prevParentId : `${taskCounter}.${subIdx}`;
+        writeTaskFile(plannedDir, childId, {
+          title: titleFromItem(item),
+          status: '[ ] Pending',
+          priority: index === 0 && subIdx === 0 ? 'high' : 'high',
+          owner: 'Dev Team',
+          effort: '2h-4h',
+          projectType,
+          description: `${item}\n\nFrom user input (user.md), scoped to phase: ${taskTitle}. Technology: ${technology.join(', ')}.`,
+          dependencies: prevChild ? [`- [ ] Task ID: ${prevChild}`] : ['- None'],
+          acceptanceCriteria: [
+            criteriaFromItem(item),
+            '- [ ] Dev build runs without errors introduced by this task',
+            '- [ ] Testing instructions pass',
+          ],
+          notes: `Subtask of ${parentId} · sourced from user.md`,
+          parentId,
+        });
+        subtaskCount++;
+      });
+    }
+
+    const parentAcceptance = buildAcceptanceCriteria(
       taskTitle,
       phase,
       index,
@@ -109,57 +177,133 @@ export function createInitialTasks(plannedDir: string, goals: string[], overview
       projectType
     );
 
-    const task = `# Task ID: ${taskId}
-# Title: ${taskTitle}
-# Status: [ ] Pending
-# Priority: ${index === 0 ? 'high' : index === overview.length - 1 ? 'medium' : 'high'}
-# Owner: Dev Team
-# Estimated Effort: ${index === 0 ? '4h' : index === overview.length - 1 ? '3h' : '6h'}
-${projectType === 'poc' ? '# POC Scope: POC\n' : ''}
+    const parentDescription = childIds.length
+      ? `${phase} — Parent phase task. Complete when all subtasks (${childIds.join(', ')}) are done.\n\nGoals: ${goals.join(', ')}. Tech: ${technology.join(', ')}.`
+      : phaseItems.length
+        ? `${phase} — ${phaseItems.join(' ')}\n\nGoals: ${goals.join(', ')}. Technology stack: ${technology.join(', ')}.`
+        : `${phase} — This phase focuses on achieving the project goals: ${goals.join(', ')}. Technology stack: ${technology.join(', ')}.`;
+
+    const parentCriteria =
+      childIds.length > 0
+        ? [
+            `- [ ] All subtasks complete: ${childIds.join(', ')}`,
+            `- [ ] ${taskTitle}: phase deliverable is demonstrable end-to-end`,
+            `- [ ] Dev build runs without errors for this phase`,
+          ].join('\n')
+        : parentAcceptance;
+
+    let finalCriteria = parentCriteria;
+    if (phaseItems.length && !childIds.length) {
+      finalCriteria = parentAcceptance + '\n' + phaseItems.map((i) => criteriaFromItem(i)).join('\n');
+    }
+
+    writeTaskFile(plannedDir, parentId, {
+      title: taskTitle,
+      status: '[ ] Pending',
+      priority: index === 0 ? 'high' : index === overview.length - 1 ? 'medium' : 'high',
+      owner: 'Dev Team',
+      effort: index === 0 ? '4h' : index === overview.length - 1 ? '3h' : '6h',
+      projectType,
+      description: parentDescription,
+      dependencies: prevParentId ? [`- [ ] Task ID: ${prevParentId}`] : ['- None'],
+      acceptanceCriteria: finalCriteria.split('\n'),
+      notes: childIds.length
+        ? `Phase ${index + 1} of ${overview.length} · ${childIds.length} subtasks from user.md`
+        : phaseItems.length
+          ? `Phase ${index + 1} of ${overview.length} · enriched from user.md`
+          : `Phase ${index + 1} of ${overview.length}: ${phase}`,
+      subtaskList: childIds.length
+        ? childIds.map((id) => `- [ ] Task ID: ${id}`)
+        : [
+            '- [ ] Analyze requirements for this phase',
+            '- [ ] Implement core functionality',
+            '- [ ] Test and validate implementation',
+          ],
+      userSourced: Boolean(phaseItems.length),
+    });
+
+    taskCounter++;
+  });
+
+  return {
+    parentCount: overview.length,
+    subtaskCount,
+    usedUserMd: Boolean(userMd && allItems.length),
+    comprehensiveUserMd: comprehensive,
+  };
+}
+
+function normalizeGoalItem(g: string): string {
+  return g.replace(/^\d+\.\s*/, '').trim();
+}
+
+interface TaskFileInput {
+  title: string;
+  status: string;
+  priority: string;
+  owner: string;
+  effort: string;
+  projectType: string;
+  description: string;
+  dependencies: string[];
+  acceptanceCriteria: string[];
+  notes: string;
+  parentId?: string;
+  subtaskList?: string[];
+  userSourced?: boolean;
+}
+
+function writeTaskFile(plannedDir: string, taskId: string, input: TaskFileInput): void {
+  const criteriaBlock = input.acceptanceCriteria
+    .map((l) => (l.startsWith('- [ ]') ? l : `- [ ] ${l}`))
+    .join('\n');
+
+  const task = `# Task ID: ${taskId}
+# Title: ${input.title}
+# Status: ${input.status}
+# Priority: ${input.priority}
+# Owner: ${input.owner}
+# Estimated Effort: ${input.effort}
+${input.projectType === 'poc' ? '# POC Scope: POC\n' : ''}${input.userSourced ? '# Source: user.md\n' : ''}
 ## Description
-${phase} — This phase focuses on achieving the project goals: ${goals.join(', ')}. Technology stack: ${technology.join(', ')}.
+${input.description}
 
 ## Dependencies
-${prevId ? `- [ ] Task ID: ${prevId}` : '- None'}
+${input.dependencies.join('\n')}
 
 ## Testing Instructions
-Verify that this phase meets the requirements and contributes to the success criteria: ${outcome.join(', ')}
+Verify deliverable meets acceptance criteria and contributes to project success.
 
 ## Security Review
-Apply appropriate security measures for this phase
+Apply appropriate security measures for this ${input.parentId ? 'subtask' : 'phase'}
 
 ## Risk Assessment
-Delays in this phase may impact overall project timeline
+Delays may impact overall project timeline
 
 ## Acceptance Criteria
-${acceptanceCriteria}
+${criteriaBlock}
 
 ## Definition of Done
 - [ ] All acceptance criteria above are met
-- [ ] Basic testing completed for this phase
+- [ ] Basic testing completed
 - [ ] Changes committed with AWP commit standard referencing task ${taskId}
 
 ## Strengths
-Essential for achieving project goals and success criteria
+${input.userSourced ? 'Derived from comprehensive user input (user.md)' : 'Essential for achieving project goals'}
 
 ## Notes
-Phase ${index + 1} of ${overview.length}: ${phase}
+${input.notes}
 
 ## Sub-tasks
-- [ ] Analyze requirements for this phase
-- [ ] Implement core functionality
-- [ ] Test and validate implementation
-- [ ] Document phase completion
+${(input.subtaskList || []).join('\n')}
 
 ## Activity
-- ${new Date().toISOString().slice(0, 16).replace('T', ' ')} — Task created
+- ${new Date().toISOString().slice(0, 16).replace('T', ' ')} — Task created${input.userSourced ? ' (user.md)' : ''}
 
 ## Completed
 [ ] Pending`;
 
-    fs.writeFileSync(path.join(plannedDir, `task-${taskId}.md`), task);
-    taskCounter++;
-  });
+  fs.writeFileSync(path.join(plannedDir, `task-${taskId}.md`), task);
 }
 
 function buildAcceptanceCriteria(

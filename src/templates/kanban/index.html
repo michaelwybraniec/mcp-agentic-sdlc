@@ -279,6 +279,76 @@
     .card-title { font-size: 13px; font-weight: 500; margin: 4px 0; line-height: 1.3; }
     .card-log { font-size: 11px; color: #666; margin: 2px 0; }
     .card-meta { font-size: 11px; color: #999; margin-top: 4px; }
+    .card-time {
+      font-size: 11px;
+      color: #475569;
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .time-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      font-size: 10px;
+      font-weight: 500;
+    }
+    .time-chip.agent { background: #eff6ff; color: #1d4ed8; }
+    .time-chip.human { background: #fef3c7; color: #b45309; }
+    .time-chip.total { background: #ecfdf5; color: #047857; }
+    .time-chip.live { box-shadow: 0 0 0 1px #2563eb; }
+    .modal.modal-dashboard { width: min(640px, 94vw); }
+    .modal.modal-report { width: min(680px, 94vw); }
+    .run-script-block {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 12px 14px;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-x: auto;
+      margin: 0;
+    }
+    .progress-bar-wrap {
+      background: #e5e5e5;
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+      margin: 8px 0 4px;
+    }
+    .progress-bar-fill {
+      background: #059669;
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+    .time-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .time-summary-card {
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+    .time-summary-card.agent { border-color: #bfdbfe; background: #f8fafc; }
+    .time-summary-card.human { border-color: #fde68a; background: #fffbeb; }
+    .time-summary-card.combined { border-color: #a7f3d0; background: #f0fdf4; }
+    .time-summary-card h3 { font-size: 11px; text-transform: uppercase; color: #64748b; margin-bottom: 6px; font-weight: 600; }
+    .time-summary-card .time-value { font-size: 22px; font-weight: 600; color: #0f172a; }
+    .time-task-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .time-task-table th, .time-task-table td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #eee; }
+    .time-task-table th { font-size: 10px; text-transform: uppercase; color: #666; font-weight: 600; }
+    .time-task-table tr.active td { background: #f8fafc; }
     .priority { font-size: 10px; text-transform: uppercase; font-weight: 600; }
     .priority.critical { color: #b91c1c; }
     .priority.high { color: #b45309; }
@@ -446,6 +516,7 @@
       <span class="live" id="live-status"><span class="dot">○</span> Connecting…</span>
       <button type="button" class="status-chip" id="status-chip" aria-expanded="false">Board status</button>
     </div>
+    <button type="button" class="link-btn" id="view-time-dashboard" title="Time spent per task — Agent, Human, combined">Time dashboard</button>
     <button type="button" class="link-btn" id="view-agreement">View agreement</button>
     <p class="summary" id="summary-line"></p>
     <div class="status-popover" id="status-popover" role="status"></div>
@@ -453,6 +524,9 @@
 
   <div class="awp-toolbar" id="awp-toolbar">
     <span class="awp-toolbar-label">AWP commands</span>
+    <button type="button" class="awp-btn" data-awp="awp refine"
+      data-tip="After init: read user.md + base.md, slice next parent task into subtasks, present for human approval before awp start (AWP.md § refine)."
+      title="Refine — awp refine">Refine</button>
     <button type="button" class="awp-btn" data-awp="awp check"
       data-tip="Review current project state, restore context, and identify the current actionable step (AWP.md § check)."
       title="Check — awp check">Check</button>
@@ -465,6 +539,12 @@
     <button type="button" class="awp-btn" data-awp="awp commit"
       data-tip="Commit with commitStandard: type(scope step): subject — reference the current step (AWP.md § commit)."
       title="Commit — awp commit">Commit</button>
+    <button type="button" class="awp-btn" data-awp="awp test"
+      data-tip="Run tests/lint on active task; on success MUST commit test(scope taskId): … (AWP.md §9)."
+      title="Test — awp test">Test</button>
+    <button type="button" class="awp-btn" data-awp="awp fix"
+      data-tip="Fix bug on active task or U-n; on verified fix MUST commit fix(scope taskId): … (AWP.md §10)."
+      title="Fix — awp fix">Fix</button>
     <button type="button" class="awp-btn" data-awp="awp next"
       data-tip="One task: update → commit → next. Sync Kanban via backlog_sync startTaskId / completeTaskId (AWP.md § next)."
       title="Next — awp next">Next</button>
@@ -512,8 +592,10 @@
       <div class="modal-footer">
         <span id="modal-updated"></span>
         <span>
+          <button type="button" class="link-btn hidden" id="copy-run-cmd">Copy run commands</button>
           <button type="button" class="link-btn hidden" id="copy-contract-path">Copy path</button>
           <button type="button" class="link-btn hidden" id="copy-task-path">Copy path</button>
+          <button type="button" class="link-btn hidden" id="open-dashboard-from-report">Time dashboard</button>
         </span>
       </div>
     </div>
@@ -527,6 +609,74 @@
     let commitsData = [];
     let activityEvents = [];
     let lastActivityTop = '';
+    let timeTrackingData = null;
+    let knownCompletedIds = new Set();
+    let completionsInitialized = false;
+    let lastRunBlock = '';
+
+    function buildRunCommands() {
+      const run = data?.appRun;
+      const appDir = run?.appDir || data?.config?.appDir || '.';
+      if (!run?.hasPackageJson) {
+        return `cd ${appDir}\n# Add package.json with a "dev" script, then:\nnpm install && npm run dev`;
+      }
+      const script = `./${run.scriptRelPath || 'scripts/run-app.sh'}`;
+      const lines = [
+        `cd ${appDir}`,
+        script,
+        '# or:',
+        run.oneLiner || 'npm install && npm run dev',
+      ];
+      if (run.hintUrl) lines.push(`# App URL (typical): ${run.hintUrl}`);
+      return lines.join('\n');
+    }
+
+    function handleCompletionDetection() {
+      const completed = (data?.columns?.completed || []).map((t) => t.id);
+      const params = new URLSearchParams(location.search);
+
+      if (!completionsInitialized) {
+        knownCompletedIds = new Set(completed);
+        completionsInitialized = true;
+        const q = params.get('completed') || params.get('report');
+        if (q && data?.tasks?.[q]) {
+          openCompletionReport(q);
+          return;
+        }
+        if (params.get('dashboard') === '1') {
+          fetchTimeTracking().then(() => openTimeDashboard()).catch(() => openTimeDashboard());
+        }
+        return;
+      }
+
+      for (const id of completed) {
+        if (!knownCompletedIds.has(id)) {
+          openCompletionReport(id);
+          break;
+        }
+      }
+      knownCompletedIds = new Set(completed);
+    }
+
+    function formatDuration(ms) {
+      if (!ms || ms < 1000) return '<1m';
+      const totalMin = Math.floor(ms / 60000);
+      if (totalMin < 60) return totalMin + 'm';
+      const h = Math.floor(totalMin / 60);
+      const m = totalMin % 60;
+      return m ? h + 'h ' + m + 'm' : h + 'h';
+    }
+
+    function renderTaskTimeSpent(task) {
+      const t = task.timeSpent;
+      if (!t || (!t.combinedMs && !t.isActive)) return '';
+      const live = t.isActive ? ' live' : '';
+      const parts = [];
+      if (t.agentMs) parts.push(`<span class="time-chip agent${live}" title="Agent time">🤖 ${formatDuration(t.agentMs)}</span>`);
+      if (t.humanMs) parts.push(`<span class="time-chip human${live}" title="Human time">👤 ${formatDuration(t.humanMs)}</span>`);
+      parts.push(`<span class="time-chip total${live}" title="Total time">⏱ ${formatDuration(t.combinedMs)}</span>`);
+      return `<div class="card-time">${parts.join('')}</div>`;
+    }
 
     function showToast(msg) {
       const t = document.getElementById('awp-toast');
@@ -662,6 +812,7 @@
           ? `<span class="task-done-icon" role="status" aria-label="Completed">✓</span>`
           : ''}<span>${esc(task.title)}${pulseIds.has(task.id) ? ' ◌' : ''}${task.inferredInProgress ? ' ⟡' : ''}</span></div>
         ${logLine ? `<div class="card-log">${esc(logLine)}</div>` : ''}
+        ${renderTaskTimeSpent(task)}
         <div class="card-meta">${task.owner ? esc(task.owner) + ' · ' : ''}⛓ ${task.dependencyCount || 0} · ${timeAgo(task.lastUpdated)}</div>
       </div>`;
     }
@@ -680,7 +831,15 @@
       }).join('');
 
       board.querySelectorAll('.card').forEach((el) => {
-        el.addEventListener('click', () => openTaskModal(el.dataset.id));
+        el.addEventListener('click', () => {
+          const id = el.dataset.id;
+          const task = data?.tasks?.[id];
+          if (task && (task.column === 'completed' || task.status === 'completed')) {
+            openCompletionReport(id);
+          } else {
+            openTaskModal(id);
+          }
+        });
       });
     }
 
@@ -909,6 +1068,7 @@
 
       const dialog = document.getElementById('modal-dialog');
       dialog.classList.add('modal-task');
+      dialog.classList.remove('modal-dashboard');
 
       const isCompleted = task.column === 'completed' || task.status === 'completed';
 
@@ -955,6 +1115,15 @@
             : '<p class="empty">None</p>'}
         </div>
         <div class="modal-section"><h4>Acceptance criteria</h4>${criteriaBlock}</div>
+        ${task.timeSpent && (task.timeSpent.combinedMs || task.timeSpent.isActive)
+          ? `<div class="modal-section"><h4>Time spent</h4>
+              <p>
+                <span class="time-chip agent">Agent ${formatDuration(task.timeSpent.agentMs)}</span>
+                <span class="time-chip human">Human ${formatDuration(task.timeSpent.humanMs)}</span>
+                <span class="time-chip total">Total ${formatDuration(task.timeSpent.combinedMs)}</span>
+                ${task.timeSpent.isActive ? '<span class="time-chip live">session active</span>' : ''}
+              </p></div>`
+          : ''}
         ${task.notes ? '<div class="modal-section"><h4>Notes</h4><p>' + esc(task.notes) + '</p></div>' : ''}
         ${task.risk ? '<div class="modal-section"><h4>Risk</h4><p>' + esc(task.risk) + '</p></div>' : ''}
         <div class="modal-section"><h4>Activity log</h4>
@@ -1002,6 +1171,182 @@
 
     function closeModal() {
       document.getElementById('modal-backdrop').classList.remove('open');
+      document.getElementById('modal-dialog').classList.remove('modal-dashboard', 'modal-report');
+      document.getElementById('copy-run-cmd').classList.add('hidden');
+      document.getElementById('open-dashboard-from-report').classList.add('hidden');
+    }
+
+    function openCompletionReport(id) {
+      const task = data?.tasks?.[id];
+      if (!task) return;
+
+      const dialog = document.getElementById('modal-dialog');
+      dialog.classList.remove('modal-task', 'modal-dashboard');
+      dialog.classList.add('modal-report');
+
+      const prog = data.boardProgress || {};
+      const dash = data.timeDashboard;
+      const ts = task.timeSpent;
+      lastRunBlock = buildRunCommands();
+      const port = data.config?.port || 4173;
+      const kanbanRun = 'cd agentic-sdlc/kanban && npm install && npm run watch';
+
+      document.getElementById('modal-title').textContent = `Completion report — ${task.id}`;
+      document.getElementById('modal-path').textContent = task.title;
+      document.getElementById('modal-meta').classList.remove('hidden');
+      document.getElementById('modal-meta').textContent =
+        `${prog.completed ?? 0}/${prog.total ?? 0} tasks done (${prog.percent ?? 0}%)`;
+
+      const criteriaBlock = task.acceptanceCriteria?.length
+        ? '<ul class="criteria-done">' + task.acceptanceCriteria.map((c) => '<li>' + esc(c) + '</li>').join('') + '</ul>'
+        : '<p class="empty">—</p>';
+
+      const timeSection = ts && (ts.combinedMs || ts.isActive)
+        ? `<div class="time-summary-grid" style="margin-bottom:12px">
+            <div class="time-summary-card agent"><h3>Agent</h3><div class="time-value">${formatDuration(ts.agentMs)}</div></div>
+            <div class="time-summary-card human"><h3>Human</h3><div class="time-value">${formatDuration(ts.humanMs)}</div></div>
+            <div class="time-summary-card combined"><h3>Total</h3><div class="time-value">${formatDuration(ts.combinedMs)}</div></div>
+          </div>
+          <p style="font-size:11px;color:#666;margin-bottom:12px">Project totals: Agent ${formatDuration(dash?.agentMs || 0)} · Human ${formatDuration(dash?.humanMs || 0)} · Combined ${formatDuration(dash?.combinedMs || 0)}</p>`
+        : `<p class="empty" style="margin-bottom:12px">No time recorded for this task yet.</p>
+           <p style="font-size:11px;color:#666;margin-bottom:12px">Project totals: Agent ${formatDuration(dash?.agentMs || 0)} · Human ${formatDuration(dash?.humanMs || 0)} · Combined ${formatDuration(dash?.combinedMs || 0)}</p>`;
+
+      document.getElementById('modal-content').innerHTML = `
+        <div class="modal-done-banner"><span class="task-done-icon" aria-hidden="true">✓</span><span>Task <strong>${esc(task.id)}</strong> completed — ready to run and verify</span></div>
+        <div class="modal-section">
+          <h4>Board progress</h4>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${prog.percent || 0}%"></div></div>
+          <p>${prog.completed ?? 0} of ${prog.total ?? 0} tasks completed${prog.remaining ? ` · ${prog.remaining} remaining` : ' · all done!'}</p>
+        </div>
+        <div class="modal-section"><h4>Acceptance criteria</h4>${criteriaBlock}</div>
+        <div class="modal-section"><h4>Time on this task</h4>${timeSection}</div>
+        <div class="modal-section">
+          <h4>Run the app</h4>
+          <p style="font-size:11px;color:#666;margin-bottom:8px">From your project root in a terminal:</p>
+          <pre class="run-script-block" id="run-script-pre">${esc(lastRunBlock)}</pre>
+          ${data.appRun?.hintUrl ? `<p style="font-size:11px;color:#666;margin-top:8px">Then open <a href="${esc(data.appRun.hintUrl)}" target="_blank" rel="noopener">${esc(data.appRun.hintUrl)}</a></p>` : ''}
+        </div>
+        <div class="modal-section">
+          <h4>Kanban board</h4>
+          <pre class="run-script-block">${esc(kanbanRun)}</pre>
+          <p style="font-size:11px;color:#666;margin-top:8px">Board URL: <a href="http://localhost:${port}/" target="_blank" rel="noopener">http://localhost:${port}/</a></p>
+        </div>`;
+
+      document.getElementById('modal-updated').textContent =
+        'Completed ' + timeAgo(task.lastUpdated);
+
+      document.getElementById('copy-contract-path').classList.add('hidden');
+      document.getElementById('copy-task-path').classList.add('hidden');
+      const copyRun = document.getElementById('copy-run-cmd');
+      copyRun.classList.remove('hidden');
+      copyRun.onclick = () => navigator.clipboard.writeText(lastRunBlock).then(() => showToast('Copied run commands'));
+      const dashBtn = document.getElementById('open-dashboard-from-report');
+      dashBtn.classList.remove('hidden');
+      dashBtn.onclick = () => {
+        fetchTimeTracking().then(() => openTimeDashboard()).catch(() => openTimeDashboard());
+      };
+
+      document.getElementById('modal-backdrop').classList.add('open');
+      if (history.replaceState) {
+        history.replaceState(null, '', `?completed=${encodeURIComponent(id)}`);
+      }
+    }
+
+    function openTimeDashboard() {
+      const dash = data?.timeDashboard;
+      const store = timeTrackingData;
+      const agentMs = dash?.agentMs ?? store?.summary?.agentMs ?? 0;
+      const humanMs = dash?.humanMs ?? store?.summary?.humanMs ?? 0;
+      const combinedMs = dash?.combinedMs ?? store?.summary?.combinedMs ?? 0;
+
+      const dialog = document.getElementById('modal-dialog');
+      dialog.classList.remove('modal-task', 'modal-report');
+      dialog.classList.add('modal-dashboard');
+
+      document.getElementById('modal-title').textContent = 'Time dashboard';
+      document.getElementById('modal-path').textContent = 'kanban/time-tracking.json';
+      document.getElementById('modal-meta').classList.remove('hidden');
+      document.getElementById('modal-meta').textContent =
+        (dash?.taskCount ?? Object.keys(store?.tasks || {}).length) + ' tasks tracked · ' +
+        (dash?.activeTaskIds?.length ? dash.activeTaskIds.length + ' active now' : 'no active sessions');
+
+      const taskRows = [];
+      const ids = new Set([
+        ...Object.keys(data?.tasks || {}),
+        ...Object.keys(store?.tasks || {}),
+      ]);
+      const sorted = [...ids].sort((a, b) => {
+        const ta = (data?.tasks[a]?.timeSpent?.combinedMs) || (store?.tasks[a]?.totalsMs?.combined) || 0;
+        const tb = (data?.tasks[b]?.timeSpent?.combinedMs) || (store?.tasks[b]?.totalsMs?.combined) || 0;
+        return tb - ta;
+      });
+
+      for (const id of sorted) {
+        const task = data?.tasks[id];
+        const rec = store?.tasks[id];
+        const ts = task?.timeSpent || (rec ? {
+          agentMs: rec.totalsMs?.agent || 0,
+          humanMs: rec.totalsMs?.human || 0,
+          combinedMs: rec.totalsMs?.combined || 0,
+          isActive: !!store?.active?.[id],
+        } : null);
+        if (!ts || (!ts.combinedMs && !ts.isActive)) continue;
+        const title = task?.title || rec?.title || id;
+        const active = ts.isActive ? ' active' : '';
+        taskRows.push(`<tr class="${active}">
+          <td><button type="button" class="link-btn dep-link" data-dep="${esc(id)}">${esc(id)}</button></td>
+          <td>${esc(title)}${ts.isActive ? ' <span class="time-chip live">live</span>' : ''}</td>
+          <td>${formatDuration(ts.agentMs)}</td>
+          <td>${formatDuration(ts.humanMs)}</td>
+          <td><strong>${formatDuration(ts.combinedMs)}</strong></td>
+        </tr>`);
+      }
+
+      document.getElementById('modal-content').innerHTML = `
+        <div class="time-summary-grid">
+          <div class="time-summary-card agent">
+            <h3>Agent</h3>
+            <div class="time-value">${formatDuration(agentMs)}</div>
+          </div>
+          <div class="time-summary-card human">
+            <h3>Human</h3>
+            <div class="time-value">${formatDuration(humanMs)}</div>
+          </div>
+          <div class="time-summary-card combined">
+            <h3>Agent + Human</h3>
+            <div class="time-value">${formatDuration(combinedMs)}</div>
+          </div>
+        </div>
+        <div class="modal-section">
+          <h4>Per task</h4>
+          ${taskRows.length
+            ? `<table class="time-task-table">
+                <thead><tr><th>ID</th><th>Task</th><th>Agent</th><th>Human</th><th>Total</th></tr></thead>
+                <tbody>${taskRows.join('')}</tbody>
+              </table>`
+            : '<p class="empty">No time recorded yet — time starts when a task moves to In Progress.</p>'}
+        </div>
+        <p style="font-size:11px;color:#666;margin-top:12px">Sessions are inferred from Kanban status (In Progress → completed). Actor is inferred from activity lines (AI vs Human).</p>`;
+
+      document.getElementById('modal-updated').textContent =
+        'Updated ' + timeAgo(dash?.updatedAt || store?.updatedAt);
+
+      document.getElementById('copy-contract-path').classList.add('hidden');
+      document.getElementById('copy-task-path').classList.add('hidden');
+
+      document.getElementById('modal-content').querySelectorAll('.dep-link').forEach((btn) => {
+        btn.onclick = (e) => { e.stopPropagation(); openTaskModal(btn.dataset.dep); };
+      });
+
+      document.getElementById('modal-backdrop').classList.add('open');
+    }
+
+    async function fetchTimeTracking() {
+      try {
+        const res = await fetch('/api/time-tracking.json?t=' + Date.now());
+        if (!res.ok) return;
+        timeTrackingData = await res.json();
+      } catch { /* optional */ }
     }
 
     async function fetchData() {
@@ -1018,6 +1363,8 @@
       renderActivity();
       setActivityLive(true);
       setLive(true);
+      fetchTimeTracking().catch(() => {});
+      handleCompletionDetection();
     }
 
     function connectSse() {
@@ -1034,18 +1381,29 @@
                 setTimeout(() => { pulseIds.delete(id); renderBoard(); }, 3000);
               });
             }
-            fetchData().catch(console.error);
+            fetchData().then(() => {
+              const moved = msg.taskIds?.find((id) => data?.tasks?.[id]?.column === 'completed');
+              if (moved) {
+                fetchTimeTracking().then(() => openCompletionReport(moved)).catch(() => openCompletionReport(moved));
+              }
+            }).catch(console.error);
             fetchActivity().catch(console.error);
           } else if (msg.type === 'activity_updated') {
             fetchActivity().catch(console.error);
           } else if (msg.type === 'commits_updated') {
             fetchCommits().catch(console.error);
+          } else if (msg.type === 'time_updated') {
+            fetchData().catch(console.error);
+            fetchTimeTracking().catch(console.error);
           }
         } catch (e) { console.error(e); }
       };
     }
 
     document.getElementById('view-agreement').onclick = openModal;
+    document.getElementById('view-time-dashboard').onclick = () => {
+      fetchTimeTracking().then(() => openTimeDashboard()).catch(() => openTimeDashboard());
+    };
     document.getElementById('status-chip').onclick = (e) => {
       e.stopPropagation();
       const pop = document.getElementById('status-popover');
@@ -1086,6 +1444,12 @@
       setInterval(() => {
         fetchCommits().catch(() => setCommitsLive(false));
       }, 3000);
+      setInterval(() => {
+        if (document.getElementById('modal-backdrop').classList.contains('open') &&
+            document.getElementById('modal-dialog').classList.contains('modal-dashboard')) {
+          fetchData().then(() => fetchTimeTracking()).then(() => openTimeDashboard()).catch(() => {});
+        }
+      }, 10000);
     }).catch((e) => {
       console.error(e);
       setLive(false);
