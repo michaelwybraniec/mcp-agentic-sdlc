@@ -652,7 +652,7 @@ ${proDataModels || 'To be defined'}
       ? `Kanban board: STARTED — opens in Cursor Simple Browser when available, else system browser at http://localhost:${kanbanPort}\nDo NOT tell the user Kanban is optional. If the board is not visible, run: cd agentic-sdlc/kanban && npm run watch`
       : `Kanban board: run \`cd agentic-sdlc/kanban && npm run watch\` — opens in Cursor preview when available, else browser at http://localhost:${kanbanPort}`;
 
-    const agentNext = `Next step for agent:\n1. Confirm Kanban is visible at http://localhost:${kanbanPort}\n2. On every awp update/commit/next: UPDATE task .md files — set # Status, append ## Activity, move to tasks/completed/ when done (code alone does not move Kanban cards)\n3. Follow AWP sequence: update → commit → next`;
+    const agentNext = `Next step for agent:\n1. Confirm Kanban is visible at http://localhost:${kanbanPort}\n2. On awp next — call backlog_sync BEFORE coding:\n   { "startTaskId": "1.0" } for first task (use completeTaskId + startTaskId when advancing)\n   Or edit task .md: # Status: [~] In Progress (only ONE at a time)\n3. Follow AWP sequence: update → commit → next`;
 
     return {
       content: [

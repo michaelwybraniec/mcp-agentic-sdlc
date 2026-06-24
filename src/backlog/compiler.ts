@@ -9,6 +9,8 @@ import {
   taskIdsFromChangedFiles,
 } from './activity.js';
 import { parseTaskMd, peek } from './parser.js';
+import { resolveTaskColumn, validateTaskBoard, applyInProgressInference } from './taskStatus.js';
+import { loadAgentCommits, taskIdFromCommitSubject } from './gitCommits.js';
 import { BacklogSnapshot, KanbanConfig, TaskCard, TaskColumn } from './types.js';
 
 export function readKanbanConfig(kanbanDir: string): KanbanConfig | null {
@@ -78,13 +80,7 @@ export function discoverKanbanContext(baseDir?: string): KanbanContext | null {
 }
 
 function resolveColumn(folder: string, status: string): TaskColumn {
-  if (folder === 'unplanned') return 'unplanned';
-  if (folder === 'completed') return 'completed';
-  if (folder === 'planned') {
-    if (status === 'in_progress') return 'inProgress';
-    return 'planned';
-  }
-  return 'planned';
+  return resolveTaskColumn(folder, status);
 }
 
 function buildSummary(parsed: Record<string, unknown>, projectType: string): BacklogSnapshot['summary'] {
@@ -138,7 +134,15 @@ function readTasksFromFolder(
     const column = resolveColumn(folder, parsed.status);
 
     if (folder === 'planned' && parsed.status === 'completed') {
-      warnings.push(`Task ${parsed.id} has Completed status but is still in planned/`);
+      warnings.push(
+        `Task ${parsed.id}: Completed status in planned/ — move to tasks/completed/ when done`
+      );
+    }
+
+    if (folder === 'completed' && parsed.status !== 'completed') {
+      warnings.push(
+        `Task ${parsed.id}: in completed/ but # Status is not [x] Completed — update header`
+      );
     }
 
     const card: TaskCard = {
@@ -233,8 +237,23 @@ export function compileBacklog(
     columns: { unplanned, planned, inProgress, completed },
     tasks,
     recentEvents: [],
+    boardHealth: validateTaskBoard({ tasks, columns: { unplanned, planned, inProgress, completed } }),
     _warnings: warnings,
   };
+
+  snapshot._warnings = [...warnings, ...snapshot.boardHealth.warnings];
+
+  const appDir = config.appDir ? path.resolve(config.appDir) : '';
+  if (appDir) {
+    const latest = loadAgentCommits(appDir, 1)[0];
+    const inferredId = latest ? taskIdFromCommitSubject(latest.subject) : '';
+    if (inferredId && applyInProgressInference(snapshot, inferredId)) {
+      snapshot._warnings.push(
+        `Task ${inferredId} shown In Progress from latest git commit — set # Status: [~] In Progress in task .md to persist`
+      );
+      snapshot.boardHealth = validateTaskBoard(snapshot);
+    }
+  }
 
   const prev = options?.prevSnapshot ?? loadPreviousSnapshot(kanbanDir);
   const changedTaskIds = options?.changedFiles?.length

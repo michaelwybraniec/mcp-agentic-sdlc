@@ -3,7 +3,7 @@ import * as path from 'path';
 import { ActivityEntry, ActivityKind, BacklogSnapshot, TaskCard } from './types.js';
 import { isTaskMarkdownFile, taskIdFromFilename } from './parser.js';
 
-const MAX_EVENTS = 50;
+const MAX_EVENTS = 100;
 const MAX_TASK_ACTIVITY = 20;
 
 export function loadActivityLog(kanbanDir: string): ActivityEntry[] {

@@ -72,6 +72,7 @@ async function runWatch(appDir?: string, portOverride?: number, openBrowser = tr
       const taskIds = changedFiles.map((f) => taskIdFromFilename(f)).filter(Boolean);
       syncBacklog(agentic, changedFiles.length ? changedFiles : undefined);
       broadcastSse({ type: 'backlog_updated', changedFiles, taskIds });
+      broadcastSse({ type: 'activity_updated' });
       if (filePath) {
         console.log(`Updated: ${path.relative(agentic, filePath).replace(/\\/g, '/')}`);
       }

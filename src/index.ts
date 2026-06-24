@@ -516,15 +516,28 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "backlog_sync",
         description: `
-          Recompile kanban/backlog.json from markdown backlog files in the user's agentic-sdlc/ directory.
-          Use after batch task edits or when the Kanban board needs a fresh snapshot.
-          Run \`cd agentic-sdlc/kanban && npm run watch\` in the user's repo for live browser updates at http://localhost:4173`,
+          Recompile kanban/backlog.json from markdown and optionally update task status for the live board.
+          REQUIRED on awp next: use startTaskId to mark the active task In Progress (and completeTaskId for the previous task).
+          Example: { "appDir": ".", "completeTaskId": "1.0", "startTaskId": "2.0", "activity": "Phase 2 started" }
+          Run cd agentic-sdlc/kanban && npm run watch for live browser updates at http://localhost:4173`,
         inputSchema: {
           type: "object",
           properties: {
             appDir: {
               type: "string",
               description: "Project root containing agentic-sdlc/ (defaults to cwd)",
+            },
+            startTaskId: {
+              type: "string",
+              description: "Mark this task In Progress in tasks/planned/ (demotes other In Progress tasks)",
+            },
+            completeTaskId: {
+              type: "string",
+              description: "Mark completed and move task file to tasks/completed/",
+            },
+            activity: {
+              type: "string",
+              description: "Optional line appended to ## Activity on updated tasks",
             },
             backlogName: {
               type: "string",

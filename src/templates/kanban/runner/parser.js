@@ -66,10 +66,12 @@ function taskIdFromFilename(filename) {
     return m ? m[1] : '';
 }
 function parseTaskStatus(statusRaw) {
-    const s = statusRaw.toLowerCase();
-    if (s.includes('in progress') || s.includes('[~]'))
+    const s = statusRaw.toLowerCase().trim();
+    if (!s)
+        return 'pending';
+    if (s.includes('[~]') || /\bin[- ]?progress\b/.test(s) || s === 'wip')
         return 'in_progress';
-    if (s.includes('completed') || s.includes('[x]'))
+    if (s.includes('[x]') || /\bcompleted?\b/.test(s) || /\bdone\b/.test(s))
         return 'completed';
     return 'pending';
 }

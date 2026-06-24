@@ -43,7 +43,7 @@ exports.appendGlobalEvents = appendGlobalEvents;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const parser_js_1 = require("./parser.js");
-const MAX_EVENTS = 50;
+const MAX_EVENTS = 100;
 const MAX_TASK_ACTIVITY = 20;
 function loadActivityLog(kanbanDir) {
     const p = path.join(kanbanDir, 'activity.json');

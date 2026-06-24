@@ -34,6 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loadGitCommits = loadGitCommits;
+exports.taskIdFromCommitSubject = taskIdFromCommitSubject;
 exports.loadAgentCommits = loadAgentCommits;
 const child_process_1 = require("child_process");
 const fs = __importStar(require("fs"));
@@ -65,6 +66,11 @@ function loadGitCommits(appDir, limit = 30) {
     catch {
         return [];
     }
+}
+/** Extract task/step id from commitStandard subject e.g. feat(scaffold 1.0): ... */
+function taskIdFromCommitSubject(subject) {
+    const m = subject.match(/\([^)]+\s+(\d+(?:\.\d+)*)\)/);
+    return m ? m[1] : '';
 }
 /** Commits matching AWP commitStandard (agent workflow commits). */
 function loadAgentCommits(appDir, limit = 30) {

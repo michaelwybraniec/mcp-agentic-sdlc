@@ -420,11 +420,12 @@ When the AI edits task `.md` files, the board updates within ~1s (file watcher +
 
 **Agents must update task markdown** on every `awp update` / `awp commit` / `awp next`:
 
-1. Set `# Status: [~] In Progress` when starting a task; `[x] Completed` when done
-2. Append lines under `## Activity` with a timestamp (e.g. `- 2026-06-24 10:00 — Started scaffold`)
-3. Move the file to `tasks/completed/` when the task is finished
+1. **Finish task:** `# Status: [x] Completed` → move file to `tasks/completed/`
+2. **Start task:** `# Status: [~] In Progress` in `tasks/planned/` (only **one** at a time)
+3. **Other planned tasks:** `# Status: [ ] Pending`
+4. Append lines under `## Activity` with a timestamp
 
-Git commits and application code **do not** move Kanban cards — only changes to task `.md` files (or `backlog_sync`) recompile the board.
+The board shows a **status warning** when rules are violated (e.g. no In Progress task while work continues, multiple In Progress, completed status still in `planned/`).
 
 See `agentic-sdlc/kanban/KANBAN.md` for copy-paste instructions agents can quote to users.
 

@@ -128,7 +128,13 @@ Designed to be both **human- and AI-friendly**.
 
   2.10.1 On **awp update / awp next / awp commit**, edit the active task file under `tasks/planned/` or move it to `tasks/completed/`
 
-  2.10.2 Set `# Status: [~] In Progress` when starting; `[x] Completed` or move file to `completed/` when done
+  2.10.2 On **awp next** call `backlog_sync` to move the Kanban board (preferred):
+      - Start: `{ "startTaskId": "1.0", "activity": "Phase 1 started" }`
+      - Advance: `{ "completeTaskId": "1.0", "startTaskId": "2.0" }`
+      Or edit task `.md` manually:
+      - **Finish previous:** `# Status: [x] Completed` → move to `tasks/completed/`
+      - **Start next:** `# Status: [~] In Progress` in `tasks/planned/`
+  2.10.3 Only **one** task In Progress at a time
 
   2.10.3 Append to `## Activity` with timestamp (e.g. `- 2026-06-24 10:00 — Started scaffold`)
 

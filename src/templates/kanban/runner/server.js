@@ -45,6 +45,7 @@ const path = __importStar(require("path"));
 const compiler_js_1 = require("./compiler.js");
 const launch_js_1 = require("./launch.js");
 const gitCommits_js_1 = require("./gitCommits.js");
+const activity_js_1 = require("./activity.js");
 const watchGit_js_1 = require("./watchGit.js");
 /** True if something is already listening on the port. */
 function isPortInUse(port, host = '127.0.0.1') {
@@ -113,6 +114,29 @@ function startKanbanServer(kanbanDir, port, options) {
                 'Access-Control-Allow-Origin': '*',
             });
             res.end(fs.readFileSync(p, 'utf8'));
+            return;
+        }
+        if (url === '/api/activity.json') {
+            const backlogPath = path.join(kanbanDir, 'backlog.json');
+            let events = [];
+            if (fs.existsSync(backlogPath)) {
+                try {
+                    const snap = JSON.parse(fs.readFileSync(backlogPath, 'utf8'));
+                    events = snap.recentEvents || [];
+                }
+                catch {
+                    events = [];
+                }
+            }
+            if (!events.length) {
+                events = (0, activity_js_1.loadActivityLog)(kanbanDir);
+            }
+            res.writeHead(200, {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache',
+                'Access-Control-Allow-Origin': '*',
+            });
+            res.end(JSON.stringify({ events, generatedAt: new Date().toISOString() }));
             return;
         }
         if (url === '/api/commits.json') {

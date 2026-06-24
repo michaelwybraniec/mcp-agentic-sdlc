@@ -44,6 +44,12 @@ export function loadGitCommits(appDir: string, limit = 30): AgentCommit[] {
   }
 }
 
+/** Extract task/step id from commitStandard subject e.g. feat(scaffold 1.0): ... */
+export function taskIdFromCommitSubject(subject: string): string {
+  const m = subject.match(/\([^)]+\s+(\d+(?:\.\d+)*)\)/);
+  return m ? m[1] : '';
+}
+
 /** Commits matching AWP commitStandard (agent workflow commits). */
 export function loadAgentCommits(appDir: string, limit = 30): AgentCommit[] {
   return loadGitCommits(appDir, limit).filter((c) => c.isAwp);

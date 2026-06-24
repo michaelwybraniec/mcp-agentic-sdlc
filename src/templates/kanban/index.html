@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AWP Kanban</title>
+  <title>AWP tools: Kanban</title>
   <style>
     :root { color-scheme: light; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,6 +28,17 @@
     }
     .project-bar .meta { font-size: 14px; }
     .project-bar .summary { font-size: 13px; color: #666; width: 100%; }
+    .status-warnings {
+      margin: 0 24px 12px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #92400e;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 6px;
+      line-height: 1.45;
+    }
+    .status-warnings strong { color: #b45309; }
     .awp-toolbar {
       padding: 10px 24px;
       border-bottom: 1px solid #e5e5e5;
@@ -183,6 +194,7 @@
       cursor: pointer;
     }
     .card.in-progress { border-left: 4px solid #2563eb; background: #f8faff; }
+    .card.in-progress.inferred { border-left-style: dashed; }
     .card.completed { opacity: 0.65; }
     .card.pulse { animation: pulse 0.8s ease-in-out 3; }
     @keyframes pulse { 50% { border-color: #2563eb; } }
@@ -200,10 +212,18 @@
       padding: 12px;
       border: 1px solid #e5e5e5;
       border-radius: 4px;
-      max-height: 200px;
+      max-height: 320px;
       overflow-y: auto;
     }
-    .activity-feed h4 { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 8px; }
+    .activity-feed h4 { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .activity-count { font-weight: 400; text-transform: none; color: #999; }
+    .activity-live { font-size: 11px; font-weight: 400; text-transform: none; color: #999; margin-left: 8px; }
+    .activity-live.on { color: #2563eb; }
+    .activity-item.act-flash { animation: actFlash 1.5s ease-out; }
+    @keyframes actFlash {
+      0% { background: #eff6ff; }
+      100% { background: transparent; }
+    }
     .activity-feed ul { list-style: none; }
     .activity-item {
       display: flex;
@@ -231,11 +251,24 @@
       padding: 2px 6px;
       border-radius: 3px;
     }
-    .act-task {
+    .act-task-badge {
       flex-shrink: 0;
       font-family: ui-monospace, monospace;
-      font-size: 11px;
-      color: #666;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: #f0f4ff;
+      color: #1e40af;
+      border: 1px solid #dbeafe;
+      cursor: pointer;
+    }
+    .act-task-badge:hover { background: #dbeafe; }
+    .act-task-badge.muted {
+      background: #f5f5f5;
+      color: #737373;
+      border-color: #e5e5e5;
+      cursor: default;
     }
     .act-msg { color: #333; flex: 1; min-width: 0; }
     .act-added .act-badge { background: #ecfdf5; color: #047857; }
@@ -259,35 +292,15 @@
       line-height: 1.4;
     }
     .disclaimer.hidden { display: none; }
-    .drawer-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.2);
-      z-index: 100;
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #666;
+      line-height: 1;
+      padding: 0 4px;
     }
-    .drawer-backdrop.open { display: block; }
-    .drawer {
-      position: fixed;
-      top: 0;
-      right: -420px;
-      width: 400px;
-      max-width: 100%;
-      height: 100%;
-      background: #fff;
-      border-left: 1px solid #e5e5e5;
-      z-index: 101;
-      transition: right 0.2s;
-      overflow-y: auto;
-      padding: 20px;
-    }
-    .drawer.open { right: 0; }
-    .drawer h2 { font-size: 16px; margin-bottom: 8px; }
-    .drawer .section { margin-top: 16px; font-size: 13px; }
-    .drawer .section h4 { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 6px; }
-    .drawer pre, .drawer p { white-space: pre-wrap; line-height: 1.5; color: #333; }
-    .drawer ul { padding-left: 16px; font-size: 13px; }
-    .drawer-close { float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: #666; }
     .modal-backdrop {
       display: none;
       position: fixed;
@@ -301,25 +314,35 @@
     .modal {
       background: #fff;
       border: 1px solid #e5e5e5;
-      border-radius: 4px;
+      border-radius: 6px;
       width: min(640px, 92vw);
-      max-height: 80vh;
+      max-height: 85vh;
       display: flex;
       flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
     }
-    .modal-header { padding: 16px; border-bottom: 1px solid #e5e5e5; display: flex; justify-content: space-between; align-items: start; }
-    .modal-header h2 { font-size: 15px; }
-    .modal-path { font-size: 11px; color: #999; margin-top: 4px; }
-    .modal-body { padding: 16px; overflow-y: auto; flex: 1; }
-    .modal-body pre { white-space: pre-wrap; font-size: 13px; line-height: 1.5; font-family: inherit; }
-    .modal-footer { padding: 12px 16px; border-top: 1px solid #e5e5e5; font-size: 11px; color: #999; display: flex; justify-content: space-between; }
+    .modal.modal-task { width: min(720px, 94vw); }
+    .modal-header { padding: 16px 16px 12px; border-bottom: 1px solid #e5e5e5; display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+    .modal-header h2 { font-size: 16px; line-height: 1.3; }
+    .modal-path { font-size: 11px; color: #999; margin-top: 4px; font-family: ui-monospace, monospace; }
+    .modal-meta { font-size: 12px; color: #666; margin-top: 6px; }
+    .modal-body { padding: 16px; overflow-y: auto; flex: 1; font-size: 13px; line-height: 1.5; }
+    .modal-body pre, .modal-pre { white-space: pre-wrap; font-size: 13px; line-height: 1.5; font-family: inherit; margin: 0; }
+    .modal-section { margin-bottom: 16px; }
+    .modal-section:last-child { margin-bottom: 0; }
+    .modal-section h4 { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 6px; font-weight: 600; }
+    .modal-section p { color: #333; white-space: pre-wrap; }
+    .modal-section ul { padding-left: 18px; color: #333; }
+    .modal-section li { margin-bottom: 4px; }
+    .modal-footer { padding: 12px 16px; border-top: 1px solid #e5e5e5; font-size: 11px; color: #999; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     .empty { font-size: 12px; color: #999; padding: 8px 0; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
   <header class="site-header">
-    <h1>AWP — Agentic Workflow Protocol</h1>
-    <p>Human-Agent Engineering</p>
+    <h1>AWP tools: Kanban</h1>
+    <p>AWP - Agentic Workflow Protocol - A Human-Agent Context Engineering.</p>
   </header>
 
   <div class="project-bar">
@@ -330,6 +353,8 @@
     <button type="button" class="link-btn" id="view-agreement">View agreement</button>
     <p class="summary" id="summary-line"></p>
   </div>
+
+  <div class="status-warnings hidden" id="status-warnings" role="status"></div>
 
   <div class="awp-toolbar" id="awp-toolbar">
     <span class="awp-toolbar-label">AWP commands</span>
@@ -354,7 +379,10 @@
   <div class="board" id="board"></div>
 
   <div class="activity-feed">
-    <h4>Activity</h4>
+    <h4>
+      <span>Activity <span class="activity-live" id="activity-live">○ watching</span></span>
+      <span class="activity-count" id="activity-count"></span>
+    </h4>
     <ul id="activity-list"></ul>
   </div>
 
@@ -369,23 +397,23 @@
   <footer class="disclaimer hidden" id="disclaimer"></footer>
   <div class="awp-toast" id="awp-toast">Copied</div>
 
-  <div class="drawer-backdrop" id="drawer-backdrop">
-    <aside class="drawer" id="drawer"></aside>
-  </div>
-
   <div class="modal-backdrop" id="modal-backdrop">
-    <div class="modal" role="dialog">
+    <div class="modal" id="modal-dialog" role="dialog" aria-modal="true">
       <div class="modal-header">
         <div>
-          <h2 id="modal-title">AWP Project Foundation Agreement</h2>
+          <h2 id="modal-title">—</h2>
           <div class="modal-path" id="modal-path"></div>
+          <div class="modal-meta hidden" id="modal-meta"></div>
         </div>
-        <button type="button" class="drawer-close" id="modal-close">×</button>
+        <button type="button" class="modal-close" id="modal-close" aria-label="Close">×</button>
       </div>
-      <div class="modal-body"><pre id="modal-content"></pre></div>
+      <div class="modal-body"><div id="modal-content"></div></div>
       <div class="modal-footer">
         <span id="modal-updated"></span>
-        <button type="button" class="link-btn" id="copy-contract-path">Copy path</button>
+        <span>
+          <button type="button" class="link-btn hidden" id="copy-contract-path">Copy path</button>
+          <button type="button" class="link-btn hidden" id="copy-task-path">Copy path</button>
+        </span>
       </div>
     </div>
   </div>
@@ -396,6 +424,8 @@
     let syncing = false;
     let pulseIds = new Set();
     let commitsData = [];
+    let activityEvents = [];
+    let lastActivityTop = '';
 
     function showToast(msg) {
       const t = document.getElementById('awp-toast');
@@ -514,6 +544,7 @@
       const cls = ['card'];
       if (col === 'inProgress') cls.push('in-progress');
       if (col === 'completed') cls.push('completed');
+      if (task.inferredInProgress) cls.push('inferred');
       if (pulseIds.has(task.id)) cls.push('pulse');
 
       const pri = (task.priority || 'medium').toLowerCase();
@@ -524,7 +555,7 @@
       return `<div class="${cls.join(' ')}" data-id="${esc(task.id)}">
         <div class="card-id"><span>${esc(task.id)}${col === 'completed' ? ' ✓' : ''}</span>
           <span class="priority ${pri}">${esc(task.priority)}</span></div>
-        <div class="card-title">${esc(task.title)}${pulseIds.has(task.id) ? ' ◌' : ''}</div>
+        <div class="card-title">${esc(task.title)}${pulseIds.has(task.id) ? ' ◌' : ''}${task.inferredInProgress ? ' ⟡' : ''}</div>
         ${logLine ? `<div class="card-log">${esc(logLine)}</div>` : ''}
         <div class="card-meta">${task.owner ? esc(task.owner) + ' · ' : ''}⛓ ${task.dependencyCount || 0} · ${timeAgo(task.lastUpdated)}</div>
       </div>`;
@@ -541,7 +572,7 @@
       }).join('');
 
       board.querySelectorAll('.card').forEach((el) => {
-        el.addEventListener('click', () => openDrawer(el.dataset.id));
+        el.addEventListener('click', () => openTaskModal(el.dataset.id));
       });
     }
 
@@ -555,6 +586,21 @@
       if (s.problem) parts.push('Problem: ' + s.problem);
       if (s.technologies?.length) parts.push('Tech: ' + s.technologies.join(', '));
       document.getElementById('summary-line').textContent = parts.join('   ');
+
+      const warnEl = document.getElementById('status-warnings');
+      const boardWarnings = [
+        ...(data._warnings || []),
+        ...(data.boardHealth?.warnings || []),
+      ].filter((w, i, a) => a.indexOf(w) === i);
+      if (boardWarnings.length) {
+        warnEl.classList.remove('hidden');
+        warnEl.innerHTML =
+          '<strong>Board status</strong><br>' +
+          boardWarnings.map((w) => esc(w)).join('<br>');
+      } else {
+        warnEl.classList.add('hidden');
+        warnEl.innerHTML = '';
+      }
 
       const disc = data.config?.disclaimer;
       const foot = document.getElementById('disclaimer');
@@ -576,6 +622,18 @@
       contract: 'Agreement',
     };
 
+    function setActivityLive(ok) {
+      const el = document.getElementById('activity-live');
+      if (!el) return;
+      if (ok) {
+        el.classList.add('on');
+        el.textContent = '● live';
+      } else {
+        el.classList.remove('on');
+        el.textContent = '○ offline';
+      }
+    }
+
     function activityKind(ev) {
       return ev.kind || ev.type || 'updated';
     }
@@ -584,75 +642,163 @@
       const kind = activityKind(ev);
       const label = ACT_LABELS[kind] || 'Updated';
       const time = formatTime(ev.at);
-      const task = ev.taskId
-        ? `<span class="act-task">${esc(ev.taskId)}</span>`
+      const taskId = ev.taskId || '';
+      const hasTask = taskId && data?.tasks?.[taskId];
+      const taskBadge = taskId
+        ? (hasTask
+          ? `<button type="button" class="act-task-badge" data-task-id="${esc(taskId)}" title="Open task">${esc(taskId)}</button>`
+          : `<span class="act-task-badge muted" title="Task">${esc(taskId)}</span>`)
         : '';
       const msg = ev.message || ev.title || '';
       const safeKind = ACT_LABELS[kind] ? kind : 'updated';
       return `<li class="activity-item act-${safeKind}">
         <span class="act-time">${esc(time)}</span>
         <span class="act-badge">${esc(label)}</span>
-        ${task}
+        ${taskBadge}
         <span class="act-msg">${esc(msg)}</span>
       </li>`;
     }
 
+    function activityEventsList() {
+      if (activityEvents.length) return activityEvents;
+      return data?.recentEvents || [];
+    }
+
     function renderActivity() {
       const ul = document.getElementById('activity-list');
-      const events = (data?.recentEvents || []).filter((e) => e.message || e.title);
+      const events = activityEventsList().filter((e) => e.message || e.title);
+      const countEl = document.getElementById('activity-count');
+      const shown = events.slice(0, 50);
+      if (countEl) {
+        countEl.textContent = events.length
+          ? (shown.length < events.length ? `${shown.length} of ${events.length}` : `${events.length}`)
+          : '';
+      }
       if (!events.length) {
         ul.innerHTML = '<li class="empty">No activity yet — edit task .md files to see updates</li>';
         return;
       }
-      ul.innerHTML = events.slice(0, 25).map(renderActivityRow).join('');
+      const topKey = events[0] ? `${events[0].at}|${events[0].message}` : '';
+      const isNew = topKey && topKey !== lastActivityTop;
+      lastActivityTop = topKey;
+
+      ul.innerHTML = shown.map(renderActivityRow).join('');
+      ul.querySelectorAll('.act-task-badge[data-task-id]').forEach((btn) => {
+        btn.onclick = () => openTaskModal(btn.getAttribute('data-task-id'));
+      });
+
+      if (isNew) {
+        const first = ul.querySelector('.activity-item');
+        if (first) {
+          first.classList.add('act-flash');
+          setTimeout(() => first.classList.remove('act-flash'), 1500);
+        }
+      }
     }
 
-    function openDrawer(id) {
+    async function fetchActivity() {
+      try {
+        const res = await fetch('/api/activity.json?t=' + Date.now());
+        if (!res.ok) throw new Error('activity');
+        const json = await res.json();
+        activityEvents = json.events || [];
+        setActivityLive(true);
+        renderActivity();
+      } catch {
+        setActivityLive(false);
+      }
+    }
+
+    const COL_LABELS = {
+      unplanned: 'Unplanned',
+      planned: 'Planned',
+      inProgress: 'In Progress',
+      completed: 'Completed',
+    };
+
+    function formatColumnLabel(col) {
+      return COL_LABELS[col] || col;
+    }
+
+    function formatStatusLabel(status) {
+      if (status === 'in_progress') return 'In Progress';
+      if (status === 'completed') return 'Completed';
+      return 'Pending';
+    }
+
+    function openTaskModal(id) {
       const task = data?.tasks[id];
       if (!task) return;
-      const drawer = document.getElementById('drawer');
-      drawer.classList.add('open');
-      document.getElementById('drawer-backdrop').classList.add('open');
+
+      const dialog = document.getElementById('modal-dialog');
+      dialog.classList.add('modal-task');
+
+      document.getElementById('modal-title').textContent = task.title;
+      document.getElementById('modal-path').textContent = task.id;
+      const meta = document.getElementById('modal-meta');
+      meta.classList.remove('hidden');
+      meta.textContent =
+        formatColumnLabel(task.column) + ' · ' + formatStatusLabel(task.status) +
+        (task.priority ? ' · ' + task.priority : '') +
+        (task.owner ? ' · ' + task.owner : '');
 
       const act = (task.activity || []).map((a) => a.message).filter(Boolean);
-      drawer.innerHTML = `
-        <button type="button" class="drawer-close" id="close-drawer">×</button>
-        <h2>${esc(task.title)}</h2>
-        <p style="font-size:12px;color:#666">${esc(task.id)} · ${esc(task.status)} · ${esc(task.owner)}</p>
-        <div class="section"><h4>Description</h4><p>${esc(task.description)}</p></div>
-        <div class="section"><h4>Dependencies</h4>
-          ${task.dependencies?.length ? '<ul>' + task.dependencies.map((d) => '<li><button type="button" class="link-btn dep-link" data-dep="' + esc(d) + '">' + esc(d) + '</button></li>').join('') + '</ul>' : '<p class="empty">None</p>'}
+      document.getElementById('modal-content').innerHTML = `
+        <div class="modal-section"><h4>Description</h4><p>${esc(task.description) || '—'}</p></div>
+        <div class="modal-section"><h4>Dependencies</h4>
+          ${task.dependencies?.length
+            ? '<ul>' + task.dependencies.map((d) =>
+                '<li><button type="button" class="link-btn dep-link" data-dep="' + esc(d) + '">' + esc(d) + '</button></li>'
+              ).join('') + '</ul>'
+            : '<p class="empty">None</p>'}
         </div>
-        <div class="section"><h4>Acceptance criteria</h4>
-          ${task.acceptanceCriteria?.length ? '<ul>' + task.acceptanceCriteria.map((c) => '<li>' + esc(c) + '</li>').join('') + '</ul>' : '<p class="empty">—</p>'}
+        <div class="modal-section"><h4>Acceptance criteria</h4>
+          ${task.acceptanceCriteria?.length
+            ? '<ul>' + task.acceptanceCriteria.map((c) => '<li>' + esc(c) + '</li>').join('') + '</ul>'
+            : '<p class="empty">—</p>'}
         </div>
-        ${task.notes ? '<div class="section"><h4>Notes</h4><p>' + esc(task.notes) + '</p></div>' : ''}
-        ${task.risk ? '<div class="section"><h4>Risk</h4><p>' + esc(task.risk) + '</p></div>' : ''}
-        <div class="section"><h4>Activity</h4>
-          ${act.length ? '<ul>' + act.map((m) => '<li>' + esc(m) + '</li>').join('') + '</ul>' : '<p class="empty">—</p>'}
-        </div>
-        <div class="section"><p style="font-size:11px;color:#999">${esc(task.sourcePath)}</p>
-          <button type="button" class="link-btn" id="copy-task-path">Copy path</button></div>
-      `;
+        ${task.notes ? '<div class="modal-section"><h4>Notes</h4><p>' + esc(task.notes) + '</p></div>' : ''}
+        ${task.risk ? '<div class="modal-section"><h4>Risk</h4><p>' + esc(task.risk) + '</p></div>' : ''}
+        <div class="modal-section"><h4>Activity</h4>
+          ${act.length
+            ? '<ul>' + act.map((m) => '<li>' + esc(m) + '</li>').join('') + '</ul>'
+            : '<p class="empty">—</p>'}
+        </div>`;
 
-      document.getElementById('close-drawer').onclick = closeDrawer;
-      document.getElementById('copy-task-path').onclick = () => navigator.clipboard.writeText(task.sourcePath);
-      drawer.querySelectorAll('.dep-link').forEach((btn) => {
-        btn.onclick = (e) => { e.stopPropagation(); closeDrawer(); openDrawer(btn.dataset.dep); };
+      document.getElementById('modal-updated').textContent =
+        'Updated ' + timeAgo(task.lastUpdated) + ' · ' + esc(task.sourcePath);
+
+      document.getElementById('copy-contract-path').classList.add('hidden');
+      const copyTask = document.getElementById('copy-task-path');
+      copyTask.classList.remove('hidden');
+      copyTask.onclick = () => navigator.clipboard.writeText(task.sourcePath);
+
+      document.getElementById('modal-content').querySelectorAll('.dep-link').forEach((btn) => {
+        btn.onclick = (e) => { e.stopPropagation(); openTaskModal(btn.dataset.dep); };
       });
-    }
 
-    function closeDrawer() {
-      document.getElementById('drawer').classList.remove('open');
-      document.getElementById('drawer-backdrop').classList.remove('open');
+      document.getElementById('modal-backdrop').classList.add('open');
     }
 
     function openModal() {
       if (!data?.contract) return;
+
+      const dialog = document.getElementById('modal-dialog');
+      dialog.classList.remove('modal-task');
+
       document.getElementById('modal-title').textContent = data.contract.title;
       document.getElementById('modal-path').textContent = data.contract.path;
-      document.getElementById('modal-content').textContent = data.contract.content;
-      document.getElementById('modal-updated').textContent = 'Updated ' + timeAgo(data.contract.lastUpdated);
+      document.getElementById('modal-meta').classList.add('hidden');
+      document.getElementById('modal-content').innerHTML =
+        '<pre class="modal-pre">' + esc(data.contract.content) + '</pre>';
+      document.getElementById('modal-updated').textContent =
+        'Updated ' + timeAgo(data.contract.lastUpdated);
+
+      document.getElementById('copy-task-path').classList.add('hidden');
+      const copyContract = document.getElementById('copy-contract-path');
+      copyContract.classList.remove('hidden');
+      copyContract.onclick = () => navigator.clipboard.writeText(data.contract.path);
+
       document.getElementById('modal-backdrop').classList.add('open');
     }
 
@@ -667,10 +813,12 @@
       syncing = false;
       if (!res.ok) throw new Error('Failed to load backlog');
       data = await res.json();
+      activityEvents = data.recentEvents || activityEvents;
       lastSync = new Date().toISOString();
       renderHeader();
       renderBoard();
       renderActivity();
+      setActivityLive(true);
       setLive(true);
     }
 
@@ -689,6 +837,9 @@
               });
             }
             fetchData().catch(console.error);
+            fetchActivity().catch(console.error);
+          } else if (msg.type === 'activity_updated') {
+            fetchActivity().catch(console.error);
           } else if (msg.type === 'commits_updated') {
             fetchCommits().catch(console.error);
           }
@@ -698,15 +849,11 @@
 
     document.getElementById('view-agreement').onclick = openModal;
     document.getElementById('modal-close').onclick = closeModal;
-    document.getElementById('modal-backdrop').onclick = (e) => { if (e.target.id === 'modal-backdrop') closeModal(); };
-    document.getElementById('copy-contract-path').onclick = () => {
-      if (data?.contract?.path) navigator.clipboard.writeText(data.contract.path);
-    };
-    document.getElementById('drawer-backdrop').onclick = (e) => {
-      if (e.target.id === 'drawer-backdrop') closeDrawer();
+    document.getElementById('modal-backdrop').onclick = (e) => {
+      if (e.target.id === 'modal-backdrop') closeModal();
     };
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { closeDrawer(); closeModal(); }
+      if (e.key === 'Escape') closeModal();
     });
 
     setupAwpToolbar();
@@ -714,9 +861,13 @@
     fetchData().then(() => {
       connectSse();
       fetchCommits();
+      fetchActivity();
       setInterval(() => {
         fetchData().catch(() => setLive(false));
       }, 5000);
+      setInterval(() => {
+        fetchActivity().catch(() => setActivityLive(false));
+      }, 3000);
       setInterval(() => {
         fetchCommits().catch(() => setCommitsLive(false));
       }, 3000);

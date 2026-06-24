@@ -33,9 +33,10 @@ export function taskIdFromFilename(filename: string): string {
 }
 
 export function parseTaskStatus(statusRaw: string): TaskStatus {
-  const s = statusRaw.toLowerCase();
-  if (s.includes('in progress') || s.includes('[~]')) return 'in_progress';
-  if (s.includes('completed') || s.includes('[x]')) return 'completed';
+  const s = statusRaw.toLowerCase().trim();
+  if (!s) return 'pending';
+  if (s.includes('[~]') || /\bin[- ]?progress\b/.test(s) || s === 'wip') return 'in_progress';
+  if (s.includes('[x]') || /\bcompleted?\b/.test(s) || /\bdone\b/.test(s)) return 'completed';
   return 'pending';
 }
 

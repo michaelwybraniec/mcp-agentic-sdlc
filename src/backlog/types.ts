@@ -1,6 +1,14 @@
 export type TaskColumn = 'unplanned' | 'planned' | 'inProgress' | 'completed';
 export type TaskStatus = 'pending' | 'in_progress' | 'completed';
 
+export interface BoardHealth {
+  inProgressIds: string[];
+  pendingPlannedIds: string[];
+  completedIds: string[];
+  warnings: string[];
+  suggestedNextTaskId?: string;
+}
+
 export type ActivityKind =
   | 'added'
   | 'removed'
@@ -36,6 +44,8 @@ export interface TaskCard {
   activityPeek: string;
   lastUpdated: string;
   sourcePath: string;
+  /** Column inferred from latest AWP git commit — update task .md to persist */
+  inferredInProgress?: boolean;
 }
 
 export interface KanbanConfig {
@@ -84,6 +94,7 @@ export interface BacklogSnapshot {
     title?: string;
     message?: string;
   }>;
+  boardHealth: BoardHealth;
   _warnings: string[];
 }
 

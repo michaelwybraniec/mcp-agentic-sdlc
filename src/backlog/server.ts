@@ -6,6 +6,7 @@ import { KanbanConfig } from './types.js';
 import { readKanbanConfig } from './compiler.js';
 import { openKanbanInBrowser } from './launch.js';
 import { loadAgentCommits, loadGitCommits } from './gitCommits.js';
+import { loadActivityLog } from './activity.js';
 import { watchGitHead } from './watchGit.js';
 
 export interface KanbanServerOptions {
@@ -97,6 +98,29 @@ export function startKanbanServer(
         'Access-Control-Allow-Origin': '*',
       });
       res.end(fs.readFileSync(p, 'utf8'));
+      return;
+    }
+
+    if (url === '/api/activity.json') {
+      const backlogPath = path.join(kanbanDir, 'backlog.json');
+      let events: unknown[] = [];
+      if (fs.existsSync(backlogPath)) {
+        try {
+          const snap = JSON.parse(fs.readFileSync(backlogPath, 'utf8'));
+          events = snap.recentEvents || [];
+        } catch {
+          events = [];
+        }
+      }
+      if (!events.length) {
+        events = loadActivityLog(kanbanDir);
+      }
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Access-Control-Allow-Origin': '*',
+      });
+      res.end(JSON.stringify({ events, generatedAt: new Date().toISOString() }));
       return;
     }
 
