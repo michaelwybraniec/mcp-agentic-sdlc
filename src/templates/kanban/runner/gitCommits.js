@@ -40,8 +40,8 @@ exports.loadAgentCommits = loadAgentCommits;
 const child_process_1 = require("child_process");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-/** Matches commitStandard: type(scope step): subject */
-const AWP_COMMIT_PATTERN = /^(feat|fix|docs|test|chore|refactor)(\([^)]+\s+\d+(?:\.\d+)*\)):\s+.+/;
+/** Matches commitStandard: type(scope taskId): subject — taskId is 1.0 or U-1 */
+const AWP_COMMIT_PATTERN = /^(feat|fix|docs|test|chore|refactor|perf|build|ci|revert)(\([^)]+\s+(?:\d+(?:\.\d+)*|U-\d+(?:\.\d+)*)\)):\s+.+/;
 function loadGitCommits(appDir, limit = 30) {
     const gitDir = path.join(appDir, '.git');
     if (!fs.existsSync(gitDir))

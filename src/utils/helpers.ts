@@ -89,38 +89,38 @@ ${taskLinks}
 
 // Helper function to create initial task files using type-specific backlog recipe as guide
 export function createInitialTasks(plannedDir: string, goals: string[], overview: string[], technology: string[], outcome: string[], projectType: string = 'pro'): void {
-  // Read the type-specific backlog recipe to understand how to create tasks
   const recipeFileName = `${projectType}-backlog-recipe.md`;
   const recipePath = path.join(__dirname, "..", "recipes", recipeFileName);
-  const recipe = fs.readFileSync(recipePath, 'utf8');
-  
-  // The recipe instructs the LLM to create tasks based on the collected project information
-  // Following the recipe's guidance: "Use AI to convert text descriptions into Markdown task files automatically"
-  // and "AI can suggest task slicing or sub-tasks if description is large"
-  
-  // Create tasks based on the overview phases provided by the user
-  // The recipe says to break tasks into smaller subtasks and use explicit dependencies
-  
+  fs.readFileSync(recipePath, 'utf8');
+
   let taskCounter = 1;
-  const tasks: string[] = [];
-  
-  // Create tasks based on the overview phases
+
   overview.forEach((phase: string, index: number) => {
-    const taskId = taskCounter;
-    const taskTitle = phase.replace(/^\d+\.\s*/, ''); // Remove leading numbers
-    
+    const taskId = `${taskCounter}.0`;
+    const taskTitle = phase.replace(/^\d+\.\s*/, '');
+    const prevId = taskCounter === 1 ? null : `${taskCounter - 1}.0`;
+
+    const acceptanceCriteria = buildAcceptanceCriteria(
+      taskTitle,
+      phase,
+      index,
+      overview.length,
+      outcome,
+      projectType
+    );
+
     const task = `# Task ID: ${taskId}
 # Title: ${taskTitle}
 # Status: [ ] Pending
 # Priority: ${index === 0 ? 'high' : index === overview.length - 1 ? 'medium' : 'high'}
 # Owner: Dev Team
 # Estimated Effort: ${index === 0 ? '4h' : index === overview.length - 1 ? '3h' : '6h'}
-
+${projectType === 'poc' ? '# POC Scope: POC\n' : ''}
 ## Description
-${phase} - This phase focuses on achieving the project goals: ${goals.join(', ')}. Technology stack: ${technology.join(', ')}.
+${phase} — This phase focuses on achieving the project goals: ${goals.join(', ')}. Technology stack: ${technology.join(', ')}.
 
 ## Dependencies
-${taskId === 1 ? '- None' : `- [ ] Task ID: ${taskId - 1}`}
+${prevId ? `- [ ] Task ID: ${prevId}` : '- None'}
 
 ## Testing Instructions
 Verify that this phase meets the requirements and contributes to the success criteria: ${outcome.join(', ')}
@@ -130,6 +130,14 @@ Apply appropriate security measures for this phase
 
 ## Risk Assessment
 Delays in this phase may impact overall project timeline
+
+## Acceptance Criteria
+${acceptanceCriteria}
+
+## Definition of Done
+- [ ] All acceptance criteria above are met
+- [ ] Basic testing completed for this phase
+- [ ] Changes committed with AWP commit standard referencing task ${taskId}
 
 ## Strengths
 Essential for achieving project goals and success criteria
@@ -148,12 +156,43 @@ Phase ${index + 1} of ${overview.length}: ${phase}
 
 ## Completed
 [ ] Pending`;
-    
-    tasks.push(task);
-    // Use .0 suffix for top-level tasks to ensure correct alphabetical sorting
-    fs.writeFileSync(path.join(plannedDir, `task-${taskId}.0.md`), task);
+
+    fs.writeFileSync(path.join(plannedDir, `task-${taskId}.md`), task);
     taskCounter++;
   });
+}
+
+function buildAcceptanceCriteria(
+  taskTitle: string,
+  phase: string,
+  index: number,
+  totalPhases: number,
+  outcome: string[],
+  projectType: string
+): string {
+  const proof =
+    projectType === 'poc'
+      ? 'Concept is demonstrable (proof-of-concept, not production-hardened)'
+      : 'Feature works as specified for this phase';
+
+  const lines = [
+    `- [ ] ${taskTitle}: deliverable for this phase is implemented`,
+    `- [ ] ${proof}`,
+    `- [ ] Dev build runs without errors introduced by this phase`,
+    `- [ ] Testing instructions for this phase pass`,
+  ];
+
+  if (index > 0) {
+    lines.push(`- [ ] Integrates with prior phase(s) without regressions`);
+  }
+  if (outcome.length > 0) {
+    lines.push(`- [ ] Contributes to success criteria: ${outcome[0]}`);
+  }
+  if (index === totalPhases - 1) {
+    lines.push(`- [ ] End-to-end flow for ${phase.replace(/^\d+\.\s*/, '')} is demonstrable`);
+  }
+
+  return lines.join('\n');
 }
 
 export interface UserSourceInput {

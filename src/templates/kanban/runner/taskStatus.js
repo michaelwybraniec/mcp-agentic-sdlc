@@ -97,7 +97,11 @@ function inferActiveTaskId(snapshot) {
     const pending = sortTaskIds(snapshot.columns.planned.map((t) => t.id));
     if (!pending.length)
         return undefined;
-    return pending[0];
+    const hasCompleted = snapshot.columns.completed.length > 0 ||
+        Object.values(snapshot.tasks).some((t) => t.status === 'completed');
+    if (hasCompleted)
+        return pending[0];
+    return undefined;
 }
 /** Promote a planned task to In Progress in the snapshot (display only; does not edit .md). */
 function applyInProgressInference(snapshot, inferredTaskId) {

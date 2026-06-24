@@ -58,5 +58,18 @@ if (
 )
   passed++;
 
-console.log(`\n${passed}/2 taskMd tests passed`);
-process.exit(passed === 2 ? 0 : 1);
+if (
+  test('resolveTaskId maps shorthand 1 to 1.0', () => {
+    const { resolveTaskId, applyTaskLifecycle } = require('../dist/backlog/taskMd');
+    assert(resolveTaskId(path.join(tmp, 'tasks'), '1.0') === '1.0');
+    assert(resolveTaskId(path.join(tmp, 'tasks'), '1') === '1.0');
+    applyTaskLifecycle(path.join(tmp, 'tasks'), { startTaskId: '1', activity: 'via shorthand' });
+    const content = fs.readFileSync(path.join(tasksDir, 'task-1.0.md'), 'utf8');
+    assert(content.includes('[~] In Progress'));
+    assert(content.includes('via shorthand'));
+  })
+)
+  passed++;
+
+console.log(`\n${passed}/3 taskMd tests passed`);
+process.exit(passed === 3 ? 0 : 1);

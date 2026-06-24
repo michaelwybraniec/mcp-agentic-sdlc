@@ -530,11 +530,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             startTaskId: {
               type: "string",
-              description: "Mark this task In Progress in tasks/planned/ (demotes other In Progress tasks)",
+              description: "Mark this task In Progress in tasks/planned/ (demotes other In Progress tasks). Accepts shorthand: \"1\" resolves to \"1.0\" when that task file exists.",
             },
             completeTaskId: {
               type: "string",
-              description: "Mark completed and move task file to tasks/completed/",
+              description: "Mark completed and move task file to tasks/completed/. Accepts shorthand: \"1\" → \"1.0\".",
             },
             activity: {
               type: "string",

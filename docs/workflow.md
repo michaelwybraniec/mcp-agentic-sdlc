@@ -333,7 +333,7 @@ Not everything "missing" during development is unplanned. Use this decision guid
 **Examples:**
 - Implementing task 1.2 and realizing you need a database migration script → **subtask** `1.2.1` under the planned task
 - Discovering the app needs login, but auth was never in requirements or backlog → **unplanned** `U-1`
-- Fixing a bug found while working on task 2.0 → **unplanned** `U-2` (per AWP procedure 1.8)
+- Fixing a bug found while working on task 2.0 → if **out of scope**, **unplanned** `U-2` (per AWP §2.7); if **required to finish 2.0**, commit `fix(scope 2.0): …` on the active task
 - Noticing the architecture may not scale — worth tracking but not a task yet → **risk** `R.1` in AWP.md
 
 #### How to create an unplanned task (step-by-step)

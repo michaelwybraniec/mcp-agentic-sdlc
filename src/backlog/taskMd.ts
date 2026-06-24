@@ -11,17 +11,63 @@ const STATUS_LINE: Record<TaskMdStatus, string> = {
   completed: `# Status: ${TASK_STATUS.completed}`,
 };
 
-export function findTaskMarkdownFile(
-  tasksDir: string,
-  taskId: string
-): { absPath: string; folder: string } | null {
+/** All task ids under tasks/{planned,completed,unplanned}/. */
+export function listTaskIds(tasksDir: string): string[] {
+  const ids: string[] = [];
   for (const folder of ['planned', 'completed', 'unplanned'] as const) {
     const dir = path.join(tasksDir, folder);
     if (!fs.existsSync(dir)) continue;
     for (const file of fs.readdirSync(dir)) {
       if (!file.endsWith('.md')) continue;
-      if (taskIdFromFilename(file) === taskId) {
-        return { absPath: path.join(dir, file), folder };
+      const id = taskIdFromFilename(file);
+      if (id) ids.push(id);
+    }
+  }
+  return [...new Set(ids)];
+}
+
+/**
+ * Resolve shorthand ids (e.g. "1") to canonical backlog ids (e.g. "1.0").
+ * Returns undefined when no matching task file exists.
+ */
+export function resolveTaskId(tasksDir: string, taskId: string): string | undefined {
+  const trimmed = taskId.trim();
+  if (!trimmed) return undefined;
+
+  const allIds = listTaskIds(tasksDir);
+  if (allIds.includes(trimmed)) return trimmed;
+
+  if (/^\d+$/.test(trimmed)) {
+    const phase = `${trimmed}.0`;
+    if (allIds.includes(phase)) return phase;
+
+    const prefixMatches = sortTaskIds(
+      allIds.filter((id) => id === trimmed || id.startsWith(`${trimmed}.`))
+    );
+    if (prefixMatches.length === 1) return prefixMatches[0];
+    if (prefixMatches.length > 1) {
+      const preferred = prefixMatches.find((id) => id === `${trimmed}.0`);
+      return preferred || prefixMatches[0];
+    }
+  }
+
+  return undefined;
+}
+
+export function findTaskMarkdownFile(
+  tasksDir: string,
+  taskId: string
+): { absPath: string; folder: string; taskId: string } | null {
+  const resolved = resolveTaskId(tasksDir, taskId);
+  if (!resolved) return null;
+
+  for (const folder of ['planned', 'completed', 'unplanned'] as const) {
+    const dir = path.join(tasksDir, folder);
+    if (!fs.existsSync(dir)) continue;
+    for (const file of fs.readdirSync(dir)) {
+      if (!file.endsWith('.md')) continue;
+      if (taskIdFromFilename(file) === resolved) {
+        return { absPath: path.join(dir, file), folder, taskId: resolved };
       }
     }
   }
@@ -95,7 +141,13 @@ export function applyTaskLifecycle(
   const activity = options.activity;
 
   if (options.startTaskId) {
-    const id = options.startTaskId;
+    const found = findTaskMarkdownFile(tasksDir, options.startTaskId);
+    if (!found) {
+      throw new Error(
+        `Task ${options.startTaskId} not found under tasks/ — use full id (e.g. "1.0" not "1") or check task-*.md filenames`
+      );
+    }
+    const id = found.taskId;
     const plannedDir = path.join(tasksDir, 'planned');
     if (fs.existsSync(plannedDir)) {
       for (const file of fs.readdirSync(plannedDir).filter((f) => f.endsWith('.md'))) {
@@ -110,10 +162,6 @@ export function applyTaskLifecycle(
       }
     }
 
-    const found = findTaskMarkdownFile(tasksDir, id);
-    if (!found) {
-      throw new Error(`Task ${id} not found under tasks/`);
-    }
     let abs = found.absPath;
     if (found.folder !== 'planned') {
       abs = moveTaskMarkdownFile(abs, tasksDir, 'planned');
@@ -127,11 +175,13 @@ export function applyTaskLifecycle(
   }
 
   if (options.completeTaskId) {
-    const id = options.completeTaskId;
-    const found = findTaskMarkdownFile(tasksDir, id);
+    const found = findTaskMarkdownFile(tasksDir, options.completeTaskId);
     if (!found) {
-      throw new Error(`Task ${id} not found under tasks/`);
+      throw new Error(
+        `Task ${options.completeTaskId} not found under tasks/ — use full id (e.g. "1.0" not "1") or check task-*.md filenames`
+      );
     }
+    const id = found.taskId;
     updateTaskMarkdownFile(
       found.absPath,
       'completed',

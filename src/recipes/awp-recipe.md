@@ -329,9 +329,18 @@ Add risk tasks below:
 
     2.3. Reference the step number in every commit message.
 
-    2.4. Follow conventional commit standards.
+    2.4. Follow conventional commit standards (see commitStandard.md — aligns with [Conventional Commits](https://www.conventionalcommits.org/)).
 
     2.5. Include relevant files.
+
+    2.6. **Granular commits**: Prefer atomic commits — one logical change per commit. Multiple commits on the **same** task id are encouraged (e.g. `feat` then `test`) before completing the task. Do not mix unrelated types or tasks in one commit.
+
+    2.7. **Bug fixes** (no separate `awp fix` command):
+        2.7.1. **In scope of active task** — `fix(scope taskId): subject` on the current task; stay In Progress; append `## Activity`
+        2.7.2. **Out of scope** — create unplanned task `U-n` (ask human first), file in `tasks/unplanned/`, commit `fix(scope U-1): …`, track in AWP.md Unplanned Tasks
+        2.7.3. Use `awp update` → `awp commit` → continue or `awp next` when the fix is done; same sequence as feature work
+
+    2.8. **Types**: `feat`, `fix`, `docs`, `test`, `refactor`, `perf`, `chore`, `build`, `ci`, `revert` — see commitStandard.md
 
 3.  **next**
 

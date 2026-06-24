@@ -82,12 +82,6 @@
       cursor: pointer;
     }
     .awp-btn:hover { border-color: #2563eb; color: #2563eb; background: #f8faff; }
-    .awp-btn.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
-    .awp-btn.primary:hover { background: #1d4ed8; color: #fff; }
-    .awp-btn.auto { background: #059669; color: #fff; border-color: #059669; }
-    .awp-btn.auto:hover { background: #047857; color: #fff; }
-    .awp-btn.start { background: #d97706; color: #fff; border-color: #d97706; }
-    .awp-btn.start:hover { background: #b45309; color: #fff; }
     .awp-btn[data-tip] { position: relative; }
     .awp-btn[data-tip]::after {
       content: attr(data-tip);
@@ -222,7 +216,63 @@
     }
     .card.in-progress { border-left: 4px solid #2563eb; background: #f8faff; }
     .card.in-progress.inferred { border-left-style: dashed; }
-    .card.completed { opacity: 0.65; }
+    .card.in-progress .card-title {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .task-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      margin-top: 1px;
+      border: 2px solid #dbeafe;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      flex-shrink: 0;
+    }
+    .card.in-progress.inferred .task-spinner {
+      border-color: #e2e8f0;
+      border-top-color: #64748b;
+      animation-duration: 1.1s;
+    }
+    .column-heading {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .column-heading .task-spinner {
+      width: 10px;
+      height: 10px;
+      border-width: 2px;
+      margin-top: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .card.completed {
+      border-left: 4px solid #059669;
+      background: #f0fdf4;
+    }
+    .card.completed .card-title {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .task-done-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      margin-top: 1px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: #059669;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+    }
     .card.pulse { animation: pulse 0.8s ease-in-out 3; }
     @keyframes pulse { 50% { border-color: #2563eb; } }
     .card-id { font-family: ui-monospace, monospace; font-size: 11px; color: #999; display: flex; justify-content: space-between; }
@@ -361,6 +411,24 @@
     .modal-section p { color: #333; white-space: pre-wrap; }
     .modal-section ul { padding-left: 18px; color: #333; }
     .modal-section li { margin-bottom: 4px; }
+    .modal-done-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 4px;
+      color: #047857;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .modal-done-banner .task-done-icon { width: 18px; height: 18px; font-size: 11px; margin-top: 0; }
+    .criteria-done li { list-style: none; margin-left: 0; padding-left: 0; color: #047857; }
+    .criteria-done li::before { content: '✓ '; font-weight: 600; }
+    .activity-done li { color: #333; }
+    .activity-done li.is-complete { color: #047857; font-weight: 500; }
     .modal-footer { padding: 12px 16px; border-top: 1px solid #e5e5e5; font-size: 11px; color: #999; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     .empty { font-size: 12px; color: #999; padding: 8px 0; }
     .hidden { display: none !important; }
@@ -385,10 +453,10 @@
 
   <div class="awp-toolbar" id="awp-toolbar">
     <span class="awp-toolbar-label">AWP commands</span>
-    <button type="button" class="awp-btn primary" data-awp="awp check"
+    <button type="button" class="awp-btn" data-awp="awp check"
       data-tip="Review current project state, restore context, and identify the current actionable step (AWP.md § check)."
       title="Check — awp check">Check</button>
-    <button type="button" class="awp-btn start" data-awp="awp start"
+    <button type="button" class="awp-btn" data-awp="awp start"
       data-tip="After init: readiness checks, then first task In Progress on Kanban (backlog_sync startTaskId). Human picks start vs next vs auto (AWP.md § start)."
       title="Start — awp start">Start</button>
     <button type="button" class="awp-btn" data-awp="awp update"
@@ -400,7 +468,7 @@
     <button type="button" class="awp-btn" data-awp="awp next"
       data-tip="One task: update → commit → next. Sync Kanban via backlog_sync startTaskId / completeTaskId (AWP.md § next)."
       title="Next — awp next">Next</button>
-    <button type="button" class="awp-btn auto" data-awp="awp auto strict"
+    <button type="button" class="awp-btn" data-awp="awp auto strict"
       data-tip="Strict loop: per task — start → implement → ONE commit → Kanban complete → checkpoint report → next task. Same as awp auto. No batching (AWP.md §7)."
       title="Auto — awp auto strict">Auto</button>
     <button type="button" class="awp-btn" data-awp="awp handoff"
@@ -586,9 +654,13 @@
         : (task.activityPeek || '');
 
       return `<div class="${cls.join(' ')}" data-id="${esc(task.id)}">
-        <div class="card-id"><span>${esc(task.id)}${col === 'completed' ? ' ✓' : ''}</span>
+        <div class="card-id"><span>${esc(task.id)}</span>
           <span class="priority ${pri}">${esc(task.priority)}</span></div>
-        <div class="card-title">${esc(task.title)}${pulseIds.has(task.id) ? ' ◌' : ''}${task.inferredInProgress ? ' ⟡' : ''}</div>
+        <div class="card-title">${col === 'inProgress'
+          ? `<span class="task-spinner" role="status" aria-label="In progress"></span>`
+          : col === 'completed'
+          ? `<span class="task-done-icon" role="status" aria-label="Completed">✓</span>`
+          : ''}<span>${esc(task.title)}${pulseIds.has(task.id) ? ' ◌' : ''}${task.inferredInProgress ? ' ⟡' : ''}</span></div>
         ${logLine ? `<div class="card-log">${esc(logLine)}</div>` : ''}
         <div class="card-meta">${task.owner ? esc(task.owner) + ' · ' : ''}⛓ ${task.dependencyCount || 0} · ${timeAgo(task.lastUpdated)}</div>
       </div>`;
@@ -599,7 +671,10 @@
       const board = document.getElementById('board');
       board.innerHTML = COLS.map((c) => {
         const tasks = data.columns[c.key] || [];
-        return `<div class="column"><h3>${c.label} (${tasks.length})</h3>
+        const heading = c.key === 'inProgress' && tasks.length > 0
+          ? `<span class="column-heading"><span class="task-spinner" aria-hidden="true"></span><span>${c.label} (${tasks.length})</span></span>`
+          : `${c.label} (${tasks.length})`;
+        return `<div class="column"><h3>${heading}</h3>
           ${tasks.length ? tasks.map(renderCard).join('') : '<p class="empty">No tasks</p>'}
         </div>`;
       }).join('');
@@ -824,6 +899,10 @@
       return 'Pending';
     }
 
+    function isCompletionActivity(msg) {
+      return /completed|finished|done|moved to completed/i.test(msg || '');
+    }
+
     function openTaskModal(id) {
       const task = data?.tasks[id];
       if (!task) return;
@@ -831,8 +910,10 @@
       const dialog = document.getElementById('modal-dialog');
       dialog.classList.add('modal-task');
 
+      const isCompleted = task.column === 'completed' || task.status === 'completed';
+
       document.getElementById('modal-title').textContent = task.title;
-      document.getElementById('modal-path').textContent = task.id;
+      document.getElementById('modal-path').textContent = task.sourcePath || task.id;
       const meta = document.getElementById('modal-meta');
       meta.classList.remove('hidden');
       meta.textContent =
@@ -840,8 +921,31 @@
         (task.priority ? ' · ' + task.priority : '') +
         (task.owner ? ' · ' + task.owner : '');
 
-      const act = (task.activity || []).map((a) => a.message).filter(Boolean);
+      const act = (task.activity || []).map((a) => ({
+        at: a.at || '',
+        message: a.message || '',
+      })).filter((a) => a.message);
+
+      const doneBanner = isCompleted
+        ? `<div class="modal-done-banner"><span class="task-done-icon" aria-hidden="true">✓</span><span>Completed — file in <code>tasks/completed/</code>, status <code>[x] Completed</code> in task markdown</span></div>`
+        : '';
+
+      const criteriaBlock = task.acceptanceCriteria?.length
+        ? (isCompleted
+          ? '<ul class="criteria-done">' + task.acceptanceCriteria.map((c) => '<li>' + esc(c) + '</li>').join('') + '</ul>'
+          : '<ul>' + task.acceptanceCriteria.map((c) => '<li>' + esc(c) + '</li>').join('') + '</ul>')
+        : '<p class="empty">—</p>';
+
+      const activityBlock = act.length
+        ? '<ul class="activity-done">' + act.map((a) => {
+            const complete = isCompletionActivity(a.message);
+            const time = a.at ? `<span style="color:#999;font-size:11px">${esc(a.at)} — </span>` : '';
+            return `<li class="${complete ? 'is-complete' : ''}">${time}${esc(a.message)}</li>`;
+          }).join('') + '</ul>'
+        : '<p class="empty">—</p>';
+
       document.getElementById('modal-content').innerHTML = `
+        ${doneBanner}
         <div class="modal-section"><h4>Description</h4><p>${esc(task.description) || '—'}</p></div>
         <div class="modal-section"><h4>Dependencies</h4>
           ${task.dependencies?.length
@@ -850,21 +954,17 @@
               ).join('') + '</ul>'
             : '<p class="empty">None</p>'}
         </div>
-        <div class="modal-section"><h4>Acceptance criteria</h4>
-          ${task.acceptanceCriteria?.length
-            ? '<ul>' + task.acceptanceCriteria.map((c) => '<li>' + esc(c) + '</li>').join('') + '</ul>'
-            : '<p class="empty">—</p>'}
-        </div>
+        <div class="modal-section"><h4>Acceptance criteria</h4>${criteriaBlock}</div>
         ${task.notes ? '<div class="modal-section"><h4>Notes</h4><p>' + esc(task.notes) + '</p></div>' : ''}
         ${task.risk ? '<div class="modal-section"><h4>Risk</h4><p>' + esc(task.risk) + '</p></div>' : ''}
-        <div class="modal-section"><h4>Activity</h4>
-          ${act.length
-            ? '<ul>' + act.map((m) => '<li>' + esc(m) + '</li>').join('') + '</ul>'
-            : '<p class="empty">—</p>'}
+        <div class="modal-section"><h4>Activity log</h4>
+          <p style="font-size:11px;color:#666;margin-bottom:8px">Updated on <strong>awp update</strong> / <strong>awp commit</strong> / <strong>awp next</strong> via task <code>.md</code> and <code>backlog_sync</code>.</p>
+          ${activityBlock}
         </div>`;
 
       document.getElementById('modal-updated').textContent =
-        'Updated ' + timeAgo(task.lastUpdated) + ' · ' + esc(task.sourcePath);
+        'Last updated ' + timeAgo(task.lastUpdated) +
+        (isCompleted ? ' · Completed task' : '');
 
       document.getElementById('copy-contract-path').classList.add('hidden');
       const copyTask = document.getElementById('copy-task-path');

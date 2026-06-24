@@ -131,8 +131,8 @@ if (
   passed++;
 
 if (
-  test('inferActiveTaskId picks first pending on fresh backlog', () => {
-    const { inferActiveTaskId, applyInProgressInference } = require('../dist/backlog/taskStatus');
+  test('inferActiveTaskId does not infer on fresh backlog', () => {
+    const { inferActiveTaskId } = require('../dist/backlog/taskStatus');
     const t1 = task('1.0', 'planned', 'pending');
     const t2 = task('2.0', 'planned', 'pending');
     const snap = {
@@ -146,10 +146,7 @@ if (
       boardHealth: { inProgressIds: [], pendingPlannedIds: ['1.0', '2.0'], completedIds: [], warnings: [] },
       _warnings: [],
     };
-    assert(inferActiveTaskId(snap) === '1.0');
-    assert(applyInProgressInference(snap, '1.0'));
-    assert(snap.columns.inProgress[0].id === '1.0');
-    assert(snap.columns.inProgress[0].inferredInProgress);
+    assert(inferActiveTaskId(snap) === undefined);
   })
 )
   passed++;

@@ -97,6 +97,29 @@ if (test('parseTaskMd infers in progress', () => {
   assert(p.status === 'in_progress', 'expected in_progress');
 })) passed++;
 
+if (test('parseTaskMd reads acceptance criteria list', () => {
+  const content = `# Task ID: 2.0
+# Title: Map tab
+## Acceptance Criteria
+- [ ] Map renders facility markers
+- [ ] User can tap a marker for details
+`;
+  const p = parseTaskMd(content, 'task-2.0.md');
+  assert(p.acceptanceCriteria.length === 2, 'two criteria');
+  assert(p.acceptanceCriteria[0].includes('Map renders'));
+})) passed++;
+
+if (test('createInitialTasks includes acceptance criteria', () => {
+  const { createInitialTasks } = require('../dist/utils/helpers');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tasks-init-'));
+  createInitialTasks(dir, ['Goal A'], ['1. Scaffold app', '2. Add map'], ['React'], ['Works end to end'], 'poc');
+  const md = fs.readFileSync(path.join(dir, 'task-1.0.md'), 'utf8');
+  assert(md.includes('## Acceptance Criteria'), 'has section');
+  const parsed = parseTaskMd(md, 'task-1.0.md');
+  assert(parsed.acceptanceCriteria.length >= 4, 'has criteria bullets');
+  assert(parsed.id === '1.0', 'task id is 1.0');
+})) passed++;
+
 if (test('scaffoldKanban creates kanban dir', () => {
   scaffoldKanban(agentic, 'demo', 'mvp', { appDir: tmp });
   assert(fs.existsSync(path.join(agentic, 'kanban', 'index.html')));
@@ -139,5 +162,5 @@ if (test('compileBacklog splits columns', () => {
   assert(path.resolve(snap.config.appDir) === path.resolve(tmp), 'snapshot includes appDir');
 })) passed++;
 
-console.log(`\n${passed}/4 backlog tests passed`);
-process.exit(passed === 4 ? 0 : 1);
+console.log(`\n${passed}/6 backlog tests passed`);
+process.exit(passed === 6 ? 0 : 1);

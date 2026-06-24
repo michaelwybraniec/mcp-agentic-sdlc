@@ -2,9 +2,9 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-/** Matches commitStandard: type(scope step): subject */
+/** Matches commitStandard: type(scope taskId): subject — taskId is 1.0 or U-1 */
 const AWP_COMMIT_PATTERN =
-  /^(feat|fix|docs|test|chore|refactor)(\([^)]+\s+\d+(?:\.\d+)*\)):\s+.+/;
+  /^(feat|fix|docs|test|chore|refactor|perf|build|ci|revert)(\([^)]+\s+(?:\d+(?:\.\d+)*|U-\d+(?:\.\d+)*)\)):\s+.+/;
 
 export interface AgentCommit {
   hash: string;
