@@ -728,6 +728,8 @@
     let timeTrackingData = null;
     let knownCompletedIds = new Set();
     let completionsInitialized = false;
+    let backlogCompleteShown = false;
+    let wasBacklogComplete = false;
     let lastRunBlock = '';
 
     function buildRunCommands() {
@@ -747,16 +749,25 @@
       return lines.join('\n');
     }
 
+    function isBacklogComplete() {
+      const prog = getBoardProgress();
+      if (!prog.total) return false;
+      const planned = (data.columns?.planned || []).length;
+      const inProgress = (data.columns?.inProgress || []).length;
+      return prog.remaining === 0 && planned === 0 && inProgress === 0;
+    }
+
     function handleCompletionDetection() {
       const completed = (data?.columns?.completed || []).map((t) => t.id);
       const params = new URLSearchParams(location.search);
+      const backlogComplete = isBacklogComplete();
 
       if (!completionsInitialized) {
         knownCompletedIds = new Set(completed);
         completionsInitialized = true;
-        const q = params.get('completed') || params.get('report');
-        if (q && data?.tasks?.[q]) {
-          openCompletionReport(q);
+        wasBacklogComplete = backlogComplete;
+        if (params.get('backlog') === 'complete' || params.get('completed') === 'all') {
+          if (backlogComplete) openBacklogCompleteModal();
           return;
         }
         if (params.get('dashboard') === '1') {
@@ -765,12 +776,10 @@
         return;
       }
 
-      for (const id of completed) {
-        if (!knownCompletedIds.has(id)) {
-          openCompletionReport(id);
-          break;
-        }
+      if (backlogComplete && !wasBacklogComplete && !backlogCompleteShown) {
+        openBacklogCompleteModal();
       }
+      wasBacklogComplete = backlogComplete;
       knownCompletedIds = new Set(completed);
     }
 
@@ -1002,15 +1011,7 @@
       }).join('');
 
       board.querySelectorAll('.card').forEach((el) => {
-        el.addEventListener('click', () => {
-          const id = el.dataset.id;
-          const task = data?.tasks?.[id];
-          if (task && (task.column === 'completed' || task.status === 'completed')) {
-            openCompletionReport(id);
-          } else {
-            openTaskModal(id);
-          }
-        });
+        el.addEventListener('click', () => openTaskModal(el.dataset.id));
       });
     }
 
@@ -1415,52 +1416,49 @@
       document.getElementById('open-dashboard-from-report').classList.add('hidden');
     }
 
-    function openCompletionReport(id) {
-      const task = data?.tasks?.[id];
-      if (!task) return;
+    function openBacklogCompleteModal() {
+      if (!data || !isBacklogComplete()) return;
+      backlogCompleteShown = true;
 
       const dialog = document.getElementById('modal-dialog');
       dialog.classList.remove('modal-task', 'modal-dashboard');
       dialog.classList.add('modal-report');
 
-      const prog = data.boardProgress || {};
+      const prog = getBoardProgress();
       const dash = data.timeDashboard;
-      const ts = task.timeSpent;
       lastRunBlock = buildRunCommands();
       const port = data.config?.port || 4173;
       const boardUrl = `http://localhost:${port}/`;
       const kanbanRun = 'cd agentic-sdlc/kanban && npm install && npm run watch';
+      const completedTasks = (data.columns?.completed || [])
+        .map((t) => `<li><strong>${esc(t.id)}</strong> — ${esc(t.title)}</li>`)
+        .join('');
 
-      document.getElementById('modal-title').textContent = `Completion report — ${task.id}`;
-      document.getElementById('modal-path').textContent = task.title;
+      document.getElementById('modal-title').textContent = 'Backlog complete';
+      document.getElementById('modal-path').textContent = data.meta.name + ' · ' + data.meta.type.toUpperCase();
       document.getElementById('modal-meta').classList.remove('hidden');
       document.getElementById('modal-meta').textContent =
-        `${prog.completed ?? 0}/${prog.total ?? 0} tasks done (${prog.percent ?? 0}%)`;
+        `${prog.completed} of ${prog.total} tasks done (100%)`;
 
-      const criteriaBlock = task.acceptanceCriteria?.length
-        ? '<ul class="criteria-done">' + task.acceptanceCriteria.map((c) => '<li>' + esc(c) + '</li>').join('') + '</ul>'
-        : '<p class="empty">—</p>';
-
-      const timeSection = ts && (ts.combinedMs || ts.isActive)
+      const timeSection = dash
         ? `<div class="time-summary-grid" style="margin-bottom:12px">
-            <div class="time-summary-card agent"><h3>Agent</h3><div class="time-value">${formatDuration(ts.agentMs)}</div></div>
-            <div class="time-summary-card human"><h3>Human</h3><div class="time-value">${formatDuration(ts.humanMs)}</div></div>
-            <div class="time-summary-card combined"><h3>Total</h3><div class="time-value">${formatDuration(ts.combinedMs)}</div></div>
-          </div>
-          <p style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">Project totals: Agent ${formatDuration(dash?.agentMs || 0)} · Human ${formatDuration(dash?.humanMs || 0)} · Combined ${formatDuration(dash?.combinedMs || 0)}</p>`
-        : `<p class="empty" style="margin-bottom:12px">No time recorded for this task yet.</p>
-           <p style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">Project totals: Agent ${formatDuration(dash?.agentMs || 0)} · Human ${formatDuration(dash?.humanMs || 0)} · Combined ${formatDuration(dash?.combinedMs || 0)}</p>`;
+            <div class="time-summary-card agent"><h3>Agent</h3><div class="time-value">${formatDuration(dash.agentMs || 0)}</div></div>
+            <div class="time-summary-card human"><h3>Human</h3><div class="time-value">${formatDuration(dash.humanMs || 0)}</div></div>
+            <div class="time-summary-card combined"><h3>Total</h3><div class="time-value">${formatDuration(dash.combinedMs || 0)}</div></div>
+          </div>`
+        : '<p class="empty">No time recorded yet.</p>';
 
       document.getElementById('modal-content').innerHTML = `
-        <div class="modal-done-banner"><span class="task-done-icon" aria-hidden="true">✓</span><span>Task <strong>${esc(task.id)}</strong> completed — ready to run and verify</span></div>
+        <div class="modal-done-banner"><span class="task-done-icon" aria-hidden="true">✓</span><span>All <strong>${prog.total}</strong> backlog tasks completed</span></div>
         <div class="modal-section">
           <h4>Board progress</h4>
-          <p style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">See the progress bar above the Kanban board for live status.</p>
-          <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${prog.percent || 0}%"></div></div>
-          <p>${prog.completed ?? 0} of ${prog.total ?? 0} tasks completed${prog.remaining ? ` · ${prog.remaining} remaining` : ' · all done!'}</p>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:100%"></div></div>
+          <p>${prog.completed} of ${prog.total} tasks completed</p>
         </div>
-        <div class="modal-section"><h4>Acceptance criteria</h4>${criteriaBlock}</div>
-        <div class="modal-section"><h4>Time on this task</h4>${timeSection}</div>
+        <div class="modal-section"><h4>Completed tasks</h4>
+          <ul>${completedTasks || '<li class="empty">—</li>'}</ul>
+        </div>
+        <div class="modal-section"><h4>Time summary</h4>${timeSection}</div>
         <div class="modal-section">
           <h4>Run the app</h4>
           <p style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">From your project root in a terminal:</p>
@@ -1479,7 +1477,7 @@
       bindLocalUrlButtons(document.getElementById('modal-content'));
 
       document.getElementById('modal-updated').textContent =
-        'Completed ' + timeAgo(task.lastUpdated);
+        'Backlog finished ' + timeAgo(data.meta.generatedAt);
 
       document.getElementById('copy-contract-path').classList.add('hidden');
       document.getElementById('copy-task-path').classList.add('hidden');
@@ -1494,7 +1492,7 @@
 
       document.getElementById('modal-backdrop').classList.add('open');
       if (history.replaceState) {
-        history.replaceState(null, '', `?completed=${encodeURIComponent(id)}`);
+        history.replaceState(null, '', '?backlog=complete');
       }
     }
 
@@ -1628,12 +1626,7 @@
                 setTimeout(() => { pulseIds.delete(id); renderBoard(); }, 3000);
               });
             }
-            fetchData().then(() => {
-              const moved = msg.taskIds?.find((id) => data?.tasks?.[id]?.column === 'completed');
-              if (moved) {
-                fetchTimeTracking().then(() => openCompletionReport(moved)).catch(() => openCompletionReport(moved));
-              }
-            }).catch(console.error);
+            fetchData().catch(console.error);
             fetchActivity().catch(console.error);
           } else if (msg.type === 'activity_updated') {
             fetchActivity().catch(console.error);

@@ -91,22 +91,31 @@ export async function handleBacklogSyncTool(args: Record<string, unknown>) {
     let reportBlock = '';
     if (completeTaskId && snapshot.tasks[completeTaskId]) {
       const task = snapshot.tasks[completeTaskId];
-      const appRun = snapshot.appRun || ensureRunAppScript(snapshot.config.appDir);
       const prog = snapshot.boardProgress;
-      const ts = task.timeSpent;
-      const timeLine = ts
-        ? `Time on task: Agent ${Math.round(ts.agentMs / 60000)}m · Human ${Math.round(ts.humanMs / 60000)}m · Total ${Math.round(ts.combinedMs / 60000)}m`
-        : '';
-      reportBlock = `
+      const backlogDone =
+        prog &&
+        prog.total > 0 &&
+        prog.remaining === 0 &&
+        snapshot.boardHealth.inProgressIds.length === 0 &&
+        snapshot.boardHealth.pendingPlannedIds.length === 0;
 
-## Completion report — ${completeTaskId}: ${task.title}
+      if (backlogDone) {
+        const appRun = snapshot.appRun || ensureRunAppScript(snapshot.config.appDir);
+        const dash = snapshot.timeDashboard;
+        const timeLine = dash
+          ? `Time total: Agent ${Math.round(dash.agentMs / 60000)}m · Human ${Math.round(dash.humanMs / 60000)}m · Combined ${Math.round(dash.combinedMs / 60000)}m`
+          : '';
+        reportBlock = `
 
-Progress: ${prog?.completed ?? '?'}/${prog?.total ?? '?'} tasks (${prog?.percent ?? 0}%)
+## Backlog complete — all ${prog.total} tasks done
+
+Last task: ${completeTaskId}: ${task.title}
 ${timeLine}
-Kanban report: http://localhost:${port}/?completed=${completeTaskId}
+Kanban: http://localhost:${port}/?backlog=complete
 Time dashboard: http://localhost:${port}/?dashboard=1
 
-${formatCompletionRunBlock(appRun, port).replace(`?completed=`, `?completed=${completeTaskId}`)}`;
+${formatCompletionRunBlock(appRun, port)}`;
+      }
     }
 
     return {

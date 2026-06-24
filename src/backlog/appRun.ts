@@ -91,7 +91,7 @@ export function ensureRunAppScript(appDir: string): AppRunInfo {
 export function formatCompletionRunBlock(info: AppRunInfo, kanbanPort: number): string {
   const lines = [
     `Kanban board: http://localhost:${kanbanPort}/`,
-    `Completion report: http://localhost:${kanbanPort}/?completed=`,
+    `Backlog complete: http://localhost:${kanbanPort}/?backlog=complete`,
     `Time dashboard: http://localhost:${kanbanPort}/?dashboard=1`,
     '',
     'Run the app from project root:',
