@@ -348,16 +348,76 @@ Not everything "missing" during development is unplanned. Use this decision guid
 
 ### Module Organization
 - `src/index.ts` - Server setup and routing
-- `src/tools/` - Tool handlers (base, init, recommend)
-- `src/resources/` - Resource handlers (recipes)
+- `src/tools/` - Tool handlers (base, init, recommend, backlog_sync)
+- `src/resources/` - Resource handlers (recipes, backlog snapshot)
+- `src/backlog/` - Kanban compiler, watcher CLI, and HTTP server
 - `src/utils/` - Shared helper functions
 - `src/recipes/` - Recipe markdown files
-- `src/templates/` - Template files (README, commitStandard)
+- `src/templates/` - Template files (README, commitStandard, kanban)
 
 ### Recipe Access
 - **As Tools**: `get_mvp_backlog_recipe`, `get_awp_recipe` → Returns recipe content
 - **As Resources**: `recipe://mvp-backlog-recipe`, `recipe://awp-recipe` → Direct URI access
 - Both methods return the same recipe content
+
+## 11. Live Kanban Board
+
+The Kanban board is a **read-only** live view of your markdown backlog. Markdown stays the source of truth; the board is compiled into JSON and served over HTTP.
+
+### Directory layout
+
+```
+agentic-sdlc/
+├── backlog-<name>/
+│   └── <type>/
+│       ├── base.md          ← foundation agreement (shown in modal)
+│       ├── backlog.md
+│       └── tasks/
+│           ├── planned/     ← In Progress inferred from # Status: [~]
+│           ├── unplanned/
+│           └── completed/
+└── kanban/                  ← generated viewer + JSON
+    ├── index.html
+    ├── backlog.json
+    ├── activity.json
+    └── .kanban-config.json  ← includes appDir for MCP resources
+```
+
+### Column rules
+
+| Column | Rule |
+|--------|------|
+| Unplanned | File in `tasks/unplanned/` |
+| Planned | File in `tasks/planned/` with `# Status: [ ] Pending` |
+| In Progress | File in `tasks/planned/` with `# Status: [~] In Progress` |
+| Completed | File in `tasks/completed/` |
+
+### After `init`
+
+1. From the MCP package (or your project with the package built):
+
+```bash
+npm run backlog:watch -- --appDir /path/to/your/project
+```
+
+2. Open **http://localhost:4173** in a browser or Cursor Simple Browser.
+
+3. When the AI edits task `.md` files, the board updates within ~1s (file watcher + SSE).
+
+### MCP tools and resources
+
+| Name | Purpose |
+|------|---------|
+| `backlog_sync` | Recompile `kanban/backlog.json` from markdown (pass `appDir`) |
+| `backlog://<name>/snapshot` | Read compiled JSON for agent context |
+
+Set `AGENTIC_SDLC_APP_DIR` to your project root in MCP config if the server cwd is not your project (so snapshot resources resolve correctly).
+
+### NPM scripts (not MCP)
+
+- `npm run backlog:sync` — one-shot compile
+- `npm run backlog:watch` — watch + serve on port 4173
+- `npm run backlog:serve` — serve only
 
 ---
 

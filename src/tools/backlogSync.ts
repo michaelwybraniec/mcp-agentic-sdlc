@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { getAgenticSdlcDir, syncBacklog } from '../backlog/compiler.js';
 import { scaffoldKanban } from '../backlog/scaffold.js';
+import { ensureKanbanAppDir } from '../resources/backlog.js';
 
 export async function handleBacklogSyncTool(args: Record<string, unknown>) {
   const appDir = (args?.appDir as string) || process.cwd();
@@ -12,7 +13,7 @@ export async function handleBacklogSyncTool(args: Record<string, unknown>) {
     const backlogName = args?.backlogName as string;
     const projectType = (args?.projectType as string)?.toLowerCase();
     if (backlogName && projectType) {
-      scaffoldKanban(agenticDir, backlogName, projectType);
+      scaffoldKanban(agenticDir, backlogName, projectType, { appDir });
     } else {
       return {
         content: [
@@ -26,6 +27,8 @@ export async function handleBacklogSyncTool(args: Record<string, unknown>) {
     }
   }
 
+  ensureKanbanAppDir(agenticDir, appDir);
+
   try {
     const snapshot = syncBacklog(agenticDir);
     const port = snapshot.config.port || 4173;
@@ -33,7 +36,7 @@ export async function handleBacklogSyncTool(args: Record<string, unknown>) {
       content: [
         {
           type: 'text',
-          text: `Synced kanban/backlog.json\n\nTasks: ${Object.keys(snapshot.tasks).length}\nSource: ${snapshot.meta.sourcePath}\n\nRun: npm run backlog:watch -- --appDir ${appDir}\nOpen: http://localhost:${port}`,
+          text: `Synced kanban/backlog.json\n\nTasks: ${Object.keys(snapshot.tasks).length}\nSource: ${snapshot.meta.sourcePath}\nApp dir: ${snapshot.config.appDir} (stored in .kanban-config.json for agents)\n\nRun: npm run backlog:watch -- --appDir ${appDir}\nOpen: http://localhost:${port}`,
         },
       ],
     };

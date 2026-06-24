@@ -24,6 +24,58 @@ export function writeKanbanConfig(kanbanDir: string, config: KanbanConfig): void
   fs.writeFileSync(path.join(kanbanDir, '.kanban-config.json'), JSON.stringify(config, null, 2));
 }
 
+/** Resolve user project root from config, env, or fallback cwd. */
+export function resolveAppDir(config: KanbanConfig | null, fallback?: string): string {
+  if (config?.appDir) {
+    const resolved = path.resolve(config.appDir);
+    if (fs.existsSync(path.join(resolved, 'agentic-sdlc', 'kanban'))) {
+      return resolved;
+    }
+  }
+  const envDir = process.env.AGENTIC_SDLC_APP_DIR;
+  if (envDir) {
+    const resolved = path.resolve(envDir);
+    if (fs.existsSync(path.join(resolved, 'agentic-sdlc', 'kanban'))) {
+      return resolved;
+    }
+  }
+  return path.resolve(fallback || process.cwd());
+}
+
+export interface KanbanContext {
+  appDir: string;
+  kanbanDir: string;
+  config: KanbanConfig;
+}
+
+/** Locate kanban config from explicit dir, cwd, or AGENTIC_SDLC_APP_DIR. */
+export function discoverKanbanContext(baseDir?: string): KanbanContext | null {
+  const candidates: string[] = [];
+  if (baseDir) candidates.push(path.resolve(baseDir));
+  candidates.push(process.cwd());
+  if (process.env.AGENTIC_SDLC_APP_DIR) {
+    candidates.push(path.resolve(process.env.AGENTIC_SDLC_APP_DIR));
+  }
+
+  const seen = new Set<string>();
+  for (const candidate of candidates) {
+    if (seen.has(candidate)) continue;
+    seen.add(candidate);
+
+    const kanbanDir = path.join(getAgenticSdlcDir(candidate), 'kanban');
+    const config = readKanbanConfig(kanbanDir);
+    if (!config) continue;
+
+    const appDir = resolveAppDir(config, candidate);
+    return {
+      appDir,
+      kanbanDir: path.join(getAgenticSdlcDir(appDir), 'kanban'),
+      config: { ...config, appDir },
+    };
+  }
+  return null;
+}
+
 function resolveColumn(folder: string, status: string): TaskColumn {
   if (folder === 'unplanned') return 'unplanned';
   if (folder === 'completed') return 'completed';

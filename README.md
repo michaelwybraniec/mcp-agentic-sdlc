@@ -20,6 +20,16 @@ MCP Agentic SDLC consists of two main components:
 
 **New to MCP Agentic SDLC?** Start with [`workflow.md`](./docs/workflow.md) for a comprehensive explanation of the server architecture, workflow, and how all components work together.
 
+## Live Kanban quickstart
+
+After running the `init` tool in your project:
+
+```bash
+npm run backlog:watch -- --appDir /path/to/your/project
+```
+
+Open **http://localhost:4173** for a live read-only board. Use the `backlog_sync` MCP tool to refresh JSON, or `backlog://<name>/snapshot` for agent-readable state. See [workflow.md — Section 11](./docs/workflow.md#11-live-kanban-board).
+
 ## Architecture
 
 ```mermaid

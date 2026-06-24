@@ -14,11 +14,12 @@ export function scaffoldKanban(
   agenticSdlcDir: string,
   backlogName: string,
   projectType: string,
-  options?: { disclaimer?: string; port?: number }
+  options?: { disclaimer?: string; port?: number; appDir?: string }
 ): string {
   const kanbanDir = path.join(agenticSdlcDir, 'kanban');
   const templatesDir = getTemplatesDir();
   const backlogPath = `backlog-${backlogName}/${projectType}`;
+  const appDir = path.resolve(options?.appDir ?? path.dirname(agenticSdlcDir));
 
   if (!fs.existsSync(kanbanDir)) {
     fs.mkdirSync(kanbanDir, { recursive: true });
@@ -31,6 +32,7 @@ export function scaffoldKanban(
   }
 
   const config: KanbanConfig = {
+    appDir,
     backlogPath,
     backlogName,
     projectType,

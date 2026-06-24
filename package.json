@@ -14,7 +14,7 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
     "copy-assets": "cp -r src/templates dist && cp -r src/recipes dist",
-    "test": "node test/workflow.test.js && node test/backlog.test.js",
+    "test": "node test/workflow.test.js && node test/backlog.test.js && node test/backlog-mcp.test.js",
     "backlog:sync": "node dist/backlog/cli.js sync",
     "backlog:watch": "node dist/backlog/cli.js watch",
     "backlog:serve": "node dist/backlog/cli.js serve"

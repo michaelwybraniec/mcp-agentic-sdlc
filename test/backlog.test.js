@@ -98,9 +98,11 @@ if (test('parseTaskMd infers in progress', () => {
 })) passed++;
 
 if (test('scaffoldKanban creates kanban dir', () => {
-  scaffoldKanban(agentic, 'demo', 'mvp');
+  scaffoldKanban(agentic, 'demo', 'mvp', { appDir: tmp });
   assert(fs.existsSync(path.join(agentic, 'kanban', 'index.html')));
   assert(fs.existsSync(path.join(agentic, 'kanban', 'backlog.json')));
+  const cfg = readKanbanConfig(path.join(agentic, 'kanban'));
+  assert(path.resolve(cfg.appDir) === path.resolve(tmp), 'appDir stored in config');
 })) passed++;
 
 if (test('compileBacklog splits columns', () => {
@@ -111,6 +113,7 @@ if (test('compileBacklog splits columns', () => {
   assert(snap.summary.problem.includes('find products'));
   const cfg = readKanbanConfig(path.join(agentic, 'kanban'));
   assert(cfg.disclaimer.includes('Total Energiees'));
+  assert(path.resolve(snap.config.appDir) === path.resolve(tmp), 'snapshot includes appDir');
 })) passed++;
 
 console.log(`\n${passed}/3 backlog tests passed`);

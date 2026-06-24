@@ -131,7 +131,7 @@ Each POC task should be created as a separate Markdown file with the following s
 ```markdown
 # Task ID: [hierarchical-id]
 # Title: [short-description]
-# Status: [ ] Pending / [x] Completed
+# Status: [ ] Pending / [~] In Progress / [x] Completed
 # Priority: [critical|high|medium|low]
 # Owner: [responsible-team-or-role]
 # Estimated Effort: [hours-or-story-points]
@@ -188,6 +188,10 @@ Each POC task should be created as a separate Markdown file with the following s
 ## Sub-tasks (Children)
 - [ ] [Sub-task 1 description]
 - [ ] [Sub-task 2 description]
+
+## Activity
+[Optional audit log for Kanban board — append timestamped lines when status or scope changes]
+- YYYY-MM-DD HH:MM — [change description] (AI/Human)
 
 ## Completed
 [ ] Pending / [x] Completed

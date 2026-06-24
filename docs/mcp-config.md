@@ -467,6 +467,42 @@ tail -f ~/Library/Application\ Support/Claude/logs/claude_desktop.log
    - recipe://awp-recipe
    ```
 
+### Live Kanban board
+
+After `init`, the user's project contains `agentic-sdlc/kanban/` with a compiled `backlog.json` and HTML viewer.
+
+**Start the live board** (from the MCP package directory, after `npm run build`):
+
+```bash
+npm run backlog:watch -- --appDir /Users/your-username/Documents/GitHub/my-project
+```
+
+Open **http://localhost:4173** in a browser or Cursor Simple Browser. Task markdown edits refresh the board via file watcher + SSE.
+
+**MCP tool — `backlog_sync`:**
+
+```json
+{
+  "appDir": "/Users/your-username/Documents/GitHub/my-project"
+}
+```
+
+Recompiles `agentic-sdlc/kanban/backlog.json`. Pass `backlogName` and `projectType` only if `kanban/` does not exist yet.
+
+**MCP resource — `backlog://<name>/snapshot`:**
+
+Returns the compiled JSON snapshot (same as `kanban/backlog.json`). Listed when `kanban/.kanban-config.json` exists.
+
+**`appDir` and MCP cwd:** The config file stores an absolute `appDir` pointing at your project root. If the MCP server cwd is not your project, set in MCP env:
+
+```json
+"env": {
+  "AGENTIC_SDLC_APP_DIR": "/Users/your-username/Documents/GitHub/my-project"
+}
+```
+
+This ensures `backlog://…/snapshot` resolves correctly in Cursor.
+
 ### Advanced Usage
 
 1. **Project with specific directory:**

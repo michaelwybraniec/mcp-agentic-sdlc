@@ -27,6 +27,7 @@ export interface TaskCard {
 }
 
 export interface KanbanConfig {
+  appDir: string;
   backlogPath: string;
   backlogName: string;
   projectType: string;

@@ -625,7 +625,7 @@ ${proDataModels || 'To be defined'}
     });
     fs.writeFileSync(awpPath, awpContent);
 
-    scaffoldKanban(targetDir, backlogName, projectType);
+    scaffoldKanban(targetDir, backlogName, projectType, { appDir });
     const kanbanPort = 4173;
 
     return {
