@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { extractTemplateFromRecipe, populateTemplate, createProjectBacklog, createInitialTasks, parseBaseMd } from '../utils/helpers.js';
+import { scaffoldKanban } from '../backlog/scaffold.js';
 
 export async function handleInitTool(args: any) {
   // Use the appDir parameter if provided, otherwise use current working directory
@@ -624,11 +625,14 @@ ${proDataModels || 'To be defined'}
     });
     fs.writeFileSync(awpPath, awpContent);
 
+    scaffoldKanban(targetDir, backlogName, projectType);
+    const kanbanPort = 4173;
+
     return {
       content: [
         {
           type: "text",
-          text: `Successfully created agentic-sdlc folder with complete project structure in ${targetDir}\n\nCreated:\n- README.md\n- commitStandard.md\n- ASDLC.md\n- AWP.md\n- backlog-${backlogName}/${projectType}/\n  - base.md (reference document with all agreed information from base tool)\n  - requirements.md (populated with collected information)\n  - backlog.md (populated with phases and features)\n  - tech-specs.md (populated with technologies and architecture)\n  - tasks/\n    - planned/ (with initial task files)\n    - unplanned/ (empty)\n    - completed/ (empty)\n\nProject Details:\n- Backlog Name: ${backlogName}\n- Project Type: ${projectType.toUpperCase()}\n- Features/Objectives: ${featuresForTasks.join(', ')}\n- Phases: ${phases.join(', ')}\n- Technologies: ${techForTasks.join(', ')}\n\nThe project structure has been created using the ${projectType}-backlog-recipe.md, ${projectType}-requirements-recipe.md, ${projectType}-tech-specs-recipe.md, and awp-recipe.md methodologies.\n\nThe base.md file contains a complete record of all information agreed upon during project setup.\n\nYou can now work on multiple backlogs by creating additional backlog-<name>/ directories.`,
+          text: `Successfully created agentic-sdlc folder with complete project structure in ${targetDir}\n\nCreated:\n- README.md\n- commitStandard.md\n- ASDLC.md\n- AWP.md\n- kanban/\n  - index.html (live Kanban board)\n  - backlog.json (compiled from markdown)\n  - .kanban-config.json\n- backlog-${backlogName}/${projectType}/\n  - base.md (reference document with all agreed information from base tool)\n  - requirements.md (populated with collected information)\n  - backlog.md (populated with phases and features)\n  - tech-specs.md (populated with technologies and architecture)\n  - tasks/\n    - planned/ (with initial task files)\n    - unplanned/ (empty)\n    - completed/ (empty)\n\nProject Details:\n- Backlog Name: ${backlogName}\n- Project Type: ${projectType.toUpperCase()}\n- Features/Objectives: ${featuresForTasks.join(', ')}\n- Phases: ${phases.join(', ')}\n- Technologies: ${techForTasks.join(', ')}\n\nThe project structure has been created using the ${projectType}-backlog-recipe.md, ${projectType}-requirements-recipe.md, ${projectType}-tech-specs-recipe.md, and awp-recipe.md methodologies.\n\nThe base.md file contains a complete record of all information agreed upon during project setup.\n\nKanban board:\n- Run: npm run backlog:watch -- --appDir ${appDir}\n- Open: http://localhost:${kanbanPort}\n\nYou can now work on multiple backlogs by creating additional backlog-<name>/ directories.`,
         },
       ],
     };

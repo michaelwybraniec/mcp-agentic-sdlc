@@ -13,7 +13,9 @@ import {
 import { handleBaseTool } from './tools/base.js';
 import { handleRecommendTool } from './tools/recommend.js';
 import { handleInitTool } from './tools/init.js';
+import { handleBacklogSyncTool } from './tools/backlogSync.js';
 import { handleRecipeResource, handleRecipeUri, getRecipeResources } from './resources/recipes.js';
+import { getBacklogResources, handleBacklogUri } from './resources/backlog.js';
 
 /**
  * Create MCP server with the init tool
@@ -502,6 +504,30 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {},
         },
       },
+      {
+        name: "backlog_sync",
+        description: `
+          Recompile kanban/backlog.json from markdown backlog files in the user's agentic-sdlc/ directory.
+          Use after batch task edits or when the Kanban board needs a fresh snapshot.
+          Run backlog:watch separately for live browser updates at http://localhost:4173`,
+        inputSchema: {
+          type: "object",
+          properties: {
+            appDir: {
+              type: "string",
+              description: "Project root containing agentic-sdlc/ (defaults to cwd)",
+            },
+            backlogName: {
+              type: "string",
+              description: "Required only if kanban/ does not exist yet — scaffolds kanban for this backlog",
+            },
+            projectType: {
+              type: "string",
+              description: "mvp, poc, or pro — required with backlogName when scaffolding kanban",
+            },
+          },
+        },
+      },
     ],
   };
 });
@@ -509,7 +535,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 // List available resources
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
   return {
-    resources: getRecipeResources(),
+    resources: [...getRecipeResources(), ...getBacklogResources()],
   };
 });
 
@@ -520,6 +546,13 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   // Handle recipe URIs
   if (uri.startsWith("recipe://")) {
     const result = handleRecipeUri(uri);
+    if (result) {
+      return result;
+    }
+  }
+
+  if (uri.startsWith("backlog://")) {
+    const result = handleBacklogUri(uri);
     if (result) {
       return result;
     }
@@ -561,6 +594,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   if (name === "init") {
     return handleInitTool(args || {});
+  }
+
+  if (name === "backlog_sync") {
+    return handleBacklogSyncTool(args || {});
   }
 
       return {

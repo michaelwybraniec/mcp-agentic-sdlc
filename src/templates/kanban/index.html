@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AWP Kanban</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #fff;
+      color: #111;
+      min-height: 100vh;
+      padding-bottom: 48px;
+    }
+    .site-header { padding: 20px 24px 12px; border-bottom: 1px solid #e5e5e5; }
+    .site-header h1 { font-size: 18px; font-weight: 600; }
+    .site-header p { font-size: 13px; color: #666; margin-top: 4px; }
+    .project-bar {
+      padding: 12px 24px;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .project-bar .meta { font-size: 14px; }
+    .project-bar .summary { font-size: 13px; color: #666; width: 100%; }
+    .live { font-size: 12px; color: #666; }
+    .live.on .dot { color: #2563eb; }
+    .link-btn {
+      background: none;
+      border: none;
+      color: #2563eb;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: underline;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      padding: 16px 24px;
+      min-height: 320px;
+    }
+    @media (max-width: 900px) {
+      .board { grid-template-columns: repeat(2, 1fr); }
+    }
+    .column { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 4px; padding: 8px; min-height: 200px; }
+    .column h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; color: #666; padding-bottom: 8px; border-bottom: 1px solid #e5e5e5; margin-bottom: 8px; }
+    .card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      padding: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    .card.in-progress { border-left: 4px solid #2563eb; background: #f8faff; }
+    .card.completed { opacity: 0.65; }
+    .card.pulse { animation: pulse 0.8s ease-in-out 3; }
+    @keyframes pulse { 50% { border-color: #2563eb; } }
+    .card-id { font-family: ui-monospace, monospace; font-size: 11px; color: #999; display: flex; justify-content: space-between; }
+    .card-title { font-size: 13px; font-weight: 500; margin: 4px 0; line-height: 1.3; }
+    .card-log { font-size: 11px; color: #666; margin: 2px 0; }
+    .card-meta { font-size: 11px; color: #999; margin-top: 4px; }
+    .priority { font-size: 10px; text-transform: uppercase; font-weight: 600; }
+    .priority.critical { color: #b91c1c; }
+    .priority.high { color: #b45309; }
+    .priority.medium { color: #666; }
+    .priority.low { color: #999; }
+    .activity-feed {
+      margin: 0 24px 16px;
+      padding: 12px;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .activity-feed h4 { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 8px; }
+    .activity-feed li { font-size: 12px; color: #666; list-style: none; padding: 2px 0; font-family: ui-monospace, monospace; }
+    .disclaimer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fafafa;
+      border-top: 1px solid #e5e5e5;
+      padding: 10px 16px;
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .disclaimer.hidden { display: none; }
+    .drawer-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.2);
+      z-index: 100;
+    }
+    .drawer-backdrop.open { display: block; }
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 400px;
+      max-width: 100%;
+      height: 100%;
+      background: #fff;
+      border-left: 1px solid #e5e5e5;
+      z-index: 101;
+      transition: right 0.2s;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .drawer.open { right: 0; }
+    .drawer h2 { font-size: 16px; margin-bottom: 8px; }
+    .drawer .section { margin-top: 16px; font-size: 13px; }
+    .drawer .section h4 { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 6px; }
+    .drawer pre, .drawer p { white-space: pre-wrap; line-height: 1.5; color: #333; }
+    .drawer ul { padding-left: 16px; font-size: 13px; }
+    .drawer-close { float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: #666; }
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.2);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      width: min(640px, 92vw);
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header { padding: 16px; border-bottom: 1px solid #e5e5e5; display: flex; justify-content: space-between; align-items: start; }
+    .modal-header h2 { font-size: 15px; }
+    .modal-path { font-size: 11px; color: #999; margin-top: 4px; }
+    .modal-body { padding: 16px; overflow-y: auto; flex: 1; }
+    .modal-body pre { white-space: pre-wrap; font-size: 13px; line-height: 1.5; font-family: inherit; }
+    .modal-footer { padding: 12px 16px; border-top: 1px solid #e5e5e5; font-size: 11px; color: #999; display: flex; justify-content: space-between; }
+    .empty { font-size: 12px; color: #999; padding: 8px 0; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <h1>AWP — Agentic Workflow Protocol</h1>
+    <p>Human-Agent Engineering</p>
+  </header>
+
+  <div class="project-bar">
+    <div>
+      <span class="meta" id="project-name">—</span>
+      <span class="live" id="live-status"><span class="dot">○</span> Connecting…</span>
+    </div>
+    <button type="button" class="link-btn" id="view-agreement">View agreement</button>
+    <p class="summary" id="summary-line"></p>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div class="activity-feed">
+    <h4>Activity</h4>
+    <ul id="activity-list"></ul>
+  </div>
+
+  <footer class="disclaimer hidden" id="disclaimer"></footer>
+
+  <div class="drawer-backdrop" id="drawer-backdrop">
+    <aside class="drawer" id="drawer"></aside>
+  </div>
+
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal" role="dialog">
+      <div class="modal-header">
+        <div>
+          <h2 id="modal-title">AWP Project Foundation Agreement</h2>
+          <div class="modal-path" id="modal-path"></div>
+        </div>
+        <button type="button" class="drawer-close" id="modal-close">×</button>
+      </div>
+      <div class="modal-body"><pre id="modal-content"></pre></div>
+      <div class="modal-footer">
+        <span id="modal-updated"></span>
+        <button type="button" class="link-btn" id="copy-contract-path">Copy path</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let data = null;
+    let lastSync = null;
+    let syncing = false;
+    let pulseIds = new Set();
+    let activityLog = [];
+
+    const COLS = [
+      { key: 'unplanned', label: 'Unplanned' },
+      { key: 'planned', label: 'Planned' },
+      { key: 'inProgress', label: 'In Progress' },
+      { key: 'completed', label: 'Completed' },
+    ];
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
+
+    function timeAgo(iso) {
+      if (!iso) return '';
+      const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+      if (s < 5) return 'just now';
+      if (s < 60) return s + 's ago';
+      if (s < 3600) return Math.floor(s / 60) + 'm ago';
+      return Math.floor(s / 3600) + 'h ago';
+    }
+
+    function formatTime(iso) {
+      if (!iso) return '';
+      try {
+        return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } catch { return ''; }
+    }
+
+    function setLive(connected) {
+      const el = document.getElementById('live-status');
+      if (syncing) {
+        el.innerHTML = '⟳ Syncing…';
+        el.classList.remove('on');
+        return;
+      }
+      if (connected) {
+        el.classList.add('on');
+        el.innerHTML = '<span class="dot">●</span> Live · Synced ' + (lastSync ? timeAgo(lastSync) : '—');
+      } else {
+        el.classList.remove('on');
+        el.innerHTML = '<span class="dot">○</span> Offline';
+      }
+    }
+
+    function renderCard(task) {
+      const col = task.column;
+      const cls = ['card'];
+      if (col === 'inProgress') cls.push('in-progress');
+      if (col === 'completed') cls.push('completed');
+      if (pulseIds.has(task.id)) cls.push('pulse');
+
+      const pri = (task.priority || 'medium').toLowerCase();
+      const logLine = pulseIds.has(task.id)
+        ? '⟳ updating…'
+        : (task.activityPeek || '');
+
+      return `<div class="${cls.join(' ')}" data-id="${esc(task.id)}">
+        <div class="card-id"><span>${esc(task.id)}${col === 'completed' ? ' ✓' : ''}</span>
+          <span class="priority ${pri}">${esc(task.priority)}</span></div>
+        <div class="card-title">${esc(task.title)}${pulseIds.has(task.id) ? ' ◌' : ''}</div>
+        ${logLine ? `<div class="card-log">${esc(logLine)}</div>` : ''}
+        <div class="card-meta">${task.owner ? esc(task.owner) + ' · ' : ''}⛓ ${task.dependencyCount || 0} · ${timeAgo(task.lastUpdated)}</div>
+      </div>`;
+    }
+
+    function renderBoard() {
+      if (!data) return;
+      const board = document.getElementById('board');
+      board.innerHTML = COLS.map((c) => {
+        const tasks = data.columns[c.key] || [];
+        return `<div class="column"><h3>${c.label} (${tasks.length})</h3>
+          ${tasks.length ? tasks.map(renderCard).join('') : '<p class="empty">No tasks</p>'}
+        </div>`;
+      }).join('');
+
+      board.querySelectorAll('.card').forEach((el) => {
+        el.addEventListener('click', () => openDrawer(el.dataset.id));
+      });
+    }
+
+    function renderHeader() {
+      if (!data) return;
+      document.getElementById('project-name').textContent =
+        data.meta.name + ' · ' + data.meta.type.toUpperCase();
+
+      const s = data.summary;
+      const parts = [];
+      if (s.problem) parts.push('Problem: ' + s.problem);
+      if (s.technologies?.length) parts.push('Tech: ' + s.technologies.join(', '));
+      document.getElementById('summary-line').textContent = parts.join('   ');
+
+      const disc = data.config?.disclaimer;
+      const foot = document.getElementById('disclaimer');
+      if (disc) {
+        foot.textContent = disc;
+        foot.classList.remove('hidden');
+      } else {
+        foot.classList.add('hidden');
+      }
+    }
+
+    function renderActivity() {
+      const ul = document.getElementById('activity-list');
+      const events = [...activityLog];
+      if (data?.recentEvents) {
+        for (const e of data.recentEvents) {
+          if (e.message && !events.find((x) => x === e.message)) {
+            events.unshift(formatTime(e.at) + '  ' + (e.taskId ? e.taskId + '  ' : '') + e.message);
+          }
+        }
+      }
+      ul.innerHTML = events.slice(0, 20).map((l) => '<li>' + esc(l) + '</li>').join('') ||
+        '<li class="empty">No activity yet</li>';
+    }
+
+    function openDrawer(id) {
+      const task = data?.tasks[id];
+      if (!task) return;
+      const drawer = document.getElementById('drawer');
+      drawer.classList.add('open');
+      document.getElementById('drawer-backdrop').classList.add('open');
+
+      const act = (task.activity || []).map((a) => a.message).filter(Boolean);
+      drawer.innerHTML = `
+        <button type="button" class="drawer-close" id="close-drawer">×</button>
+        <h2>${esc(task.title)}</h2>
+        <p style="font-size:12px;color:#666">${esc(task.id)} · ${esc(task.status)} · ${esc(task.owner)}</p>
+        <div class="section"><h4>Description</h4><p>${esc(task.description)}</p></div>
+        <div class="section"><h4>Dependencies</h4>
+          ${task.dependencies?.length ? '<ul>' + task.dependencies.map((d) => '<li><button type="button" class="link-btn dep-link" data-dep="' + esc(d) + '">' + esc(d) + '</button></li>').join('') + '</ul>' : '<p class="empty">None</p>'}
+        </div>
+        <div class="section"><h4>Acceptance criteria</h4>
+          ${task.acceptanceCriteria?.length ? '<ul>' + task.acceptanceCriteria.map((c) => '<li>' + esc(c) + '</li>').join('') + '</ul>' : '<p class="empty">—</p>'}
+        </div>
+        ${task.notes ? '<div class="section"><h4>Notes</h4><p>' + esc(task.notes) + '</p></div>' : ''}
+        ${task.risk ? '<div class="section"><h4>Risk</h4><p>' + esc(task.risk) + '</p></div>' : ''}
+        <div class="section"><h4>Activity</h4>
+          ${act.length ? '<ul>' + act.map((m) => '<li>' + esc(m) + '</li>').join('') + '</ul>' : '<p class="empty">—</p>'}
+        </div>
+        <div class="section"><p style="font-size:11px;color:#999">${esc(task.sourcePath)}</p>
+          <button type="button" class="link-btn" id="copy-task-path">Copy path</button></div>
+      `;
+
+      document.getElementById('close-drawer').onclick = closeDrawer;
+      document.getElementById('copy-task-path').onclick = () => navigator.clipboard.writeText(task.sourcePath);
+      drawer.querySelectorAll('.dep-link').forEach((btn) => {
+        btn.onclick = (e) => { e.stopPropagation(); closeDrawer(); openDrawer(btn.dataset.dep); };
+      });
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawer').classList.remove('open');
+      document.getElementById('drawer-backdrop').classList.remove('open');
+    }
+
+    function openModal() {
+      if (!data?.contract) return;
+      document.getElementById('modal-title').textContent = data.contract.title;
+      document.getElementById('modal-path').textContent = data.contract.path;
+      document.getElementById('modal-content').textContent = data.contract.content;
+      document.getElementById('modal-updated').textContent = 'Updated ' + timeAgo(data.contract.lastUpdated);
+      document.getElementById('modal-backdrop').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.remove('open');
+    }
+
+    async function fetchData() {
+      syncing = true;
+      setLive(true);
+      const res = await fetch('/api/backlog.json');
+      syncing = false;
+      if (!res.ok) throw new Error('Failed to load backlog');
+      data = await res.json();
+      lastSync = new Date().toISOString();
+      renderHeader();
+      renderBoard();
+      renderActivity();
+      setLive(true);
+    }
+
+    function connectSse() {
+      const es = new EventSource('/events');
+      es.onopen = () => setLive(true);
+      es.onerror = () => setLive(false);
+      es.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg.type === 'backlog_updated' && msg.taskIds) {
+            msg.taskIds.forEach((id) => {
+              pulseIds.add(id);
+              setTimeout(() => { pulseIds.delete(id); renderBoard(); }, 3000);
+            });
+            if (msg.taskIds.length) {
+              activityLog.unshift(formatTime(new Date().toISOString()) + '  ' + msg.taskIds.join(', ') + ' updated');
+              activityLog = activityLog.slice(0, 30);
+            }
+          }
+          fetchData().catch(console.error);
+        } catch (e) { console.error(e); }
+      };
+    }
+
+    document.getElementById('view-agreement').onclick = openModal;
+    document.getElementById('modal-close').onclick = closeModal;
+    document.getElementById('modal-backdrop').onclick = (e) => { if (e.target.id === 'modal-backdrop') closeModal(); };
+    document.getElementById('copy-contract-path').onclick = () => {
+      if (data?.contract?.path) navigator.clipboard.writeText(data.contract.path);
+    };
+    document.getElementById('drawer-backdrop').onclick = (e) => {
+      if (e.target.id === 'drawer-backdrop') closeDrawer();
+    };
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { closeDrawer(); closeModal(); }
+    });
+
+    fetchData().then(connectSse).catch((e) => {
+      console.error(e);
+      setLive(false);
+    });
+  </script>
+</body>
+</html>

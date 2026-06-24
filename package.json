@@ -4,6 +4,9 @@
   "description": "Model Context Protocol tool: init_sdlc creates agentic-sdlc folder in the app directory.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "mcp-agentic-sdlc-backlog": "dist/backlog/cli.js"
+  },
   "scripts": {
     "build": "tsc && npm run copy-assets",
     "start": "node dist/index.js",
@@ -11,7 +14,10 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
     "copy-assets": "cp -r src/templates dist && cp -r src/recipes dist",
-    "test": "node test/workflow.test.js"
+    "test": "node test/workflow.test.js && node test/backlog.test.js",
+    "backlog:sync": "node dist/backlog/cli.js sync",
+    "backlog:watch": "node dist/backlog/cli.js watch",
+    "backlog:serve": "node dist/backlog/cli.js serve"
   },
   "keywords": [
     "mcp",
@@ -23,6 +29,7 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "chokidar": "^4.0.3",
     "yaml": "^2.8.0"
   },
   "devDependencies": {
